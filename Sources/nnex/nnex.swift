@@ -32,7 +32,7 @@ extension Nnex {
         static let configuration = CommandConfiguration(
             abstract: "Commands to manage Homebrew distribution",
             usage: "",
-            subcommands: [TapList.self]
+            subcommands: [Tap.self, TapList.self]
         )
     }
 }

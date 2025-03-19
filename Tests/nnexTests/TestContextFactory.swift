@@ -9,11 +9,24 @@ import SwiftData
 import Foundation
 @testable import nnex
 
-final class TestContextFactory: ContextFactory {
+final class TestContextFactory {
+    private let inputProvider: (InputType) -> String
     private var context: SharedContext?
     
+    init(inputProvider: @escaping (InputType) -> String = { _ in "" }) {
+        self.inputProvider = inputProvider
+    }
+}
+
+
+// MARK: - Factory
+extension TestContextFactory: ContextFactory {
     func makePicker() -> any Picker {
-        return TestPicker()
+        return TestPicker(inputProvider: inputProvider)
+    }
+    
+    func makeFolderLoader() -> any FolderLoader {
+        return TestFolderLoader()
     }
     
     func makeContext() throws -> SharedContext {
@@ -42,8 +55,4 @@ private extension TestContextFactory {
     }
 }
 
-final class TestPicker: Picker {
-    func getRequiredInput(_ prompt: String) throws -> String {
-        return "" // TODO: -
-    }
-}
+

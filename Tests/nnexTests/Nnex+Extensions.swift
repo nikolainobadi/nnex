@@ -10,17 +10,18 @@ import ArgumentParser
 @testable import nnex
 
 extension Nnex {
-    static func captureOutput(contextFactory: TestContextFactory? = nil, args: [String]? = []) throws -> String {
+    @discardableResult
+    static func testRun(contextFactory: TestContextFactory? = nil, args: [String]? = []) throws -> String {
         self.contextFactory = contextFactory ?? TestContextFactory()
         
-        return try captureOutput(args)
+        return try captureOutput(factory: contextFactory, args: args)
     }
 }
 
 
 // MARK: - Helper Methods
-fileprivate extension ParsableCommand {
-    static func captureOutput(_ arguments: [String]?) throws -> String {
+fileprivate extension Nnex {
+    static func captureOutput(factory: TestContextFactory? = nil, args: [String]?) throws -> String {
         let pipe = Pipe()
         let readHandle = pipe.fileHandleForReading
         let writeHandle = pipe.fileHandleForWriting
@@ -28,7 +29,7 @@ fileprivate extension ParsableCommand {
         let originalStdout = dup(STDOUT_FILENO) // Save original stdout
         dup2(writeHandle.fileDescriptor, STDOUT_FILENO) // Redirect stdout to pipe
         
-        var command = try Self.parseAsRoot(arguments)
+        var command = try Self.parseAsRoot(args)
         try command.run()
         
         fflush(stdout) // Ensure all output is flushed

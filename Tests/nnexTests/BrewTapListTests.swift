@@ -36,7 +36,7 @@ struct BrewTapListTests {
 // MARK: - SUT
 private extension BrewTapListTests {
     func getOutput(factory: TestContextFactory? = nil) throws -> String {
-        return try Nnex.captureOutput(contextFactory: factory, args: ["brew", "tap-list"])
+        return try Nnex.testRun(contextFactory: factory, args: ["brew", "tap-list"])
     }
 }
 

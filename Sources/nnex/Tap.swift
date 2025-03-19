@@ -18,16 +18,18 @@ extension Nnex.Brew {
         func run() throws {
             let context = try Nnex.makeContext()
             let name = try getTapName()
+            let folderLoader = Nnex.contextFactory.makeFolderLoader()
             
             // TODO: - maybe ask for location of new tap, or choose a default location
             // perhaps this could be a configuration that can be adjusted
             // first time should ask user for path or allow them to select pre-defined default path
-            let parentFolder = try Folder.home.subfolder(named: "Desktop")
+            let parentFolder = try folderLoader.loadTapListFolder()
             let tapFolder = try parentFolder.createSubfolderIfNeeded(withName: name)
             
             print("Created folder for new tap named \(name) at \(tapFolder.path)")
             
             // TODO: - need to upload to GitHub
+            
             let newTap = SwiftDataTap(name: name, localPath: tapFolder.path, remotePath: "")
             
             try context.saveNewTap(newTap)
@@ -40,12 +42,12 @@ extension Nnex.Brew {
 fileprivate extension Nnex.Brew.Tap {
     func getTapName() throws -> String {
         let picker = Nnex.makePicker()
-        var name = try picker.getRequiredInput("Enter the name of your new Homebrew Tap.")
+        let name = try picker.getRequiredInput(.newTap)
         
-        if !name.lowercased().contains("homebrew-") {
-            name = "homebrew-\(name)"
+        if name.lowercased().contains(.homebrewPrefix) {
+            return name
         }
         
-        return name
+        return .homebrewPrefix + "\(name)"
     }
 }
