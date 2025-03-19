@@ -10,14 +10,17 @@ import SwiftPicker
 import ArgumentParser
 
 extension Nnex.Brew {
-    struct Tap: ParsableCommand {
+    struct CreateTap: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Registers a new homebrew tap."
         )
         
+        @Option(name: .shortAndLong, help: "")
+        var name: String?
+        
         func run() throws {
             let context = try Nnex.makeContext()
-            let name = try getTapName()
+            let name = try getTapName(name: name)
             let folderLoader = Nnex.contextFactory.makeFolderLoader()
             
             // TODO: - maybe ask for location of new tap, or choose a default location
@@ -39,10 +42,18 @@ extension Nnex.Brew {
 
 
 // MARK: - Private Methods
-fileprivate extension Nnex.Brew.Tap {
-    func getTapName() throws -> String {
+fileprivate extension Nnex.Brew.CreateTap {
+    func getTapName(name: String?) throws -> String {
+        if let name, !name.isEmpty {
+            return name
+        }
+        
         let picker = Nnex.makePicker()
         let name = try picker.getRequiredInput(.newTap)
+        
+        if name.isEmpty {
+            throw PickerError.invalidName
+        }
         
         if name.lowercased().contains(.homebrewPrefix) {
             return name
@@ -50,4 +61,8 @@ fileprivate extension Nnex.Brew.Tap {
         
         return .homebrewPrefix + "\(name)"
     }
+}
+
+enum PickerError: Error {
+    case invalidName
 }

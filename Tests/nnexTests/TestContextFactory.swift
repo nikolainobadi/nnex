@@ -11,10 +11,12 @@ import Foundation
 
 final class TestContextFactory {
     private let inputProvider: (InputType) -> String
+    private let permissionProvider: (PermissionType) -> Bool
     private var context: SharedContext?
     
-    init(inputProvider: @escaping (InputType) -> String = { _ in "" }) {
+    init(inputProvider: @escaping (InputType) -> String = { _ in "" }, permissionProvider: @escaping (PermissionType) -> Bool = { _ in false }) {
         self.inputProvider = inputProvider
+        self.permissionProvider = permissionProvider
     }
 }
 
@@ -22,7 +24,7 @@ final class TestContextFactory {
 // MARK: - Factory
 extension TestContextFactory: ContextFactory {
     func makePicker() -> any Picker {
-        return TestPicker(inputProvider: inputProvider)
+        return TestPicker(inputProvider: inputProvider, permissionProvider: permissionProvider)
     }
     
     func makeFolderLoader() -> any FolderLoader {

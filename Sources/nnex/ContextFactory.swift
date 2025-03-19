@@ -18,7 +18,21 @@ protocol ContextFactory {
 }
 
 protocol Picker {
+    func getPermission(_ type: PermissionType) -> Bool
     func getRequiredInput(_ type: InputType) throws -> String
+}
+
+enum PermissionType {
+    case doesTapAlreadyExist
+}
+
+extension PermissionType {
+    var prompt: String {
+        switch self {
+        case .doesTapAlreadyExist:
+            return "Does the folder for this tap alreay exist on your computer?"
+        }
+    }
 }
 
 enum InputType {
@@ -57,6 +71,10 @@ struct DefaultPicker {
 }
 
 extension DefaultPicker: Picker {
+    func getPermission(_ type: PermissionType) -> Bool {
+        return picker.getPermission(prompt: type.prompt)
+    }
+    
     func getRequiredInput(_ type: InputType) throws -> String {
         return try picker.getRequiredInput(type.prompt)
     }

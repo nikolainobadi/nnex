@@ -61,7 +61,7 @@ private extension BrewTapTests {
     }
     
     func runCommand(_ testFactory: TestContextFactory) throws {
-        try Nnex.testRun(contextFactory: testFactory, args: ["brew", "tap"])
+        try Nnex.testRun(contextFactory: testFactory, args: ["brew", "create-tap"])
     }
 }
 
