@@ -1,0 +1,51 @@
+{
+  "originHash" : "cf87207c5a83e46146afcaa38cc6be1f0fc0cc069ee41454f44fc9181e7f93ed",
+  "pins" : [
+    {
+      "identity" : "ansiterminalmodified",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nikolainobadi/ANSITerminalModified",
+      "state" : {
+        "revision" : "fd1443a5369693ddac5c8ef8dc6128af4011ff42",
+        "version" : "0.6.0"
+      }
+    },
+    {
+      "identity" : "files",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/JohnSundell/Files",
+      "state" : {
+        "revision" : "d273b5b7025d386feef79ef6bad7de762e106eaf",
+        "version" : "4.2.0"
+      }
+    },
+    {
+      "identity" : "nnswiftdatakit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nikolainobadi/NnSwiftDataKit.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "f8967167825afd9f262732ca3659bf67f3ecc682"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "state" : {
+        "revision" : "41982a3656a71c768319979febd796c6fd111d5c",
+        "version" : "1.5.0"
+      }
+    },
+    {
+      "identity" : "swiftpicker",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nikolainobadi/SwiftPicker.git",
+      "state" : {
+        "revision" : "55dd99122cda2eb593e1a3ad42b02ea9db22381b",
+        "version" : "0.8.0"
+      }
+    }
+  ],
+  "version" : 3
+}
