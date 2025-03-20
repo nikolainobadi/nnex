@@ -83,22 +83,3 @@ private extension ProjectBuilder {
         return universalBinaryPath
     }
 }
-
-// MARK: - Dependencies
-enum ReleaseArchitecture {
-    case arm, intel
-    
-    var name: String {
-        switch self {
-        case .arm:
-            return "arm64"
-        case .intel:
-            return "x86_64"
-        }
-    }
-}
-
-struct BinaryInfo {
-    let path: String
-    let sha256: String
-}

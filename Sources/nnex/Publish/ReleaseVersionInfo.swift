@@ -7,7 +7,7 @@
 
 import ArgumentParser
 
-enum VersionOrIncrement: ExpressibleByArgument {
+enum ReleaseVersionInfo: ExpressibleByArgument {
     case version(String)
     case increment(VersionPart)
     
