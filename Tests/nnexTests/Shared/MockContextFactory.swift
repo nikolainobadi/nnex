@@ -10,10 +10,13 @@ import Foundation
 @testable import nnex
 
 final class MockContextFactory {
+    private let runResults: [String]
     private let inputResponses: [String]
+    private var shell: MockShell?
     private var context: SharedContext?
     
-    init(inputResponses: [String] = []) {
+    init(runResults: [String] = [], inputResponses: [String] = []) {
+        self.runResults = runResults
         self.inputResponses = inputResponses
     }
 }
@@ -22,7 +25,15 @@ final class MockContextFactory {
 // MARK: - Factory
 extension MockContextFactory: ContextFactory {
     func makeShell() -> Shell {
-        return MockShell()
+        if let shell {
+            return shell
+        }
+        
+        let newShell = MockShell(runResults: runResults)
+        
+        shell = newShell
+        
+        return newShell
     }
     
     func makePicker() -> Picker {

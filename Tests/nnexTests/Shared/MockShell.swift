@@ -28,6 +28,7 @@ extension MockShell: Shell {
         if shouldThrowError {
             throw NSError(domain: "MockShell", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
         }
+        
         return runResults.isEmpty ? "" : runResults.removeFirst()
     }
 
