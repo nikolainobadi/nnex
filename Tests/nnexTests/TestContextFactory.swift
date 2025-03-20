@@ -35,7 +35,7 @@ extension TestContextFactory: ContextFactory {
         return TestBuilder()
     }
     
-    func makeRemoteRepoLoader() -> any RemoteRepoLoader {
+    func makeRemoteRepoLoader() -> any RemoteRepoHandler {
         return TestRemoteRepoLoader()
     }
     
@@ -71,7 +71,7 @@ struct TestBuilder: ProjectBuilder {
     }
 }
 
-struct TestRemoteRepoLoader: RemoteRepoLoader {
+struct TestRemoteRepoLoader: RemoteRepoHandler {
     func getGitHubURL(path: String?) -> String {
         return "" // TODO: -
     }

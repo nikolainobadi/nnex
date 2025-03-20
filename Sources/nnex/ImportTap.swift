@@ -53,8 +53,9 @@ extension Nnex.Brew {
 
 
 // MARK: - Dependencies
-protocol RemoteRepoLoader {
+protocol RemoteRepoHandler {
     func getGitHubURL(path: String?) -> String
+    func getPreviousVersionNumber(path: String?) -> String?
 }
 
 struct BrewFormula: Codable {

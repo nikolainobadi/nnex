@@ -38,6 +38,13 @@ final class SharedContext {
         try context.save()
     }
     
+    func saveNewFormula(_ formula: SwiftDataFormula, in tap: SwiftDataTap) throws {
+        context.insert(formula)
+        tap.formulas.append(formula)
+        formula.tap = tap
+        try context.save()
+    }
+    
     init(config: ModelConfiguration? = nil, defaults: UserDefaults? = nil) throws {
         if let config, let defaults {
             let container = try ModelContainer(for: SwiftDataTap.self, configurations: config)

@@ -28,7 +28,7 @@ extension Nnex {
         return try contextFactory.makeContext()
     }
     
-    static func makeRemoteRepoLoader() -> RemoteRepoLoader {
+    static func makeRemoteRepoLoader() -> RemoteRepoHandler {
         return contextFactory.makeRemoteRepoLoader()
     }
 }

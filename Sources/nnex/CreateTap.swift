@@ -61,4 +61,10 @@ fileprivate extension Nnex.Brew.CreateTap {
 enum PickerError: Error {
     case invalidName
     case noSavedTaps
+    case noTapRegisterdForProject
+}
+
+enum VersionError: Error {
+    case noPreviousVersion
+    case invalidVersionNumber
 }
