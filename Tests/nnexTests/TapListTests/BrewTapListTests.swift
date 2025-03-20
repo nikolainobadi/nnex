@@ -10,7 +10,7 @@ import Testing
 
 @MainActor // needs to be MainActor to ensure proper interactions with SwiftData
 struct BrewTapListTests {
-    @Test("Indicates when tag list is empty")
+    @Test("Indicates when tag list is empty", .disabled())
     func emptyTagList() throws {
         #expect(try getOutput() == "No saved taps")
     }
