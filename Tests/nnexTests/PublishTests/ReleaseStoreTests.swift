@@ -11,96 +11,92 @@ import Testing
 struct ReleaseStoreTests {
     @Test("Uploads a release and returns binary URL")
     func uploadRelease() throws {
-        let mockShell = MockShell(runResults: ["https://github.com/test/binary1"])
-        let mockPicker = MockPicker(inputResponses: ["Release notes for version 1.0.0"])
-        let store = ReleaseStore(shell: mockShell, picker: mockPicker)
-        let info = ReleaseInfo(binaryPath: "path/to/binary", projectPath: "path/to/project", versionInfo: .version("1.0.0"))
-        let result = try store.uploadRelease(info: info)
+        let version = "1.0.0"
+        let info = makeReleaseInfo(versionInfo: .version(version))
+        let releaseNotes = "Release notes for version \(version)"
+        let (sut, shell) = makeSUT(runResults: ["https://github.com/test/binary1"], inputResponses: [releaseNotes])
+        let result = try sut.uploadRelease(info: info)
         
         #expect(result == "https://github.com/test/binary1")
-        #expect(mockShell.printedCommands.contains("gh release create 1.0.0 path/to/binary --title \"1.0.0\" --notes \"Release notes for version 1.0.0\""))
+        #expect(shell.printedCommands.contains("gh release create \(version) \(info.binaryPath) --title \"\(version)\" --notes \"\(releaseNotes)\""))
     }
     
     @Test("Throws error if shell command fails during release upload")
     func uploadReleaseShellError() throws {
-        let mockShell = MockShell(shouldThrowError: true)
-        let mockPicker = MockPicker()
-        let store = ReleaseStore(shell: mockShell, picker: mockPicker)
-        let info = ReleaseInfo(binaryPath: "path/to/binary", projectPath: "path/to/project", versionInfo: .version("1.0.0"))
+        let info = makeReleaseInfo()
+        let sut = makeSUT(throwShellError: true).sut
 
         #expect(throws: (any Error).self) {
-            try store.uploadRelease(info: info)
+            try sut.uploadRelease(info: info)
+        }
+    }
+    
+    @Test("Uploads release with incremented version (major)")
+    func uploadReleaseWithIncrementedVersion() throws {
+        let info = makeReleaseInfo(versionInfo: .increment(.major))
+        let (sut, shell) = makeSUT(runResults: ["v1.2.3", "https://github.com/test/binary1"], inputResponses: ["Incremental release notes"])
+        
+        let result = try sut.uploadRelease(info: info)
+        
+        #expect(result == "https://github.com/test/binary1")
+        #expect(shell.printedCommands.contains("gh release create 2.0.0 \(info.binaryPath) --title \"2.0.0\" --notes \"Incremental release notes\""))
+    }
+
+    @Test("Uploads release when version is provided via input")
+    func uploadReleaseWithUserInputVersion() throws {
+        let version = "1.5.0"
+        let info = makeReleaseInfo(versionInfo: nil)
+        let releaseNotes = "Manual release notes"
+        let (sut, shell) = makeSUT(runResults: ["https://github.com/test/binary1"], inputResponses: [version, releaseNotes])
+        
+        let result = try sut.uploadRelease(info: info)
+        
+        #expect(result == "https://github.com/test/binary1")
+        #expect(shell.printedCommands.contains("gh release create \(version) \(info.binaryPath) --title \"\(version)\" --notes \"\(releaseNotes)\""))
+    }
+    
+    @Test("Throws error if version number is invalid")
+    func invalidVersionNumberError() throws {
+        let info = makeReleaseInfo(versionInfo: nil)
+        let (sut, _) = makeSUT(inputResponses: ["invalid.version"])
+        
+        #expect(throws: (any Error).self) {
+            try sut.uploadRelease(info: info)
+        }
+    }
+    
+    @Test("Throws error if previous version cannot be retrieved")
+    func previousVersionError() throws {
+        let info = makeReleaseInfo(versionInfo: .increment(.patch))
+        let (sut, _) = makeSUT(throwShellError: true)
+        
+        #expect(throws: (any Error).self) {
+            try sut.uploadRelease(info: info)
+        }
+    }
+    
+    @Test("Throws error if release notes retrieval fails")
+    func releaseNotesError() throws {
+        let info = makeReleaseInfo()
+        let (sut, _) = makeSUT(throwPickerError: true)
+        
+        #expect(throws: (any Error).self) {
+            try sut.uploadRelease(info: info)
         }
     }
 }
 
-import Foundation
-//@testable import nnex
-
-final class MockShell: Shell {
-    private let shouldThrowError: Bool
-    private let errorMessage = "MockShell error"
-    private var runResults: [String]
-    private(set) var printedCommands: [String] = []
-    
-    init(runResults: [String] = [], shouldThrowError: Bool = false) {
-        self.runResults = runResults
-        self.shouldThrowError = shouldThrowError
-    }
-
-    func run(_ command: String) throws -> String {
-        printedCommands.append(command)
-        if shouldThrowError {
-            throw NSError(domain: "MockShell", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-        }
-        return runResults.isEmpty ? "" : runResults.removeFirst()
-    }
-
-    func runAndPrint(_ command: String) throws {
-        printedCommands.append(command)
-        if shouldThrowError {
-            throw NSError(domain: "MockShell", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-        }
-    }
-}
-
-import Foundation
-import SwiftPicker
-//@testable import nnex
-
-final class MockPicker: Picker {
-    private let shouldThrowError: Bool
-    private let errorMessage = "MockPicker error"
-    private var permissionResponses: [Bool]
-    private var inputResponses: [String]
-    
-    init(permissionResponses: [Bool] = [], inputResponses: [String] = [], shouldThrowError: Bool = false) {
-        self.shouldThrowError = shouldThrowError
-        self.permissionResponses = permissionResponses
-        self.inputResponses = inputResponses
+// MARK: - SUT
+private extension ReleaseStoreTests {
+    func makeSUT(runResults: [String] = [], inputResponses: [String] = [], throwShellError: Bool = false, throwPickerError: Bool = false) -> (sut: ReleaseStore, shell: MockShell) {
+        let shell = MockShell(runResults: runResults, shouldThrowError: throwShellError)
+        let picker = MockPicker(inputResponses: inputResponses, shouldThrowError: throwPickerError)
+        let sut = ReleaseStore(shell: shell, picker: picker)
+        
+        return (sut, shell)
     }
     
-    func requiredPermission(prompt: String) throws {
-        if shouldThrowError {
-            throw NSError(domain: "MockPicker", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-        }
-    }
-
-    func getPermission(_ type: PermissionType) -> Bool {
-        return permissionResponses.isEmpty ? false : permissionResponses.removeFirst()
-    }
-
-    func getRequiredInput(_ type: InputType) throws -> String {
-        if shouldThrowError {
-            throw NSError(domain: "MockPicker", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-        }
-        return inputResponses.isEmpty ? "" : inputResponses.removeFirst()
-    }
-
-    func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
-        if shouldThrowError {
-            throw NSError(domain: "MockPicker", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-        }
-        return items.first!
+    func makeReleaseInfo(binaryPath: String = "path/to/binary", projectPath: String = "path/to/project", versionInfo: ReleaseVersionInfo? = .version("1.0.0")) -> ReleaseInfo {
+        return .init(binaryPath: binaryPath, projectPath: projectPath, versionInfo: versionInfo)
     }
 }
