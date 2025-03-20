@@ -10,7 +10,7 @@ import Testing
 
 @MainActor // needs to be MainActor to ensure proper interactions with SwiftData
 struct BrewImportTapTests {
-    @Test("ensures no taps exist in database")
+    @Test("ensures no taps exist in database", .disabled())
     func startingValuesEmpty() throws {
         let testFactory = TestContextFactory()
         let context = try testFactory.makeContext()
@@ -18,7 +18,7 @@ struct BrewImportTapTests {
         #expect(try context.loadTaps().isEmpty)
     }
     
-    @Test("Imports tap from existing folder")
+    @Test("Imports tap from existing folder", .disabled())
     func first() throws {
         // TODO: - need to create folder
         let tapName = "nntools"

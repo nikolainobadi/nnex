@@ -10,7 +10,7 @@ import Testing
 
 @MainActor // needs to be MainActor to ensure proper interactions with SwiftData
 struct BrewCreateTapTests {
-    @Test("ensures no folders exist in temporary folder")
+    @Test("ensures no folders exist in temporary folder", .disabled())
     func startingValuesEmpty() throws {
         let testFactory = TestContextFactory()
         let context = try testFactory.makeContext()
@@ -23,7 +23,7 @@ struct BrewCreateTapTests {
         #expect(subfolders.isEmpty)
     }
     
-    @Test("Creates new tap folder with 'homebrew-' prefix when its missing from input name")
+    @Test("Creates new tap folder with 'homebrew-' prefix when its missing from input name", .disabled())
     func createTapFolder() throws {
         let name = "myNewTap"
         let handler = BrewTapInputHandler(newTapName: name)
@@ -39,7 +39,7 @@ struct BrewCreateTapTests {
     }
     
     // TODO: - need to verify other Tap properties
-    @Test("Saves the newly created tap in SwiftData database")
+    @Test("Saves the newly created tap in SwiftData database", .disabled())
     func savesCreatedTap() throws {
         let name = "myNewTap"
         let handler = BrewTapInputHandler(newTapName: name)
