@@ -17,6 +17,7 @@ protocol ContextFactory {
     func makeBuilder() -> ProjectBuilder
     func makeFolderLoader() -> FolderLoader
     func makeContext() throws -> SharedContext
+    func makeRemoteRepoLoader() -> RemoteRepoLoader
 }
 
 protocol Picker {
@@ -39,7 +40,7 @@ extension PermissionType {
 }
 
 enum InputType {
-    case newTap
+    case newTap, importTapPath
 }
 
 extension InputType {
@@ -47,6 +48,8 @@ extension InputType {
         switch self {
         case .newTap:
             return "Enter the name of your new Homebrew Tap."
+        case .importTapPath:
+            return "Enter the local path to you Homebrew tap folder."
         }
     }
 }
@@ -69,8 +72,11 @@ struct DefaultContextFactory: ContextFactory {
     func makeContext() throws -> SharedContext {
         return try SharedContext()
     }
+    
+    func makeRemoteRepoLoader() -> RemoteRepoLoader {
+        return DefaultRemoteRepoLoader()
+    }
 }
-
 
 
 // TODO: - 

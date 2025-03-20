@@ -16,6 +16,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/JohnSundell/Files", from: "4.0.0"),
         .package(url: "https://github.com/kareman/SwiftShell", from: "5.0.0"),
+        .package(url: "https://github.com/nikolainobadi/NnGitKit.git", branch: "main"),
         .package(url: "https://github.com/nikolainobadi/SwiftPicker.git", from: "0.8.0"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
         .package(url: "https://github.com/nikolainobadi/NnSwiftDataKit.git", branch: "main")
@@ -25,6 +26,7 @@ let package = Package(
             name: "nnex",
             dependencies: [
                 "Files",
+                "NnGitKit",
                 "SwiftShell",
                 "SwiftPicker",
                 "NnSwiftDataKit",

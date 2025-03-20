@@ -17,8 +17,15 @@ final class SharedContext {
         return try context.fetch(FetchDescriptor<SwiftDataTap>())
     }
     
-    func saveNewTap(_ tap: SwiftDataTap) throws {
+    func saveNewTap(_ tap: SwiftDataTap, formulas: [SwiftDataFormula] = []) throws {
         context.insert(tap)
+        
+        for formula in formulas {
+            context.insert(formula)
+            tap.formulas.append(formula)
+            formula.tap = tap
+        }
+        
         try context.save()
     }
     

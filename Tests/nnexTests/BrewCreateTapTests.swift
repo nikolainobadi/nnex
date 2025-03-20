@@ -1,5 +1,5 @@
 //
-//  BrewTapTests.swift
+//  BrewCreateTapTests.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 3/19/25.
@@ -9,7 +9,7 @@ import Testing
 @testable import nnex
 
 @MainActor // needs to be MainActor to ensure proper interactions with SwiftData
-struct BrewTapTests {
+struct BrewCreateTapTests {
     @Test("ensures no folders exist in temporary folder")
     func startingValuesEmpty() throws {
         let testFactory = TestContextFactory()
@@ -54,7 +54,7 @@ struct BrewTapTests {
 
 
 // MARK: - Run Command
-private extension BrewTapTests {
+private extension BrewCreateTapTests {
     func runCommand(_ testFactory: TestContextFactory) throws {
         try Nnex.testRun(contextFactory: testFactory, args: ["brew", "create-tap"])
     }
@@ -73,6 +73,8 @@ struct BrewTapInputHandler {
         switch type {
         case .newTap:
             return newTapName
+        default:
+            return ""
         }
     }
 }

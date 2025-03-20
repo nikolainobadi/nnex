@@ -27,6 +27,10 @@ extension Nnex {
     static func makeContext() throws -> SharedContext {
         return try contextFactory.makeContext()
     }
+    
+    static func makeRemoteRepoLoader() -> RemoteRepoLoader {
+        return contextFactory.makeRemoteRepoLoader()
+    }
 }
 
 
@@ -36,7 +40,7 @@ extension Nnex {
         static let configuration = CommandConfiguration(
             abstract: "Commands to manage Homebrew distribution",
             usage: "",
-            subcommands: [CreateTap.self, TapList.self, Publish.self, Untap.self]
+            subcommands: [ImportTap.self, CreateTap.self, TapList.self, Publish.self, Untap.self]
         )
     }
 }

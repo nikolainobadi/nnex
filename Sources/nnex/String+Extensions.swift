@@ -9,4 +9,12 @@ extension String {
     var homebrewTapName: String {
         return "homebrew-\(self)"
     }
+    
+    var removingHomebrewPrefix: String {
+        guard self.hasPrefix("homebrew-") else {
+            return self
+        }
+        
+        return String(self.dropFirst("homebrew-".count))
+    }
 }
