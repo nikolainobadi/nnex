@@ -52,6 +52,7 @@ private extension PublishInfoLoader {
     
     func createNewFormula(for folder: Folder) throws -> SwiftDataFormula {
         let details = try picker.getRequiredInput(.formulaDetails)
+        // TODO: - need to abstract getGithubURL
         let homepage = Nnex.makeRemoteRepoLoader().getGitHubURL(path: folder.path)
         let license = detectLicense(in: folder)
         
