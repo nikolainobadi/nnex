@@ -10,7 +10,7 @@ import Testing
 
 @MainActor // needs to be MainActor to ensure proper interactions with SwiftData
 struct BrewImportTapTests {
-    @Test("ensures no taps exist in database", .disabled())
+    @Test("ensures no taps exist in database")
     func startingValuesEmpty() throws {
         let testFactory = TestContextFactory()
         let context = try testFactory.makeContext()
