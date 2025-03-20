@@ -6,6 +6,7 @@
 //
 
 import Testing
+import GitCommandGen
 @testable import nnex
 
 struct ReleaseStoreTests {
@@ -18,7 +19,7 @@ struct ReleaseStoreTests {
         let result = try sut.uploadRelease(info: info)
         
         #expect(result == "https://github.com/test/binary1")
-//        #expect(shell.printedCommands.contains("gh release create \(version) \(info.binaryPath) --title \"\(version)\" --notes \"\(releaseNotes)\""))
+        #expect(shell.printedCommands.contains(makeGitHubCommand(.createNewReleaseWithBinary(version: version, binaryPath: info.binaryPath, releaseNotes: releaseNotes), path: info.projectPath)))
     }
     
     @Test("Throws error if shell command fails during release upload")
@@ -33,13 +34,14 @@ struct ReleaseStoreTests {
     
     @Test("Uploads release with incremented version (major)")
     func uploadReleaseWithIncrementedVersion() throws {
+        let releaseNotes = "Incremental release notes"
         let info = makeReleaseInfo(versionInfo: .increment(.major))
-        let (sut, shell) = makeSUT(runResults: ["v1.2.3", "https://github.com/test/binary1"], inputResponses: ["Incremental release notes"])
+        let (sut, shell) = makeSUT(runResults: ["v1.2.3", "https://github.com/test/binary1"], inputResponses: [releaseNotes])
         
         let result = try sut.uploadRelease(info: info)
         
         #expect(result == "https://github.com/test/binary1")
-//        #expect(shell.printedCommands.contains("gh release create 2.0.0 \(info.binaryPath) --title \"2.0.0\" --notes \"Incremental release notes\""))
+        #expect(shell.printedCommands.contains(makeGitHubCommand(.createNewReleaseWithBinary(version: "2.0.0", binaryPath: info.binaryPath, releaseNotes: releaseNotes), path: info.projectPath)))
     }
 
     @Test("Uploads release when version is provided via input")
@@ -52,7 +54,7 @@ struct ReleaseStoreTests {
         let result = try sut.uploadRelease(info: info)
         
         #expect(result == "https://github.com/test/binary1")
-//        #expect(shell.printedCommands.contains("gh release create \(version) \(info.binaryPath) --title \"\(version)\" --notes \"\(releaseNotes)\""))
+        #expect(shell.printedCommands.contains(makeGitHubCommand(.createNewReleaseWithBinary(version: version, binaryPath: info.binaryPath, releaseNotes: releaseNotes), path: info.projectPath)))
     }
     
     @Test("Throws error if version number is invalid")
