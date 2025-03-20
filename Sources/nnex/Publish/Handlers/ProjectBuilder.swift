@@ -5,8 +5,6 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
-import Files
-
 struct ProjectBuilder {
     private let shell: Shell
     
@@ -54,16 +52,7 @@ private extension ProjectBuilder {
     func buildUniversalBinary(projectName: String, projectPath: String) throws -> String {
         let buildPath = "\(projectPath).build/universal"
         let universalBinaryPath = "\(buildPath)/\(projectName)"
-
-        // TODO: - this may not be needed
-        // deleting ensures a 'clean' folder, but may be unnecessary
-        if let universalFolder = try? Folder(path: buildPath) {
-            print("⚠️ Universal binary folder already exists at: \(buildPath)")
-            print("🗑 Removing existing universal folder...")
-            
-            try universalFolder.delete()
-        }
-
+        
         print("📂 Creating universal binary folder at: \(buildPath)")
         try shell.runAndPrint("mkdir -p \(buildPath)")
 
