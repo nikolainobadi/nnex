@@ -6,6 +6,7 @@
 //
 
 import Files
+import SwiftPicker
 
 protocol FolderLoader {
     func loadTapListFolder() throws -> Folder
@@ -13,6 +14,7 @@ protocol FolderLoader {
 
 protocol ContextFactory {
     func makePicker() -> Picker
+    func makeBuilder() -> ProjectBuilder
     func makeFolderLoader() -> FolderLoader
     func makeContext() throws -> SharedContext
 }
@@ -20,6 +22,7 @@ protocol ContextFactory {
 protocol Picker {
     func getPermission(_ type: PermissionType) -> Bool
     func getRequiredInput(_ type: InputType) throws -> String
+    func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item
 }
 
 enum PermissionType {
@@ -59,26 +62,16 @@ struct DefaultContextFactory: ContextFactory {
         return DefaultFolderLoader()
     }
     
+    func makeBuilder() -> ProjectBuilder {
+        return DefaultProjectBuilder()
+    }
+    
     func makeContext() throws -> SharedContext {
         return try SharedContext()
     }
 }
 
-import SwiftPicker
 
-struct DefaultPicker {
-    private let picker = SwiftPicker()
-}
-
-extension DefaultPicker: Picker {
-    func getPermission(_ type: PermissionType) -> Bool {
-        return picker.getPermission(prompt: type.prompt)
-    }
-    
-    func getRequiredInput(_ type: InputType) throws -> String {
-        return try picker.getRequiredInput(type.prompt)
-    }
-}
 
 // TODO: - 
 struct DefaultFolderLoader: FolderLoader {

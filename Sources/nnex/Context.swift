@@ -22,6 +22,15 @@ final class SharedContext {
         try context.save()
     }
     
+    func deleteTap(_ tap: SwiftDataTap) throws {
+        for formula in tap.formulas {
+            context.delete(formula)
+        }
+        
+        context.delete(tap)
+        try context.save()
+    }
+    
     init(config: ModelConfiguration? = nil, defaults: UserDefaults? = nil) throws {
         if let config, let defaults {
             let container = try ModelContainer(for: SwiftDataTap.self, configurations: config)

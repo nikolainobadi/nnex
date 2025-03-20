@@ -6,7 +6,7 @@
 //
 
 extension String {
-    static var homebrewPrefix: String {
-        return "homebrew-"
+    var homebrewTapName: String {
+        return "homebrew-\(self)"
     }
 }

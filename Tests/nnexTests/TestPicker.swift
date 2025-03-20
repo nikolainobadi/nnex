@@ -5,6 +5,8 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
+import Foundation
+import SwiftPicker
 @testable import nnex
 
 struct TestPicker {
@@ -26,5 +28,9 @@ extension TestPicker: Picker {
     
     func getRequiredInput(_ type: InputType) throws -> String {
         return inputProvider(type)
+    }
+    
+    func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
+        throw NSError(domain: "Test", code: 0) // TODO: -
     }
 }

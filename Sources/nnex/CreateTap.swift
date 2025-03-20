@@ -6,7 +6,6 @@
 //
 
 import Files
-import SwiftPicker
 import ArgumentParser
 
 extension Nnex.Brew {
@@ -27,7 +26,7 @@ extension Nnex.Brew {
             // perhaps this could be a configuration that can be adjusted
             // first time should ask user for path or allow them to select pre-defined default path
             let parentFolder = try folderLoader.loadTapListFolder()
-            let tapFolder = try parentFolder.createSubfolderIfNeeded(withName: name)
+            let tapFolder = try parentFolder.createSubfolderIfNeeded(withName: name.homebrewTapName)
             
             print("Created folder for new tap named \(name) at \(tapFolder.path)")
             
@@ -55,14 +54,11 @@ fileprivate extension Nnex.Brew.CreateTap {
             throw PickerError.invalidName
         }
         
-        if name.lowercased().contains(.homebrewPrefix) {
-            return name
-        }
-        
-        return .homebrewPrefix + "\(name)"
+        return name
     }
 }
 
 enum PickerError: Error {
     case invalidName
+    case noSavedTaps
 }

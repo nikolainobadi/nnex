@@ -31,6 +31,10 @@ extension TestContextFactory: ContextFactory {
         return TestFolderLoader()
     }
     
+    func makeBuilder() -> ProjectBuilder {
+        return TestBuilder()
+    }
+    
     func makeContext() throws -> SharedContext {
         if let context {
             return context
@@ -57,4 +61,8 @@ private extension TestContextFactory {
     }
 }
 
-
+struct TestBuilder: ProjectBuilder {
+    func buildProject(name: String, path: String) throws -> UniversalBinaryPath {
+        return "" // TODO: - 
+    }
+}

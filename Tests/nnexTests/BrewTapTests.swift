@@ -25,16 +25,15 @@ struct BrewTapTests {
     
     @Test("Creates new tap folder with 'homebrew-' prefix when its missing from input name")
     func createTapFolder() throws {
-        let inputName = "myNewTap"
-        let fullTapName = addHomebrewPrefix(to: inputName)
-        let handler = BrewTapInputHandler(newTapName: inputName)
+        let name = "myNewTap"
+        let handler = BrewTapInputHandler(newTapName: name)
         let testFactory = TestContextFactory(inputProvider: handler.getInput(_:))
         let loader = testFactory.makeFolderLoader()
         
         try runCommand(testFactory)
         
         let temporaryFolder = try loader.loadTapListFolder()
-        let newTapFolder = try? temporaryFolder.subfolder(named: fullTapName)
+        let newTapFolder = try? temporaryFolder.subfolder(named: name.homebrewTapName)
         
         #expect(newTapFolder != nil)
     }
@@ -42,24 +41,20 @@ struct BrewTapTests {
     // TODO: - need to verify other Tap properties
     @Test("Saves the newly created tap in SwiftData database")
     func savesCreatedTap() throws {
-        let inputName = "myNewTap"
-        let handler = BrewTapInputHandler(newTapName: inputName)
+        let name = "myNewTap"
+        let handler = BrewTapInputHandler(newTapName: name)
         let testFactory = TestContextFactory(inputProvider: handler.getInput(_:))
         let context = try testFactory.makeContext()
         
         try runCommand(testFactory)
         
-        #expect(try context.loadTaps().first?.name == addHomebrewPrefix(to: inputName))
+        #expect(try context.loadTaps().first?.name == name)
     }
 }
 
 
 // MARK: - Run Command
 private extension BrewTapTests {
-    func addHomebrewPrefix(to name: String) -> String {
-        return .homebrewPrefix + name
-    }
-    
     func runCommand(_ testFactory: TestContextFactory) throws {
         try Nnex.testRun(contextFactory: testFactory, args: ["brew", "create-tap"])
     }

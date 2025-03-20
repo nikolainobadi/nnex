@@ -20,6 +20,10 @@ extension Nnex {
         return contextFactory.makePicker()
     }
     
+    static func makeBuilder() -> ProjectBuilder {
+        return contextFactory.makeBuilder()
+    }
+    
     static func makeContext() throws -> SharedContext {
         return try contextFactory.makeContext()
     }
@@ -32,7 +36,7 @@ extension Nnex {
         static let configuration = CommandConfiguration(
             abstract: "Commands to manage Homebrew distribution",
             usage: "",
-            subcommands: [CreateTap.self, TapList.self]
+            subcommands: [CreateTap.self, TapList.self, Publish.self, Untap.self]
         )
     }
 }
