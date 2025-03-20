@@ -34,7 +34,7 @@ extension ReleaseStore {
 private extension ReleaseStore {
     func getReleaseNotes() throws -> String {
         // TODO: - may be useful to allow user to provide path to release notes files as well
-        return try picker.getRequiredInput(.releaseNotes)
+        return try picker.getRequiredInput(prompt: "Enter notes for this new release.")
     }
     
     func incrementVersion(_ part: ReleaseVersionInfo.VersionPart, path: String) throws -> String {
@@ -63,7 +63,7 @@ private extension ReleaseStore {
     }
     
     func getVersionInput(path: String) throws -> String {
-        let input = try picker.getRequiredInput(.versionNumber)
+        let input = try picker.getRequiredInput(prompt: "Enter the version number for this release.")
         
         if let versionPart = ReleaseVersionInfo.VersionPart(string: input) {
             return try incrementVersion(versionPart, path: path)

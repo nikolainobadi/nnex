@@ -18,17 +18,27 @@ extension DefaultPicker: Picker {
         try picker.requiredPermission(prompt: prompt)
     }
     
-    func getPermission(_ type: PermissionType) -> Bool {
-        return picker.getPermission(prompt: type.prompt)
+    func getPermission(prompt: String) -> Bool {
+        return picker.getPermission(prompt: prompt)
     }
     
-    func getRequiredInput(_ type: InputType) throws -> String {
-        return try picker.getRequiredInput(type.prompt)
+    func getRequiredInput(prompt: String) throws -> String {
+        return try picker.getRequiredInput(prompt)
     }
     
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
         return try picker.requiredSingleSelection(title: title, items: items)
     }
+}
+
+
+// MARK: - Dependencies
+protocol Picker {
+    func getPermission(prompt: String) -> Bool
+    func requiredPermission(prompt: String) throws
+//    func getRequiredInput(_ type: InputType) throws -> String
+    func getRequiredInput(prompt: String) throws -> String
+    func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item
 }
 
 

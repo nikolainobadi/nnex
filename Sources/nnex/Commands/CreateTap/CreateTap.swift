@@ -48,7 +48,7 @@ fileprivate extension Nnex.Brew.CreateTap {
         }
         
         let picker = Nnex.makePicker()
-        let name = try picker.getRequiredInput(.newTap)
+        let name = try picker.getRequiredInput(prompt: "Enter the name of your new Homebrew Tap.")
         
         if name.isEmpty {
             throw PickerError.invalidName

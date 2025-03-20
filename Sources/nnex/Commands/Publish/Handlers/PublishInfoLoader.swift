@@ -54,7 +54,7 @@ private extension PublishInfoLoader {
     
     func createNewFormula(for folder: Folder) throws -> SwiftDataFormula {
         let gitHandler = GitHandler(shell: shell)
-        let details = try picker.getRequiredInput(.formulaDetails)
+        let details = try picker.getRequiredInput(prompt: "Enter the description for this formula.")
         let homepage = try gitHandler.getRemoteURL(path: folder.path)
         let license = detectLicense(in: folder)
         

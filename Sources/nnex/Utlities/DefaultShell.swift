@@ -22,3 +22,10 @@ struct DefaultShell: Shell {
         return output.stdout.trimmingCharacters(in: .whitespaces)
     }
 }
+
+
+// MARK: - Dependencies
+protocol Shell {
+    func run(_ command: String) throws -> String
+    func runAndPrint(_ command: String) throws
+}

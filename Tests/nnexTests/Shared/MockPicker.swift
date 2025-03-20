@@ -31,11 +31,11 @@ extension MockPicker: Picker {
         }
     }
 
-    func getPermission(_ type: PermissionType) -> Bool {
+    func getPermission(prompt: String) -> Bool {
         return permissionResponses.isEmpty ? false : permissionResponses.removeFirst()
     }
 
-    func getRequiredInput(_ type: InputType) throws -> String {
+    func getRequiredInput(prompt: String) throws -> String {
         if shouldThrowError {
             throw NSError(domain: "MockPicker", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
         }
