@@ -13,8 +13,8 @@ protocol FolderLoader {
 }
 
 protocol ContextFactory {
+    func makeShell() -> Shell
     func makePicker() -> Picker
-    func makeBuilder() -> ProjectBuilder
     func makeFolderLoader() -> FolderLoader
     func makeContext() throws -> SharedContext
     func makeRemoteRepoLoader() -> RemoteRepoHandler
@@ -64,16 +64,16 @@ extension InputType {
 
 // MARK: - Default Factory
 struct DefaultContextFactory: ContextFactory {
+    func makeShell() -> any Shell {
+        return DefaultShell()
+    }
+    
     func makePicker() -> any Picker {
         return DefaultPicker()
     }
     
     func makeFolderLoader() -> any FolderLoader {
         return DefaultFolderLoader()
-    }
-    
-    func makeBuilder() -> ProjectBuilder {
-        return DefaultProjectBuilder()
     }
     
     func makeContext() throws -> SharedContext {

@@ -71,4 +71,6 @@ enum VersionError: Error {
 
 enum NnexError: Error {
     case missingTap
+    case missingSha256
+    case shellCommandFailed
 }

@@ -1,46 +1,71 @@
 //
-//  DefaultProjectBuilder.swift
+//  ProjectBuilder.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
-import SwiftShell
+import Files
 
-struct DefaultProjectBuilder: ProjectBuilder {
-    func buildProject(name: String, path: String) throws -> UniversalBinaryPath {
+struct ProjectBuilder {
+    private let shell: Shell
+    
+    init(shell: Shell) {
+        self.shell = shell
+    }
+}
+
+
+// MARK: - Build
+extension ProjectBuilder {
+    func buildProject(name: String, path: String) throws -> BinaryInfo {
         let projectPath = path.hasSuffix("/") ? path : path + "/"
         
         try build(for: .arm, projectPath: projectPath)
         try build(for: .intel, projectPath: projectPath)
         
-        return try buildUniversalBinary(projectName: name, projectPath: projectPath)
+        let binaryPath = try buildUniversalBinary(projectName: name, projectPath: projectPath)
+        let sha256 = try getSha256(binaryPath: binaryPath)
+        
+        return .init(path: binaryPath, sha256: sha256)
     }
 }
 
+
 // MARK: - Private Methods
-private extension DefaultProjectBuilder {
+private extension ProjectBuilder {
     func build(for arch: ReleaseArchitecture, projectPath: String) throws {
         print("🔨 Building for \(arch.name)...")
         let buildCommand = """
         swift build -c release --arch \(arch.name) -Xswiftc -Osize -Xswiftc -wmo -Xlinker -dead_strip_dylibs --package-path \(projectPath)
         """
-        try SwiftShell.runAndPrint(bash: buildCommand)
+        
+        try shell.runAndPrint(buildCommand)
+    }
+    
+    func getSha256(binaryPath: String) throws -> String {
+        guard let sha256 = try? shell.run("shasum -a 256 \(binaryPath)").components(separatedBy: " ").first else {
+            throw NnexError.missingSha256
+        }
+        
+        return sha256
     }
 
-    func buildUniversalBinary(projectName: String, projectPath: String) throws -> UniversalBinaryPath {
+    func buildUniversalBinary(projectName: String, projectPath: String) throws -> String {
         let buildPath = "\(projectPath).build/universal"
         let universalBinaryPath = "\(buildPath)/\(projectName)"
 
-        // Check if the universal folder already exists
-        if SwiftShell.run(bash: "test -d \(buildPath)").exitcode == 0 {
+        // TODO: - this may not be needed
+        // deleting ensures a 'clean' folder, but may be unnecessary
+        if let universalFolder = try? Folder(path: buildPath) {
             print("⚠️ Universal binary folder already exists at: \(buildPath)")
             print("🗑 Removing existing universal folder...")
-            try SwiftShell.runAndPrint(bash: "rm -rf \(buildPath)")
+            
+            try universalFolder.delete()
         }
 
         print("📂 Creating universal binary folder at: \(buildPath)")
-        try SwiftShell.runAndPrint(bash: "mkdir -p \(buildPath)")
+        try shell.runAndPrint("mkdir -p \(buildPath)")
 
         print("🔗 Combining architectures into universal binary...")
         let lipoCommand = """
@@ -48,10 +73,10 @@ private extension DefaultProjectBuilder {
         \(projectPath).build/arm64-apple-macosx/release/\(projectName) \
         \(projectPath).build/x86_64-apple-macosx/release/\(projectName)
         """
-        try SwiftShell.runAndPrint(bash: lipoCommand)
+        try shell.runAndPrint(lipoCommand)
 
         print("🗑 Stripping unneeded symbols...")
-        try SwiftShell.runAndPrint(bash: "strip -u -r \(universalBinaryPath)")
+        try shell.runAndPrint("strip -u -r \(universalBinaryPath)")
 
         print("✅ Universal binary created at: \(universalBinaryPath)")
         
@@ -73,3 +98,7 @@ enum ReleaseArchitecture {
     }
 }
 
+struct BinaryInfo {
+    let path: String
+    let sha256: String
+}

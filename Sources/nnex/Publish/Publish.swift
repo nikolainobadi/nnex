@@ -25,11 +25,10 @@ extension Nnex.Brew {
         func run() throws {
             let projectFolder = try getProjectFolder(at: path)
             let (tap, formula) = try getTapAndFormula(projectFolder: projectFolder)
-            let binaryPath = try Nnex.makeBuilder().buildProject(name: projectFolder.name, path: projectFolder.path)
-            let sha256 = try getSha256(binaryPath: binaryPath)
+            let binaryInfo = try buildBinary(for: projectFolder)
             let versionNumber = try getVersionNumber(version, path: projectFolder.path)
-            let assetURL = try uploadRelease(binaryPath: binaryPath, versionNumber: versionNumber)
-            let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formula: formula, assetURL: assetURL, sha256: sha256)
+            let assetURL = try uploadRelease(binaryPath: binaryInfo.path, versionNumber: versionNumber)
+            let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
             
             try publishFormula(formulaContent, formulaName: formula.name, tap: tap)
         }
@@ -53,6 +52,13 @@ private extension Nnex.Brew.Publish {
         
         return try loader.loadPublishInfo()
     }
+    
+    func buildBinary(for folder: Folder) throws -> BinaryInfo {
+        let shell = Nnex.makeShell()
+        let builder = ProjectBuilder(shell: shell)
+        
+        return try builder.buildProject(name: folder.name, path: folder.path)
+    }
 }
 
 
@@ -71,14 +77,6 @@ private extension Nnex.Brew.Publish {
         print("GitHub release \(versionNumber) created and binary uploaded.")
         
         return SwiftShell.run(bash: "gh release view --json assets -q '.assets[].url'").stdout.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-    
-    func getSha256(binaryPath: String) throws -> String {
-        let sha256 = SwiftShell.run(bash: "shasum -a 256 \(binaryPath)").stdout.trimmingCharacters(in: .whitespacesAndNewlines).components(separatedBy: " ").first!
-        
-        print("sha256: \(sha256)")
-        
-        return sha256
     }
     
     func publishFormula(_ content: String, formulaName: String, tap: SwiftDataTap) throws {
@@ -141,11 +139,6 @@ private extension Nnex.Brew.Publish {
 
 
 // MARK: - Dependencies
-protocol ProjectBuilder {
-    typealias UniversalBinaryPath = String
-    func buildProject(name: String, path: String) throws -> UniversalBinaryPath
-}
-
 enum VersionHandler {
     static func isValidVersionNumber(_ version: String) -> Bool {
         return version.range(of: #"^v?\d+\.\d+\.\d+$"#, options: .regularExpression) != nil

@@ -16,12 +16,12 @@ struct Nnex: ParsableCommand {
 
 // MARK: - Factory Methods
 extension Nnex {
-    static func makePicker() -> Picker {
-        return contextFactory.makePicker()
+    static func makeShell() -> Shell {
+        return contextFactory.makeShell()
     }
     
-    static func makeBuilder() -> ProjectBuilder {
-        return contextFactory.makeBuilder()
+    static func makePicker() -> Picker {
+        return contextFactory.makePicker()
     }
     
     static func makeContext() throws -> SharedContext {
