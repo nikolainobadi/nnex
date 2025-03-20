@@ -22,6 +22,10 @@ struct TestPicker {
 
 // MARK: - Picker
 extension TestPicker: Picker {
+    func requiredPermission(prompt: String) throws {
+        // TODO: - 
+    }
+    
     func getPermission(_ type: PermissionType) -> Bool {
         return permissionProvider(type)
     }

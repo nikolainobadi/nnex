@@ -23,20 +23,20 @@ final class TestContextFactory {
 
 // MARK: - Factory
 extension TestContextFactory: ContextFactory {
-    func makePicker() -> any Picker {
+    func makeShell() -> Shell {
+        return TestShell()
+    }
+    
+    func makePicker() -> Picker {
         return TestPicker(inputProvider: inputProvider, permissionProvider: permissionProvider)
     }
     
-    func makeFolderLoader() -> any FolderLoader {
+    func makeFolderLoader() -> FolderLoader {
         return TestFolderLoader()
     }
     
-    func makeBuilder() -> ProjectBuilder {
-        return TestBuilder()
-    }
-    
-    func makeRemoteRepoLoader() -> any RemoteRepoHandler {
-        return TestRemoteRepoLoader()
+    func makeRemoteRepoLoader() -> RemoteRepoHandler {
+        return TestRepoHandler()
     }
     
     func makeContext() throws -> SharedContext {
@@ -65,14 +65,22 @@ private extension TestContextFactory {
     }
 }
 
-struct TestBuilder: ProjectBuilder {
-    func buildProject(name: String, path: String) throws -> UniversalBinaryPath {
-        return "" // TODO: - 
+struct TestShell: Shell {
+    func run(_ command: String) throws -> String {
+        return "" // TODO: -
+    }
+    
+    func runAndPrint(_ command: String) throws {
+        // TODO: -
     }
 }
 
-struct TestRemoteRepoLoader: RemoteRepoHandler {
+struct TestRepoHandler: RemoteRepoHandler {
     func getGitHubURL(path: String?) -> String {
+        return "" // TODO: -
+    }
+    
+    func getPreviousVersionNumber(path: String?) -> String? {
         return "" // TODO: -
     }
 }
