@@ -30,7 +30,7 @@ extension MockContextFactory: ContextFactory {
     }
     
     func makeFolderLoader() -> FolderLoader {
-        return TestFolderLoader()
+        return MockFolderLoader()
     }
     
     func makeRemoteRepoLoader() -> RemoteRepoHandler {

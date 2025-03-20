@@ -1,5 +1,5 @@
 //
-//  TestFolderLoader.swift
+//  MockFolderLoader.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 3/19/25.
@@ -8,7 +8,7 @@
 import Files
 @testable import nnex
 
-struct TestFolderLoader: FolderLoader {
+struct MockFolderLoader: FolderLoader {
     init() {
         try? Folder.temporary.subfolder(named: "Temporary Folder").delete()
     }
