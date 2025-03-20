@@ -12,7 +12,7 @@ import Testing
 struct BrewImportTapTests {
     @Test("ensures no taps exist in database")
     func startingValuesEmpty() throws {
-        let testFactory = TestContextFactory()
+        let testFactory = MockContextFactory()
         let context = try testFactory.makeContext()
         
         #expect(try context.loadTaps().isEmpty)
@@ -23,7 +23,7 @@ struct BrewImportTapTests {
         // TODO: - need to create folder
         let tapName = "nntools"
         let path = "/Users/nelix/Desktop/homebrew-\(tapName)"
-        let testFactory = TestContextFactory()
+        let testFactory = MockContextFactory()
         let context = try testFactory.makeContext()
         
         try runCommand(testFactory, path: path)
@@ -39,7 +39,7 @@ struct BrewImportTapTests {
 
 // MARK: - Run Command
 private extension BrewImportTapTests {
-    func runCommand(_ testFactory: TestContextFactory, path: String = "") throws {
+    func runCommand(_ testFactory: MockContextFactory, path: String = "") throws {
         if path.isEmpty {
             try Nnex.testRun(contextFactory: testFactory, args: ["brew", "import-tap"])
         } else {

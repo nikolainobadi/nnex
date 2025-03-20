@@ -12,10 +12,9 @@ import Testing
 struct CreateTapTests {
     @Test("ensures no folders exist in temporary folder")
     func startingValuesEmpty() throws {
-        let testFactory = TestContextFactory()
-        let context = try testFactory.makeContext()
-        let loader = testFactory.makeFolderLoader()
-        
+        let factory = MockContextFactory()
+        let context = try factory.makeContext()
+        let loader = factory.makeFolderLoader()
         let tapList = try context.loadTaps()
         let subfolders = try loader.loadTapListFolder().subfolders.map({ $0 })
         
@@ -26,11 +25,10 @@ struct CreateTapTests {
     @Test("Creates new tap folder with 'homebrew-' prefix when its missing from input name")
     func createTapFolder() throws {
         let name = "myNewTap"
-        let handler = BrewTapInputHandler(newTapName: name)
-        let testFactory = TestContextFactory(inputProvider: handler.getInput(_:))
-        let loader = testFactory.makeFolderLoader()
+        let factory = MockContextFactory(inputResponses: [name])
+        let loader = factory.makeFolderLoader()
         
-        try runCommand(testFactory)
+        try runCommand(factory)
         
         let temporaryFolder = try loader.loadTapListFolder()
         let newTapFolder = try? temporaryFolder.subfolder(named: name.homebrewTapName)
@@ -42,11 +40,10 @@ struct CreateTapTests {
     @Test("Saves the newly created tap in SwiftData database")
     func savesCreatedTap() throws {
         let name = "myNewTap"
-        let handler = BrewTapInputHandler(newTapName: name)
-        let testFactory = TestContextFactory(inputProvider: handler.getInput(_:))
-        let context = try testFactory.makeContext()
+        let factory = MockContextFactory(inputResponses: [name])
+        let context = try factory.makeContext()
         
-        try runCommand(testFactory)
+        try runCommand(factory)
         
         #expect(try context.loadTaps().first?.name == name)
     }
@@ -55,26 +52,7 @@ struct CreateTapTests {
 
 // MARK: - Run Command
 private extension CreateTapTests {
-    func runCommand(_ testFactory: TestContextFactory) throws {
+    func runCommand(_ testFactory: MockContextFactory) throws {
         try Nnex.testRun(contextFactory: testFactory, args: ["brew", "create-tap"])
-    }
-}
-
-
-// MARK: - Input Helpers
-struct BrewTapInputHandler {
-    private let newTapName: String
-    
-    init(newTapName: String = "") {
-        self.newTapName = newTapName
-    }
-    
-    func getInput(_ type: InputType) -> String {
-        switch type {
-        case .newTap:
-            return newTapName
-        default:
-            return ""
-        }
     }
 }

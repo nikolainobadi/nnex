@@ -17,7 +17,7 @@ struct BrewTapListTests {
     
     @Test("Dispays details for each existing tap")
     func existingTaplist() throws {
-        let testFactory = TestContextFactory()
+        let testFactory = MockContextFactory()
         let context = try testFactory.makeContext()
         let mockTap = makeTap()
         try context.saveNewTap(mockTap)
@@ -35,7 +35,7 @@ struct BrewTapListTests {
 
 // MARK: - SUT
 private extension BrewTapListTests {
-    func getOutput(factory: TestContextFactory? = nil) throws -> String {
+    func getOutput(factory: MockContextFactory? = nil) throws -> String {
         return try Nnex.testRun(contextFactory: factory, args: ["brew", "tap-list"])
     }
 }

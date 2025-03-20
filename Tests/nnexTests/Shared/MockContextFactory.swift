@@ -1,5 +1,5 @@
 //
-//  TestContextFactory.swift
+//  MockContextFactory.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 3/19/25.
@@ -9,26 +9,24 @@ import SwiftData
 import Foundation
 @testable import nnex
 
-final class TestContextFactory {
-    private let inputProvider: (InputType) -> String
-    private let permissionProvider: (PermissionType) -> Bool
+final class MockContextFactory {
+    private let inputResponses: [String]
     private var context: SharedContext?
     
-    init(inputProvider: @escaping (InputType) -> String = { _ in "" }, permissionProvider: @escaping (PermissionType) -> Bool = { _ in false }) {
-        self.inputProvider = inputProvider
-        self.permissionProvider = permissionProvider
+    init(inputResponses: [String] = []) {
+        self.inputResponses = inputResponses
     }
 }
 
 
 // MARK: - Factory
-extension TestContextFactory: ContextFactory {
+extension MockContextFactory: ContextFactory {
     func makeShell() -> Shell {
-        return TestShell()
+        return MockShell()
     }
     
     func makePicker() -> Picker {
-        return TestPicker(inputProvider: inputProvider, permissionProvider: permissionProvider)
+        return MockPicker(inputResponses: inputResponses)
     }
     
     func makeFolderLoader() -> FolderLoader {
@@ -55,7 +53,7 @@ extension TestContextFactory: ContextFactory {
 }
 
 // MARK: - Private
-private extension TestContextFactory {
+private extension MockContextFactory {
     func makeDefaults() -> UserDefaults {
         let testSuiteName = "testSuiteDefaults"
         let userDefaults = UserDefaults(suiteName: testSuiteName)!

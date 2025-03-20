@@ -11,8 +11,8 @@ import ArgumentParser
 
 extension Nnex {
     @discardableResult
-    static func testRun(contextFactory: TestContextFactory? = nil, args: [String]? = []) throws -> String {
-        self.contextFactory = contextFactory ?? TestContextFactory()
+    static func testRun(contextFactory: MockContextFactory? = nil, args: [String]? = []) throws -> String {
+        self.contextFactory = contextFactory ?? MockContextFactory()
         
         return try captureOutput(factory: contextFactory, args: args)
     }
@@ -21,7 +21,7 @@ extension Nnex {
 
 // MARK: - Helper Methods
 fileprivate extension Nnex {
-    static func captureOutput(factory: TestContextFactory? = nil, args: [String]?) throws -> String {
+    static func captureOutput(factory: MockContextFactory? = nil, args: [String]?) throws -> String {
         let pipe = Pipe()
         let readHandle = pipe.fileHandleForReading
         let writeHandle = pipe.fileHandleForWriting
