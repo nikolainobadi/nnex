@@ -6,12 +6,12 @@
 //
 
 struct ReleaseStore {
-    private let shell: Shell
     private let picker: Picker
+    private let gitHandler: GitHandler
     
     init(shell: Shell, picker: Picker) {
-        self.shell = shell
         self.picker = picker
+        self.gitHandler = .init(shell: shell)
     }
 }
 
@@ -21,15 +21,11 @@ extension ReleaseStore {
     func uploadRelease(info: ReleaseInfo) throws -> String {
         let versionNumber = try getVersionNumber(info)
         let releaseNotes = try getReleaseNotes()
-        let command = """
-        gh release create \(versionNumber) \(info.binaryPath) --title "\(versionNumber)" --notes "\(releaseNotes)"
-        """
         
-        try shell.runAndPrint(command)
-        
+        try gitHandler.createNewRelease(version: versionNumber, binaryPath: info.binaryPath, releaseNotes: releaseNotes, path: info.projectPath)
         print("GitHub release \(versionNumber) created and binary uploaded.")
         
-        return try shell.run("gh release view --json assets -q '.assets[].url'")
+        return try gitHandler.getAssetURL(path: info.projectPath)
     }
 }
 
@@ -42,7 +38,7 @@ private extension ReleaseStore {
     }
     
     func incrementVersion(_ part: ReleaseVersionInfo.VersionPart, path: String) throws -> String {
-        let previousVersion = try shell.run("gh release view --json tagName -q '.tagName'")
+        let previousVersion = try gitHandler.getPreviousReleaseVersion(path: path)
         
         print("found previous version:", previousVersion)
         

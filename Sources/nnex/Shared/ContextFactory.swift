@@ -17,7 +17,6 @@ protocol ContextFactory {
     func makePicker() -> Picker
     func makeFolderLoader() -> FolderLoader
     func makeContext() throws -> SharedContext
-    func makeRemoteRepoLoader() -> RemoteRepoHandler
 }
 
 protocol Picker {
@@ -78,10 +77,6 @@ struct DefaultContextFactory: ContextFactory {
     
     func makeContext() throws -> SharedContext {
         return try SharedContext()
-    }
-    
-    func makeRemoteRepoLoader() -> RemoteRepoHandler {
-        return DefaultRemoteRepoLoader()
     }
 }
 

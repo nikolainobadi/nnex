@@ -8,11 +8,13 @@
 import Files
 
 struct PublishInfoLoader {
+    private let shell: Shell
     private let picker: Picker
     private let projectFolder: Folder
     private let context: SharedContext
     
-    init(picker: Picker, projectFolder: Folder, context: SharedContext) {
+    init(shell: Shell, picker: Picker, projectFolder: Folder, context: SharedContext) {
+        self.shell = shell
         self.picker = picker
         self.projectFolder = projectFolder
         self.context = context
@@ -51,9 +53,9 @@ private extension PublishInfoLoader {
     }
     
     func createNewFormula(for folder: Folder) throws -> SwiftDataFormula {
+        let gitHandler = GitHandler(shell: shell)
         let details = try picker.getRequiredInput(.formulaDetails)
-        // TODO: - need to abstract getGithubURL
-        let homepage = Nnex.makeRemoteRepoLoader().getGitHubURL(path: folder.path)
+        let homepage = try gitHandler.getRemoteURL(path: folder.path)
         let license = detectLicense(in: folder)
         
         return .init(

@@ -54,7 +54,7 @@ private extension Nnex.Brew.Publish {
     
     func getTapAndFormula(projectFolder: Folder) throws -> (SwiftDataTap, SwiftDataFormula) {
         let context = try Nnex.makeContext()
-        let loader = PublishInfoLoader(picker: picker, projectFolder: projectFolder, context: context)
+        let loader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context)
         
         return try loader.loadPublishInfo()
     }

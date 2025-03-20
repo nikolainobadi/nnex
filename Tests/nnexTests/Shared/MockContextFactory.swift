@@ -44,10 +44,6 @@ extension MockContextFactory: ContextFactory {
         return MockFolderLoader()
     }
     
-    func makeRemoteRepoLoader() -> RemoteRepoHandler {
-        return TestRepoHandler()
-    }
-    
     func makeContext() throws -> SharedContext {
         if let context {
             return context
@@ -81,15 +77,5 @@ struct TestShell: Shell {
     
     func runAndPrint(_ command: String) throws {
         // TODO: -
-    }
-}
-
-struct TestRepoHandler: RemoteRepoHandler {
-    func getGitHubURL(path: String?) -> String {
-        return "" // TODO: -
-    }
-    
-    func getPreviousVersionNumber(path: String?) -> String? {
-        return "" // TODO: -
     }
 }

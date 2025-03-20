@@ -1,5 +1,5 @@
 {
-  "originHash" : "6f42a99b9af52c43888b623d6faa936bc762f71d6991d36276f734439ac16a2a",
+  "originHash" : "783dff51e7b421f66e0983e3529d75e9982c3d3e2708f999fbd38a13737d977a",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -20,21 +20,12 @@
       }
     },
     {
-      "identity" : "nnconfigkit",
+      "identity" : "gitcommandgen",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/nikolainobadi/NnConfigKit.git",
+      "location" : "https://github.com/nikolainobadi/GitCommandGen.git",
       "state" : {
         "branch" : "main",
-        "revision" : "589fda0a53063694d61e686c547d9bd736729de4"
-      }
-    },
-    {
-      "identity" : "nngitkit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/nikolainobadi/NnGitKit.git",
-      "state" : {
-        "branch" : "main",
-        "revision" : "4885e7785085f63dd037418949ee9f6435e880c7"
+        "revision" : "5a4a851d5c762389244033543d26be2cae789eb7"
       }
     },
     {

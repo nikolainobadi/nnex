@@ -27,10 +27,6 @@ extension Nnex {
     static func makeContext() throws -> SharedContext {
         return try contextFactory.makeContext()
     }
-    
-    static func makeRemoteRepoLoader() -> RemoteRepoHandler {
-        return contextFactory.makeRemoteRepoLoader()
-    }
 }
 
 

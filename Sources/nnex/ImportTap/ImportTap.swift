@@ -6,7 +6,6 @@
 //
 
 import Files
-import SwiftShell
 import Foundation
 import ArgumentParser
 
@@ -20,18 +19,20 @@ extension Nnex.Brew {
         var path: String?
         
         func run() throws {
+            let shell = Nnex.makeShell()
+            let gitHandler = GitHandler(shell: shell)
             let context = try Nnex.makeContext()
             let path = try path ?? Nnex.makePicker().getRequiredInput(.importTapPath)
             let folder = try Folder(path: path)
             let tapName = folder.name.removingHomebrewPrefix
             let formulaFiles = folder.files.filter({ $0.extension == "rb" })
-            let remotePath = Nnex.makeRemoteRepoLoader().getGitHubURL(path: folder.path)
+            let remotePath = try gitHandler.getRemoteURL(path: folder.path)
             let tap = SwiftDataTap(name: tapName, localPath: folder.path, remotePath: remotePath)
             
             var formulas: [SwiftDataFormula] = []
             
             for file in formulaFiles {
-                let output = SwiftShell.run(bash: "brew info --json=v2 \(file.path)").stdout
+                let output = try shell.run("brew info --json=v2 \(file.path)")
                 if let data = output.data(using: .utf8) {
                     let decoder = JSONDecoder()
                     let rootObject = try decoder.decode([String: [BrewFormula]].self, from: data)
@@ -48,10 +49,4 @@ extension Nnex.Brew {
             try context.saveNewTap(tap, formulas: formulas)
         }
     }
-}
-
-
-// MARK: - Dependencies
-protocol RemoteRepoHandler {
-    func getGitHubURL(path: String?) -> String
 }
