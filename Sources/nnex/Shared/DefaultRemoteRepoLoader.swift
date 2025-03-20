@@ -17,8 +17,4 @@ extension DefaultRemoteRepoLoader: RemoteRepoHandler {
     func getGitHubURL(path: String?) -> String {
         return manager.getGitHubURL(path: path)
     }
-    
-    func getPreviousVersionNumber(path: String?) -> String? {
-        return nil // TODO: - 
-    }
 }

@@ -6,7 +6,6 @@
 //
 
 import Files
-import NnGitKit
 import SwiftShell
 import Foundation
 import ArgumentParser
@@ -55,7 +54,6 @@ extension Nnex.Brew {
 // MARK: - Dependencies
 protocol RemoteRepoHandler {
     func getGitHubURL(path: String?) -> String
-    func getPreviousVersionNumber(path: String?) -> String?
 }
 
 struct BrewFormula: Codable {
