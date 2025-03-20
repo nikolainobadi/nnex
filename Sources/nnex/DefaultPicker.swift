@@ -14,6 +14,10 @@ struct DefaultPicker {
 
 // MARK: - Picker
 extension DefaultPicker: Picker {
+    func requiredPermission(prompt: String) throws {
+        try picker.requiredPermission(prompt: prompt)
+    }
+    
     func getPermission(_ type: PermissionType) -> Bool {
         return picker.getPermission(prompt: type.prompt)
     }

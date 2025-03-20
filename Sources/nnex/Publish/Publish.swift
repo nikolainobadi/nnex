@@ -46,30 +46,39 @@ private extension Nnex.Brew.Publish {
         return Folder.current
     }
     
+    func getTapAndFormula(projectFolder: Folder) throws -> (SwiftDataTap, SwiftDataFormula) {
+        let picker = Nnex.makePicker()
+        let context = try Nnex.makeContext()
+        let loader = PublishInfoLoader(picker: picker, projectFolder: projectFolder, context: context)
+        
+        return try loader.loadPublishInfo()
+    }
+}
+
+
+
+// MARK: -
+private extension Nnex.Brew.Publish {
     /// returns assetURL for release
     func uploadRelease(binaryPath: String, versionNumber: String) throws -> String {
         let releaseNotes = try Nnex.makePicker().getRequiredInput(.releaseNotes)
         let releaseCommand = """
-        gh release create \(versionNumber) \(binaryPath) --title "\(versionNumber)" --notes "\(releaseNotes)" --json assets,url
+        gh release create \(versionNumber) \(binaryPath) --title "\(versionNumber)" --notes "\(releaseNotes)"
         """
         
-        let output = SwiftShell.run(bash: releaseCommand).stdout
+        try SwiftShell.runAndPrint(bash: releaseCommand)
         
-        // Parse the output to extract the asset URL
-        if let data = output.data(using: .utf8),
-           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-           let assets = json["assets"] as? [[String: Any]],
-           let firstAsset = assets.first,
-           let assetUrl = firstAsset["url"] as? String {
-            return assetUrl
-        }
+        print("GitHub release \(versionNumber) created and binary uploaded.")
         
-        throw NSError(domain: "UploadRelease", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to retrieve binary asset URL."])
+        return SwiftShell.run(bash: "gh release view --json assets -q '.assets[].url'").stdout.trimmingCharacters(in: .whitespacesAndNewlines)
     }
-
     
     func getSha256(binaryPath: String) throws -> String {
-        return SwiftShell.run(bash: "shasum -a 256 \(binaryPath)").stdout.trimmingCharacters(in: .whitespacesAndNewlines).components(separatedBy: " ").first!
+        let sha256 = SwiftShell.run(bash: "shasum -a 256 \(binaryPath)").stdout.trimmingCharacters(in: .whitespacesAndNewlines).components(separatedBy: " ").first!
+        
+        print("sha256: \(sha256)")
+        
+        return sha256
     }
     
     func publishFormula(_ content: String, formulaName: String, tap: SwiftDataTap) throws {
@@ -89,70 +98,11 @@ private extension Nnex.Brew.Publish {
         // TODO: - commit changes to tap folder and push to github
         // maybe I should ask permission and allow a flag to be passed in to 'force' the push or something
     }
-    
-    func getTapAndFormula(projectFolder: Folder) throws -> (SwiftDataTap, SwiftDataFormula) {
-        let context = try Nnex.makeContext()
-        let tapList = try context.loadTaps()
-        
-        if tapList.isEmpty {
-            throw PickerError.noSavedTaps
-        }
-        
-        guard let tap = tapList.first(where: { tap in
-            return tap.formulas.contains(where: { $0.name.lowercased() == projectFolder.name.lowercased() })
-        }) else {
-            throw PickerError.noTapRegisterdForProject
-        }
-        
-        if let formula = tap.formulas.first(where: { $0.name.lowercased() == projectFolder.name.lowercased() }) {
-            return (tap, formula)
-        }
-        
-        let formula = try createNewFormula(for: projectFolder)
-        
-        try context.saveNewFormula(formula, in: tap)
-        
-        return (tap, formula)
-    }
-    
-    func createNewFormula(for folder: Folder) throws -> SwiftDataFormula {
-        let details = try Nnex.makePicker().getRequiredInput(.formulaDetails)
-        let homepage = Nnex.makeRemoteRepoLoader().getGitHubURL(path: folder.path)
-        let license = detectLicense(in: folder)
-        
-        return .init(
-            name: folder.name,
-            details: details,
-            homepage: homepage,
-            license: license,
-            localProjectPath: folder.path,
-            uploadType: .binary
-        )
-    }
-    
-    func detectLicense(in folder: Folder) -> String {
-        let licenseFiles = ["LICENSE", "LICENSE.md", "COPYING"]
-        
-        for fileName in licenseFiles {
-            if let file = try? folder.file(named: fileName) {
-                let content = try? file.readAsString()
-                if let content = content {
-                    if content.contains("MIT License") {
-                        return "MIT"
-                    } else if content.contains("Apache License") {
-                        return "Apache"
-                    } else if content.contains("GNU General Public License") {
-                        return "GPL"
-                    } else if content.contains("BSD License") {
-                        return "BSD"
-                    }
-                }
-            }
-        }
-        
-        return ""
-    }
-    
+}
+
+
+// MARK: -
+private extension Nnex.Brew.Publish {
     func getVersionNumber(_ part: VersionOrIncrement?, path: String) throws -> String {
         guard let part else {
             return try getVersionInput(path: path)
@@ -167,15 +117,15 @@ private extension Nnex.Brew.Publish {
     }
     
     func incrementVersion(_ part: VersionOrIncrement.VersionPart, path: String) throws -> String {
-        guard let previousVersion = Nnex.makeRemoteRepoLoader().getPreviousVersionNumber(path: path) else {
-            throw VersionError.noPreviousVersion
-        }
+        let previousVersion = SwiftShell.run(bash: "gh release view --json tagName -q '.tagName'").stdout
+        
+        print("found previous version:", previousVersion)
         
         return try VersionHandler.incrementVersion(for: part, path: path, previousVersion: previousVersion)
     }
     
     func getVersionInput(path: String) throws -> String {
-        let input = try Nnex.makePicker().getRequiredInput(.formulaDetails)
+        let input = try Nnex.makePicker().getRequiredInput(.versionNumber)
         
         if let versionPart = VersionOrIncrement.VersionPart(string: input) {
             return try incrementVersion(versionPart, path: path)
@@ -196,36 +146,15 @@ protocol ProjectBuilder {
     func buildProject(name: String, path: String) throws -> UniversalBinaryPath
 }
 
-
-enum VersionOrIncrement: ExpressibleByArgument {
-    case version(String)
-    case increment(VersionPart)
-    
-    enum VersionPart: String, ExpressibleByArgument {
-        case major, minor, patch
-        
-        init?(string: String) {
-            self.init(rawValue: string.lowercased())
-        }
-    }
-    
-    init?(argument: String) {
-        if let versionPart = VersionPart(rawValue: argument) {
-            self = .increment(versionPart)
-        } else {
-            self = .version(argument)
-        }
-    }
-}
-
 enum VersionHandler {
     static func isValidVersionNumber(_ version: String) -> Bool {
         return version.range(of: #"^v?\d+\.\d+\.\d+$"#, options: .regularExpression) != nil
     }
     
     static func incrementVersion(for part: VersionOrIncrement.VersionPart, path: String, previousVersion: String) throws -> String {
-        var components = previousVersion.split(separator: ".").compactMap { Int($0) }
-        
+        let cleanedVersion = previousVersion.hasPrefix("v") ? String(previousVersion.dropFirst()) : previousVersion
+        var components = cleanedVersion.split(separator: ".").compactMap { Int($0) }
+
         switch part {
         case .major:
             components[0] += 1

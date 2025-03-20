@@ -21,6 +21,7 @@ protocol ContextFactory {
 }
 
 protocol Picker {
+    func requiredPermission(prompt: String) throws
     func getPermission(_ type: PermissionType) -> Bool
     func getRequiredInput(_ type: InputType) throws -> String
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item
@@ -40,7 +41,7 @@ extension PermissionType {
 }
 
 enum InputType {
-    case newTap, importTapPath, formulaDetails, releaseNotes
+    case newTap, importTapPath, versionNumber, formulaDetails, releaseNotes
 }
 
 extension InputType {
@@ -50,6 +51,8 @@ extension InputType {
             return "Enter the name of your new Homebrew Tap."
         case .importTapPath:
             return "Enter the local path to you Homebrew tap folder."
+        case .versionNumber:
+            return "Enter the version number for this release."
         case .formulaDetails:
             return "Enter the description for this formula."
         case .releaseNotes:

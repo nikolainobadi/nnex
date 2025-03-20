@@ -68,3 +68,7 @@ enum VersionError: Error {
     case noPreviousVersion
     case invalidVersionNumber
 }
+
+enum NnexError: Error {
+    case missingTap
+}
