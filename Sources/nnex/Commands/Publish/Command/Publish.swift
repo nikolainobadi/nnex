@@ -20,10 +20,13 @@ extension Nnex.Brew {
         @Option(name: .shortAndLong, help: "The version number to publish or version part to increment: major, minor, patch.")
         var version: ReleaseVersionInfo?
         
+        @Option(name: .shortAndLong, help: "The build type to set. Options: \(BuildType.allCases.map(\.rawValue).joined(separator: ", "))")
+                var buildType: BuildType?
+        
         func run() throws {
             let projectFolder = try getProjectFolder(at: path)
-            let (tap, formula) = try getTapAndFormula(projectFolder: projectFolder)
-            let binaryInfo = try buildBinary(for: projectFolder)
+            let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
+            let binaryInfo = try buildBinary(for: projectFolder, buildType: buildType)
             let releaseInfo = makeReleaseInfo(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version)
             let assetURL = try uploadRelease(info: releaseInfo)
             let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
@@ -52,17 +55,20 @@ private extension Nnex.Brew.Publish {
         return Folder.current
     }
     
-    func getTapAndFormula(projectFolder: Folder) throws -> (SwiftDataTap, SwiftDataFormula) {
+    func getTapAndFormula(projectFolder: Folder, buildType: BuildType?) throws -> (SwiftDataTap, SwiftDataFormula, BuildType) {
         let context = try Nnex.makeContext()
+        let buildType = buildType ?? context.loadDefaultBuildType()
         let loader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context)
         
-        return try loader.loadPublishInfo()
+        let (tap, formula) = try loader.loadPublishInfo()
+        
+        return (tap, formula, buildType)
     }
     
-    func buildBinary(for folder: Folder) throws -> BinaryInfo {
+    func buildBinary(for folder: Folder, buildType: BuildType) throws -> BinaryInfo {
         let builder = ProjectBuilder(shell: shell)
         
-        return try builder.buildProject(name: folder.name, path: folder.path)
+        return try builder.buildProject(name: folder.name, path: folder.path, buildType: buildType)
     }
     
     func makeReleaseInfo(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?) -> ReleaseInfo {

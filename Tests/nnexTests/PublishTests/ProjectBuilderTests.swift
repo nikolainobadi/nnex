@@ -15,7 +15,7 @@ struct ProjectBuilderTests {
         let sut = makeSUT(runResults: [sha256]).sut
         let projectName = "TestProject"
         let projectPath = "/path/to/project"
-        let result = try sut.buildProject(name: projectName, path: projectPath)
+        let result = try sut.buildProject(name: projectName, path: projectPath, buildType: .universal)
         
         #expect(result.path.contains(projectPath))
         #expect(result.path.contains(projectName))
@@ -27,7 +27,7 @@ struct ProjectBuilderTests {
         let (sut, _) = makeSUT(throwShellError: true)
         
         #expect(throws: (any Error).self) {
-            try sut.buildProject(name: "TestProject", path: "/path/to/project")
+            try sut.buildProject(name: "TestProject", path: "/path/to/project", buildType: .universal)
         }
     }
     
@@ -36,7 +36,7 @@ struct ProjectBuilderTests {
         let (sut, _) = makeSUT(runResults: ["some/path"], throwShellError: true)
         
         #expect(throws: (any Error).self) {
-            try sut.buildProject(name: "TestProject", path: "/path/to/project")
+            try sut.buildProject(name: "TestProject", path: "/path/to/project", buildType: .universal)
         }
     }
     
@@ -45,8 +45,36 @@ struct ProjectBuilderTests {
         let (sut, _) = makeSUT(runResults: ["some/path"], throwShellError: true)
         
         #expect(throws: (any Error).self) {
-            try sut.buildProject(name: "TestProject", path: "/path/to/project")
+            try sut.buildProject(name: "TestProject", path: "/path/to/project", buildType: .universal)
         }
+    }
+    
+    @Test("Successfully builds an arm64 binary")
+    func buildArm64Binary() throws {
+        let sha256 = "arm64sha256"
+        let sut = makeSUT(runResults: [sha256]).sut
+        let projectName = "TestProject"
+        let projectPath = "/path/to/project"
+        let result = try sut.buildProject(name: projectName, path: projectPath, buildType: .arm64)
+        
+        #expect(result.path.contains(projectPath))
+        #expect(result.path.contains("arm64-apple-macosx"))
+        #expect(result.path.contains(projectName))
+        #expect(result.sha256 == sha256, "Expected SHA-256 \(sha256), but got \(result.sha256)")
+    }
+    
+    @Test("Successfully builds an x86_64 binary")
+    func buildX86_64Binary() throws {
+        let sha256 = "x86_64sha256"
+        let sut = makeSUT(runResults: [sha256]).sut
+        let projectName = "TestProject"
+        let projectPath = "/path/to/project"
+        let result = try sut.buildProject(name: projectName, path: projectPath, buildType: .x86_64)
+        
+        #expect(result.path.contains(projectPath))
+        #expect(result.path.contains("x86_64-apple-macosx"))
+        #expect(result.path.contains(projectName))
+        #expect(result.sha256 == sha256, "Expected SHA-256 \(sha256), but got \(result.sha256)")
     }
 }
 

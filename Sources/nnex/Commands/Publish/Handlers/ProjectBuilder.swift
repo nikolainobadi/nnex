@@ -16,18 +16,40 @@ struct ProjectBuilder {
 
 // MARK: - Build
 extension ProjectBuilder {
-    func buildProject(name: String, path: String) throws -> BinaryInfo {
+    func buildProject(name: String, path: String, buildType: BuildType) throws -> BinaryInfo {
         let projectPath = path.hasSuffix("/") ? path : path + "/"
         
-        try build(for: .arm, projectPath: projectPath)
-        try build(for: .intel, projectPath: projectPath)
+        for arch in buildType.archs {
+            try build(for: arch, projectPath: projectPath)
+        }
         
-        let binaryPath = try buildUniversalBinary(projectName: name, projectPath: projectPath)
+        let binaryPath: String
+        if buildType == .universal {
+            binaryPath = try buildUniversalBinary(projectName: name, projectPath: projectPath)
+        } else {
+            binaryPath = "\(projectPath).build/\(buildType.archs.first!.name)-apple-macosx/release/\(name)"
+        }
+        
         let sha256 = try getSha256(binaryPath: binaryPath)
         
         return .init(path: binaryPath, sha256: sha256)
     }
 }
+
+//extension ProjectBuilder {
+//    func buildProject(name: String, path: String, buildType: BuildType) throws -> BinaryInfo {
+//        let projectPath = path.hasSuffix("/") ? path : path + "/"
+//        
+//        for arch in buildType.archs {
+//            try build(for: arch, projectPath: path)
+//        }
+//        
+//        let binaryPath = try buildUniversalBinary(projectName: name, projectPath: projectPath)
+//        let sha256 = try getSha256(binaryPath: binaryPath)
+//        
+//        return .init(path: binaryPath, sha256: sha256)
+//    }
+//}
 
 
 // MARK: - Private Methods
@@ -70,5 +92,20 @@ private extension ProjectBuilder {
         print("✅ Universal binary created at: \(universalBinaryPath)")
         
         return universalBinaryPath
+    }
+}
+
+
+// MARK: - Extension Dependencies
+fileprivate extension BuildType {
+    var archs: [ReleaseArchitecture] {
+        switch self {
+        case .arm64:
+            return [.arm]
+        case .x86_64:
+            return [.intel]
+        case .universal:
+            return [.arm, .intel]
+        }
     }
 }
