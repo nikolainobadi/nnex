@@ -40,10 +40,6 @@ extension MockContextFactory: ContextFactory {
         return MockPicker(inputResponses: inputResponses)
     }
     
-    func makeFolderLoader() -> FolderLoader {
-        return MockFolderLoader()
-    }
-    
     func makeContext() throws -> SharedContext {
         if let context {
             return context

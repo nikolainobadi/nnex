@@ -20,19 +20,16 @@ extension Nnex.Brew {
         func run() throws {
             let context = try Nnex.makeContext()
             let name = try getTapName(name: name)
-            let folderLoader = Nnex.contextFactory.makeFolderLoader()
+            let tapListFolder = try getTapListFolder()
+            let homebrewTapName = name.homebrewTapName
+            let tapFolder = try tapListFolder.createSubfolder(named: homebrewTapName)
             
-            // TODO: - maybe ask for location of new tap, or choose a default location
-            // perhaps this could be a configuration that can be adjusted
-            // first time should ask user for path or allow them to select pre-defined default path
-            let parentFolder = try folderLoader.loadTapListFolder()
-            let tapFolder = try parentFolder.createSubfolderIfNeeded(withName: name.homebrewTapName)
-            
+            // TODO: - 
             print("Created folder for new tap named \(name) at \(tapFolder.path)")
             
-            // TODO: - need to upload to GitHub
+            let remotePath = try createNewRepository(name: homebrewTapName, path: tapFolder.path)
             
-            let newTap = SwiftDataTap(name: name, localPath: tapFolder.path, remotePath: "")
+            let newTap = SwiftDataTap(name: name, localPath: tapFolder.path, remotePath: remotePath)
             
             try context.saveNewTap(newTap)
         }
@@ -42,6 +39,23 @@ extension Nnex.Brew {
 
 // MARK: - Private Methods
 fileprivate extension Nnex.Brew.CreateTap {
+    func getTapListFolder() throws -> Folder {
+        fatalError()
+    }
+    
+    func createNewRepository(name: String, path: String) throws -> String {
+        let visibility = ""
+        let details = ""
+        
+        let shell = Nnex.makeShell()
+        let gitHandler = GitHandler(shell: shell)
+        
+        // TODO: - neec to create new local git repo
+        try gitHandler.createNewRepo(name: name, visibility: visibility, details: details, path: path)
+        
+        return try gitHandler.getRemoteURL(path: path)
+    }
+    
     func getTapName(name: String?) throws -> String {
         if let name, !name.isEmpty {
             return name
