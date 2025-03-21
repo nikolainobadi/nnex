@@ -14,8 +14,16 @@ extension Nnex.Brew {
             abstract: "Registers a new homebrew tap."
         )
         
-        @Option(name: .shortAndLong, help: "")
+        @Option(name: .shortAndLong, help: "The name of the new Homebrew Tap")
         var name: String?
+        
+        @Option(name: .shortAndLong, help: "The username for the GitHub account to upload the Homebrew Tap.")
+        var username: String?
+        
+        @Option(name: .shortAndLong, help: "Details about the Homebrew Tap to include when uploading to GitHub.")
+        var details: String?
+        
+        // TODO: - need to allow user to indicate visibility for new tap
         
         func run() throws {
             let context = try Nnex.makeContext()
@@ -26,7 +34,7 @@ extension Nnex.Brew {
             
             print("Created folder for new tap named \(name) at \(tapFolder.path)")
             
-            let remotePath = try createNewRepository(name: homebrewTapName, path: tapFolder.path)
+            let remotePath = try createNewRepository(tapName: homebrewTapName, path: tapFolder.path, username: username, projectDetails: details)
             let newTap = SwiftDataTap(name: name, localPath: tapFolder.path, remotePath: remotePath)
             
             try context.saveNewTap(newTap)
@@ -37,12 +45,41 @@ extension Nnex.Brew {
 
 // MARK: - Private Methods
 fileprivate extension Nnex.Brew.CreateTap {
+    var picker: Picker {
+        return Nnex.makePicker()
+    }
+    
+    func getTapName(name: String?) throws -> String {
+        if let name, !name.isEmpty {
+            return name
+        }
+        
+        let name = try picker.getRequiredInput(prompt: "Enter the name of your new Homebrew Tap.")
+        
+        if name.isEmpty {
+            throw NnexError.invalidTapName
+        }
+        
+        return name
+    }
+    
+    func createNewRepository(tapName: String, path: String, username: String?, projectDetails: String?) throws -> String {
+        let shell = Nnex.makeShell()
+        let gitHandler = GitHandler(shell: shell, picker: picker)
+        
+        try gitHandler.gitInit(path: path)
+        print("Initialized local git repository for \(tapName)")
+        let remotePath = try gitHandler.remoteRepoInit(tapName: tapName, path: path, username: username, projectDetails: projectDetails)
+        print("Created new GitHub repository for \(tapName) at \(remotePath)")
+        
+        return remotePath
+    }
+    
     func getTapListFolder(context: SharedContext) throws -> Folder {
         if let path = context.loadTapListFolderPath() {
             return try Folder(path: path)
         }
         
-        let picker = Nnex.makePicker()
         let homeFolder = Folder.home
         let addNewPath = "SET CUSTOM PATH"
         let defaultTapFolderName = "NnexHomebrewTaps"
@@ -62,46 +99,7 @@ fileprivate extension Nnex.Brew.CreateTap {
         print("Created Homebrew Taplist folder at \(tapListFolder.path)")
         context.saveTapListFolderPath(path: tapListFolder.path)
         print("Saved path for Taplist folder")
+        
         return tapListFolder
     }
-    
-    func createNewRepository(name: String, path: String) throws -> String {
-//        let shell = Nnex.makeShell()
-//        let picker = Nnex.makePicker()
-//        let gitHandler = GitHandler(shell: shell, picker: picker)
-        
-        return "" // TODO: -
-    }
-    
-    func getTapName(name: String?) throws -> String {
-        if let name, !name.isEmpty {
-            return name
-        }
-        
-        let picker = Nnex.makePicker()
-        let name = try picker.getRequiredInput(prompt: "Enter the name of your new Homebrew Tap.")
-        
-        if name.isEmpty {
-            throw PickerError.invalidName
-        }
-        
-        return name
-    }
-}
-
-enum PickerError: Error {
-    case invalidName
-    case noSavedTaps
-    case noTapRegisterdForProject
-}
-
-enum VersionError: Error {
-    case noPreviousVersion
-    case invalidVersionNumber
-}
-
-enum NnexError: Error {
-    case missingTap
-    case missingSha256
-    case shellCommandFailed
 }

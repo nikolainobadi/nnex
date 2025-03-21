@@ -22,10 +22,10 @@ extension ReleaseStore {
         let versionNumber = try getVersionNumber(info)
         let releaseNotes = try getReleaseNotes()
         
-        try gitHandler.createNewRelease(version: versionNumber, binaryPath: info.binaryPath, releaseNotes: releaseNotes, path: info.projectPath)
-        print("GitHub release \(versionNumber) created and binary uploaded.")
+        let assetURL = try gitHandler.createNewRelease(version: versionNumber, binaryPath: info.binaryPath, releaseNotes: releaseNotes, path: info.projectPath)
+        print("GitHub release \(versionNumber) created and binary uploaded to \(assetURL)")
         
-        return try gitHandler.getAssetURL(path: info.projectPath)
+        return assetURL
     }
 }
 
@@ -53,7 +53,7 @@ private extension ReleaseStore {
         switch versionInfo {
         case .version(let number):
             guard VersionHandler.isValidVersionNumber(number) else {
-                throw VersionError.invalidVersionNumber
+                throw NnexError.invalidVersionNumber
             }
             
             return number
@@ -70,7 +70,7 @@ private extension ReleaseStore {
         }
         
         guard VersionHandler.isValidVersionNumber(input) else {
-            throw VersionError.invalidVersionNumber
+            throw NnexError.invalidVersionNumber
         }
         
         return input
