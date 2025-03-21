@@ -13,6 +13,51 @@ final class SharedContext {
     private let context: ModelContext
     private let defaults: UserDefaults
     
+    init(config: ModelConfiguration? = nil, defaults: UserDefaults? = nil) throws {
+        if let config, let defaults {
+            let container = try ModelContainer(for: SwiftDataTap.self, configurations: config)
+            
+            self.context = .init(container)
+            self.defaults = defaults
+        } else {
+            let url = URL(filePath: "../Resources/config.json", directoryHint: .notDirectory, relativeTo: URL(filePath: #file).deletingLastPathComponent())
+            
+            guard let data = try? Data(contentsOf: url), let json = try? JSONSerialization.jsonObject(with: data) as? [String: String], let appGroupId = json["appGroupId"] else {
+                fatalError("""
+                AppGroupId not found. A valid AppGroupId is required to initialize the shared context.
+                            
+                To fix this, create a file at the following path:
+                    Resources/config.json
+                            
+                The file should contain the following JSON structure:
+                {
+                    "appGroupId": "AppGroupExampleId"
+                }
+                            
+                Replace the example ID with your actual App Group ID.
+                """)
+            }
+            
+            let (config, defaults) = try configureSwiftDataContainer(appGroupId: appGroupId)
+            let container = try ModelContainer(for: SwiftDataTap.self, configurations: config)
+            
+            self.context = .init(container)
+            self.defaults = defaults
+        }
+    }
+}
+
+
+// MARK: - UserDefaults
+extension SharedContext {
+    func saveTapPath(path: String) {
+        
+    }
+}
+
+
+// MARK: - SwiftData
+extension SharedContext {
     func loadTaps() throws -> [SwiftDataTap] {
         return try context.fetch(FetchDescriptor<SwiftDataTap>())
     }
@@ -43,21 +88,6 @@ final class SharedContext {
         tap.formulas.append(formula)
         formula.tap = tap
         try context.save()
-    }
-    
-    init(config: ModelConfiguration? = nil, defaults: UserDefaults? = nil) throws {
-        if let config, let defaults {
-            let container = try ModelContainer(for: SwiftDataTap.self, configurations: config)
-            
-            self.context = .init(container)
-            self.defaults = defaults
-        } else {
-            let (config, defaults) = try configureSwiftDataContainer(appGroupId: "R8SJ24LQF3.com.nobadi.nnex")
-            let container = try ModelContainer(for: SwiftDataTap.self, configurations: config)
-            
-            self.context = .init(container)
-            self.defaults = defaults
-        }
     }
 }
 
