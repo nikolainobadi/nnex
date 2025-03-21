@@ -66,16 +66,11 @@ fileprivate extension Nnex.Brew.CreateTap {
     }
     
     func createNewRepository(name: String, path: String) throws -> String {
-        let visibility = ""
-        let details = ""
+//        let shell = Nnex.makeShell()
+//        let picker = Nnex.makePicker()
+//        let gitHandler = GitHandler(shell: shell, picker: picker)
         
-        let shell = Nnex.makeShell()
-        let gitHandler = GitHandler(shell: shell)
-        
-        // TODO: - neec to create new local git repo
-        try gitHandler.createNewRepo(name: name, visibility: visibility, details: details, path: path)
-        
-        return try gitHandler.getRemoteURL(path: path)
+        return "" // TODO: -
     }
     
     func getTapName(name: String?) throws -> String {

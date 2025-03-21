@@ -9,10 +9,12 @@ import GitShellKit
 
 struct GitHandler {
     private let shell: Shell
+    private let picker: Picker
     private let gitShell: GitShell
     
-    init(shell: Shell) {
+    init(shell: Shell, picker: Picker) {
         self.shell = shell
+        self.picker = picker
         self.gitShell = GitShellAdapter(shell: shell)
     }
 }

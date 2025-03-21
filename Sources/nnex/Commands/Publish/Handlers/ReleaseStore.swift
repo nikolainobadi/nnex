@@ -11,7 +11,7 @@ struct ReleaseStore {
     
     init(shell: Shell, picker: Picker) {
         self.picker = picker
-        self.gitHandler = .init(shell: shell)
+        self.gitHandler = .init(shell: shell, picker: picker)
     }
 }
 
