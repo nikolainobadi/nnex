@@ -23,7 +23,6 @@ extension Nnex.Brew {
         
         @Flag(help: "Specify the repository visibility: --public (default) or --private.")
         var visibility: RepoVisibility = .publicRepo
-
         
         func run() throws {
             let context = try Nnex.makeContext()
