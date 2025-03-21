@@ -27,6 +27,10 @@ extension Nnex {
     static func makeContext() throws -> SharedContext {
         return try contextFactory.makeContext()
     }
+    
+    static func makeGitHandler() -> GitHandler {
+        return contextFactory.makeGitHandler()
+    }
 }
 
 

@@ -1,5 +1,5 @@
 //
-//  GitHandler.swift
+//  DefaultGitHandler.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 3/20/25.
@@ -7,7 +7,7 @@
 
 import GitShellKit
 
-struct GitHandler {
+struct DefaultGitHandler {
     private let shell: Shell
     private let picker: Picker
     private let gitShell: GitShell
@@ -21,7 +21,7 @@ struct GitHandler {
 
 
 // MARK: - Actions
-extension GitHandler {
+extension DefaultGitHandler: GitHandler {
     func getRemoteURL(path: String) throws -> String {
         return try gitShell.getGitHubURL(at: path)
     }
@@ -47,4 +47,14 @@ extension GitHandler {
         
         return try shell.run(makeGitHubCommand(.getLatestReleaseAssetURL, path: path))
     }
+}
+
+
+// MARK: - Dependencies
+protocol GitHandler {
+    func gitInit(path: String) throws
+    func getRemoteURL(path: String) throws -> String
+    func getPreviousReleaseVersion(path: String) throws -> String
+    func remoteRepoInit(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String
+    func createNewRelease(version: String, binaryPath: String, releaseNotes: String, path: String) throws -> String
 }

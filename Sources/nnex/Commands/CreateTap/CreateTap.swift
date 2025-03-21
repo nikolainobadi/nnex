@@ -63,8 +63,7 @@ fileprivate extension Nnex.Brew.CreateTap {
     }
     
     func createNewRepository(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String {
-        let shell = Nnex.makeShell()
-        let gitHandler = GitHandler(shell: shell, picker: picker)
+        let gitHandler = Nnex.makeGitHandler()
         
         try gitHandler.gitInit(path: path)
         print("Initialized local git repository for \(tapName)")

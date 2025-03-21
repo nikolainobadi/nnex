@@ -7,43 +7,59 @@
 
 import Testing
 @testable import nnex
+@preconcurrency import Files
 
 @MainActor // needs to be MainActor to ensure proper interactions with SwiftData
-struct CreateTapTests {
-    @Test("ensures no folders exist in temporary folder", .disabled())
-    func startingValuesEmpty() throws {
-//        let factory = MockContextFactory()
-//        let context = try factory.makeContext()
-//        let loader = factory.makeFolderLoader()
-//        let tapList = try context.loadTaps()
-//        let subfolders = try loader.loadTapListFolder().subfolders.map({ $0 })
-//        
-//        #expect(tapList.isEmpty)
-//        #expect(subfolders.isEmpty)
+final class CreateTapTests {
+    let tapListFolder: Folder
+    
+    init() throws {
+        self.tapListFolder = try Folder.temporary.createSubfolder(named: "tapListFolder")
     }
     
-    @Test("Creates new tap folder with 'homebrew-' prefix when its missing from input name", .disabled())
-    func createTapFolder() throws {
-//        let name = "myNewTap"
-//        let factory = MockContextFactory(inputResponses: [name])
-//        let loader = factory.makeFolderLoader()
-//        
-//        try runCommand(factory)
-//        
-//        let temporaryFolder = try loader.loadTapListFolder()
-//        let newTapFolder = try? temporaryFolder.subfolder(named: name.homebrewTapName)
-//        
-//        #expect(newTapFolder != nil)
+    deinit {
+        deleteFolderContents(tapListFolder)
+    }
+}
+
+
+// MARK: - Unit Tests
+extension CreateTapTests {
+    @Test("ensures no folders exist in temporary folder")
+    func startingValuesEmpty() throws {
+        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path)
+        let context = try factory.makeContext()
+        let tapList = try context.loadTaps()
+        let subfolders = tapListFolder.subfolders.map({ $0 })
+        
+        #expect(tapList.isEmpty)
+        #expect(subfolders.isEmpty)
+    }
+    
+    @Test("Creates new tap folder with 'homebrew-' prefix when provided name does not include the prefix")
+    func createsTapFolder() throws {
+        let name = "myNewTap"
+        let tapName = name.homebrewTapName
+        let remoteURL = "remoteURL"
+        let gitHandler = MockGitHandler(remoteURL: remoteURL)
+        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
+        
+        try runCommand(factory, name: name)
+        
+        let updatedTapListFolder = try Folder(path: tapListFolder.path)
+        let tapFolder = try #require(try updatedTapListFolder.subfolder(named: tapName))
+        
+        #expect(tapFolder.name == tapName)
     }
     
     // TODO: - need to verify other Tap properties
-    @Test("Saves the newly created tap in SwiftData database", .disabled())
+    @Test("Saves the newly created tap in SwiftData database")
     func savesCreatedTap() throws {
         let name = "myNewTap"
-        let factory = MockContextFactory(inputResponses: [name])
+        let factory = MockContextFactory()
         let context = try factory.makeContext()
         
-        try runCommand(factory)
+        try runCommand(factory, name: name)
         
         #expect(try context.loadTaps().first?.name == name)
     }
@@ -52,7 +68,13 @@ struct CreateTapTests {
 
 // MARK: - Run Command
 private extension CreateTapTests {
-    func runCommand(_ testFactory: MockContextFactory) throws {
-        try Nnex.testRun(contextFactory: testFactory, args: ["brew", "create-tap"])
+    func runCommand(_ testFactory: MockContextFactory, name: String? = nil) throws {
+        var args = ["brew", "create-tap"]
+        
+        if let name {
+            args = args + ["-n", name]
+        }
+        
+        try Nnex.testRun(contextFactory: testFactory, args: args)
     }
 }

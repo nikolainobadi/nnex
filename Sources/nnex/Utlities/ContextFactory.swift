@@ -10,6 +10,7 @@ import Files
 protocol ContextFactory {
     func makeShell() -> Shell
     func makePicker() -> Picker
+    func makeGitHandler() -> GitHandler
     func makeContext() throws -> SharedContext
 }
 
@@ -21,6 +22,10 @@ struct DefaultContextFactory: ContextFactory {
     
     func makePicker() -> any Picker {
         return DefaultPicker()
+    }
+    
+    func makeGitHandler() -> any GitHandler {
+        return DefaultGitHandler(shell: makeShell(), picker: makePicker())
     }
     
     func makeContext() throws -> SharedContext {

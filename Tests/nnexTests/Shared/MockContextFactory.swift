@@ -10,14 +10,18 @@ import Foundation
 @testable import nnex
 
 final class MockContextFactory {
+    private let tapListFolderPath: String?
     private let runResults: [String]
     private let inputResponses: [String]
+    private let gitHandler: MockGitHandler
     private var shell: MockShell?
     private var context: SharedContext?
     
-    init(runResults: [String] = [], inputResponses: [String] = []) {
+    init(tapListFolderPath: String? = nil, runResults: [String] = [], inputResponses: [String] = [], gitHandler: MockGitHandler = .init()) {
+        self.tapListFolderPath = tapListFolderPath
         self.runResults = runResults
         self.inputResponses = inputResponses
+        self.gitHandler = gitHandler
     }
 }
 
@@ -40,6 +44,10 @@ extension MockContextFactory: ContextFactory {
         return MockPicker(inputResponses: inputResponses)
     }
     
+    func makeGitHandler() -> any GitHandler {
+        return gitHandler
+    }
+    
     func makeContext() throws -> SharedContext {
         if let context {
             return context
@@ -48,6 +56,10 @@ extension MockContextFactory: ContextFactory {
         let defaults = makeDefaults()
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let context = try SharedContext(config: config, defaults: defaults)
+        
+        if let tapListFolderPath {
+            context.saveTapListFolderPath(path: tapListFolderPath)
+        }
         
         self.context = context
         
@@ -66,12 +78,4 @@ private extension MockContextFactory {
     }
 }
 
-struct TestShell: Shell {
-    func run(_ command: String) throws -> String {
-        return "" // TODO: -
-    }
-    
-    func runAndPrint(_ command: String) throws {
-        // TODO: -
-    }
-}
+

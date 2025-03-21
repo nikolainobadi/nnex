@@ -7,7 +7,7 @@
 
 struct ReleaseStore {
     private let picker: Picker
-    private let gitHandler: GitHandler
+    private let gitHandler: DefaultGitHandler
     
     init(shell: Shell, picker: Picker) {
         self.picker = picker
