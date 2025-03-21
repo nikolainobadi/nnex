@@ -20,17 +20,23 @@ extension GitHandler {
         return try shell.run(makeGitCommand(.getRemoteURL, path: path))
     }
     
-    func createNewRelease(version: String, binaryPath: String, releaseNotes: String, path: String) throws {
-        let command = makeGitHubCommand(.createNewReleaseWithBinary(version: version, binaryPath: binaryPath, releaseNotes: releaseNotes), path: path)
-        
-        try shell.runAndPrint(command)
-    }
-    
     func getAssetURL(path: String) throws -> String {
         return try shell.run(makeGitHubCommand(.getLatestReleaseAssetURL, path: path))
     }
     
     func getPreviousReleaseVersion(path: String) throws -> String {
         return try shell.run(makeGitHubCommand(.getPreviousReleaseVersion, path: path))
+    }
+    
+    func createNewRepo(name: String, visibility: String, details: String, path: String) throws {
+        let command = makeGitHubCommand(.createRemoteRepo(name: name, visibility: visibility, details: details), path: path)
+        
+        try shell.runAndPrint(command)
+    }
+    
+    func createNewRelease(version: String, binaryPath: String, releaseNotes: String, path: String) throws {
+        let command = makeGitHubCommand(.createNewReleaseWithBinary(version: version, binaryPath: binaryPath, releaseNotes: releaseNotes), path: path)
+        
+        try shell.runAndPrint(command)
     }
 }
