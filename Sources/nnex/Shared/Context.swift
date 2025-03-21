@@ -12,6 +12,8 @@ import NnSwiftDataKit
 final class SharedContext {
     private let context: ModelContext
     private let defaults: UserDefaults
+    private let defaultBuildTypeKey = "defaultBuildTypeKey"
+    private let tapListFolderPathKey = "tapListFolderPathKey"
     
     init(config: ModelConfiguration? = nil, defaults: UserDefaults? = nil) throws {
         if let config, let defaults {
@@ -50,8 +52,24 @@ final class SharedContext {
 
 // MARK: - UserDefaults
 extension SharedContext {
-    func saveTapPath(path: String) {
+    func saveTapListFolderPath(path: String) {
+        defaults.set(path, forKey: tapListFolderPathKey)
+    }
+    
+    func loadTapListFolderPath() -> String? {
+        guard let path = defaults.string(forKey: tapListFolderPathKey), !path.isEmpty else {
+            return nil
+        }
         
+        return path
+    }
+    
+    func saveDefaultBuildType(_ buildType: BuildType) {
+        defaults.set(buildType, forKey: defaultBuildTypeKey)
+    }
+    
+    func loadDefaultBuildType() -> BuildType {
+        return defaults.object(forKey: defaultBuildTypeKey) as? BuildType ?? .universal
     }
 }
 

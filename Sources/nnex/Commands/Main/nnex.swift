@@ -7,7 +7,7 @@ import ArgumentParser
 struct Nnex: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Utility to manage swift command line tools and streamline distrubution with Homebrew.",
-        subcommands: [Brew.self]
+        subcommands: [Brew.self, Config.self]
     )
     
     nonisolated(unsafe) static var contextFactory: ContextFactory = DefaultContextFactory()
@@ -38,33 +38,5 @@ extension Nnex {
             usage: "",
             subcommands: [ImportTap.self, CreateTap.self, TapList.self, Publish.self, Untap.self]
         )
-    }
-}
-
-// MARK: - Config
-extension Nnex {
-    struct Config: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Commands to set preferences",
-            subcommands: []
-        )
-    }
-}
-
-extension Nnex.Config {
-    struct SetTapFolder: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Sets the path the the folder where new taps will be created"
-        )
-        
-        @Option(name: .shortAndLong, help: "")
-        var path: String?
-        
-        func run() throws {
-//            let path = try path ?? Nnex.makePicker().getRequiredInput(prompt: "Enter the path to the folder where you want new taps to be created.")
-//            let context = try Nnex.makeContext()
-            
-            
-        }
     }
 }

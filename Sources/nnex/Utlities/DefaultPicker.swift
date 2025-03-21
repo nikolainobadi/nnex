@@ -53,3 +53,14 @@ extension SwiftDataFormula: DisplayablePickerItem {
         return name
     }
 }
+
+extension BuildType: DisplayablePickerItem {
+    var displayName: String {
+        switch self {
+        case .universal:
+            return "\(rawValue) (recommended)"
+        default:
+            return rawValue
+        }
+    }
+}
