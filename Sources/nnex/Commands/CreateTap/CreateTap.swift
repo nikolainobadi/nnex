@@ -6,6 +6,7 @@
 //
 
 import Files
+import GitShellKit
 import ArgumentParser
 
 extension Nnex.Brew {
@@ -17,13 +18,12 @@ extension Nnex.Brew {
         @Option(name: .shortAndLong, help: "The name of the new Homebrew Tap")
         var name: String?
         
-        @Option(name: .shortAndLong, help: "The username for the GitHub account to upload the Homebrew Tap.")
-        var username: String?
-        
         @Option(name: .shortAndLong, help: "Details about the Homebrew Tap to include when uploading to GitHub.")
         var details: String?
         
-        // TODO: - need to allow user to indicate visibility for new tap
+        @Flag(help: "Specify the repository visibility: --public (default) or --private.")
+        var visibility: RepoVisibility = .publicRepo
+
         
         func run() throws {
             let context = try Nnex.makeContext()
@@ -34,7 +34,7 @@ extension Nnex.Brew {
             
             print("Created folder for new tap named \(name) at \(tapFolder.path)")
             
-            let remotePath = try createNewRepository(tapName: homebrewTapName, path: tapFolder.path, username: username, projectDetails: details)
+            let remotePath = try createNewRepository(tapName: homebrewTapName, path: tapFolder.path, projectDetails: details, visibility: visibility)
             let newTap = SwiftDataTap(name: name, localPath: tapFolder.path, remotePath: remotePath)
             
             try context.saveNewTap(newTap)
@@ -63,13 +63,13 @@ fileprivate extension Nnex.Brew.CreateTap {
         return name
     }
     
-    func createNewRepository(tapName: String, path: String, username: String?, projectDetails: String?) throws -> String {
+    func createNewRepository(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String {
         let shell = Nnex.makeShell()
         let gitHandler = GitHandler(shell: shell, picker: picker)
         
         try gitHandler.gitInit(path: path)
         print("Initialized local git repository for \(tapName)")
-        let remotePath = try gitHandler.remoteRepoInit(tapName: tapName, path: path, username: username, projectDetails: projectDetails)
+        let remotePath = try gitHandler.remoteRepoInit(tapName: tapName, path: path, projectDetails: projectDetails, visibility: visibility)
         print("Created new GitHub repository for \(tapName) at \(remotePath)")
         
         return remotePath
@@ -101,5 +101,18 @@ fileprivate extension Nnex.Brew.CreateTap {
         print("Saved path for Taplist folder")
         
         return tapListFolder
+    }
+}
+
+
+// MARK: - Extension Dependencies
+extension RepoVisibility: @retroactive EnumerableFlag {
+    public static func name(for value: RepoVisibility) -> NameSpecification {
+        switch value {
+        case .publicRepo:
+            return .customLong("public")
+        case .privateRepo:
+            return .customLong("private")
+        }
     }
 }

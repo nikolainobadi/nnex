@@ -5,30 +5,25 @@
 //  Created by Nikolai Nobadi on 3/21/25.
 //
 
-import SwiftPicker
 import GitShellKit
 
 struct RepoInfoProviderAdapter {
     private let picker: Picker
     private let tapName: String
-    private let username: String
     private let projectDetails: String?
+    private let visibility: RepoVisibility
     
-    init(picker: Picker, tapName: String, username: String, projectDetails: String?) {
+    init(picker: Picker, tapName: String, projectDetails: String?, visibility: RepoVisibility) {
         self.picker = picker
         self.tapName = tapName
-        self.username = username
         self.projectDetails = projectDetails
+        self.visibility = visibility
     }
 }
 
 
 // MARK: - RepoInfoProvider
 extension RepoInfoProviderAdapter: RepoInfoProvider {
-    func getUsername() throws -> String {
-        return username
-    }
-    
     func getProjectName() throws -> String {
         return tapName
     }
@@ -38,19 +33,10 @@ extension RepoInfoProviderAdapter: RepoInfoProvider {
     }
     
     func getVisibility() throws -> RepoVisibility {
-        return try picker.requiredSingleSelection(title: "Select the visibility for this new tap.", items: RepoVisibility.allCases)
+        return visibility
     }
-}
-
-
-// MARK: - Extension Dependencies
-extension RepoVisibility: @retroactive DisplayablePickerItem {
-    public var displayName: String {
-        switch self {
-        case .publicRepo:
-            return "public (recommended)"
-        case .privateRepo:
-            return "private"
-        }
+    
+    func canUploadFromNonMainBranch() throws -> Bool {
+        return false
     }
 }

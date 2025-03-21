@@ -34,9 +34,8 @@ extension GitHandler {
         try GitStarter(path: path, shell: gitShell).gitInit()
     }
     
-    func remoteRepoInit(tapName: String, path: String, username: String?, projectDetails: String?) throws -> String {
-        let username = try username ?? loadGitHubUsername()
-        let infoProvider = RepoInfoProviderAdapter(picker: picker, tapName: tapName, username: username, projectDetails: projectDetails)
+    func remoteRepoInit(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String {
+        let infoProvider = RepoInfoProviderAdapter(picker: picker, tapName: tapName, projectDetails: projectDetails, visibility: visibility)
         
         return try GitHubRepoStarter(path: path, shell: gitShell, infoProvider: infoProvider).repoInit()
     }
@@ -47,19 +46,5 @@ extension GitHandler {
         try shell.runAndPrint(command)
         
         return try shell.run(makeGitHubCommand(.getLatestReleaseAssetURL, path: path))
-    }
-}
-
-
-// MARK: - Private Methods
-private extension GitHandler {
-    func loadGitHubUsername() throws -> String {
-        let username = try shell.run(makeGitHubCommand(.getGithubUsername, path: nil))
-        
-        if username.isEmpty {
-            throw NnexError.missingGitHubUsername
-        }
-        
-        return username
     }
 }
