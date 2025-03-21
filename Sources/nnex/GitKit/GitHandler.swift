@@ -54,8 +54,7 @@ extension GitHandler {
 // MARK: - Private Methods
 private extension GitHandler {
     func loadGitHubUsername() throws -> String {
-        // TODO: - need to use actual command to get username
-        let username = try shell.run(makeGitHubCommand(.getLatestReleaseAssetURL, path: nil))
+        let username = try shell.run(makeGitHubCommand(.getGithubUsername, path: nil))
         
         if username.isEmpty {
             throw NnexError.missingGitHubUsername
