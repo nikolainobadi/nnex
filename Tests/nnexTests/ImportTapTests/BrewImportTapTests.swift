@@ -39,11 +39,13 @@ struct BrewImportTapTests {
 
 // MARK: - Run Command
 private extension BrewImportTapTests {
-    func runCommand(_ testFactory: MockContextFactory, path: String = "") throws {
-        if path.isEmpty {
-            try Nnex.testRun(contextFactory: testFactory, args: ["brew", "import-tap"])
-        } else {
-            try Nnex.testRun(contextFactory: testFactory, args: ["brew", "import-tap", "-p", path])
+    func runCommand(_ testFactory: MockContextFactory, path: String? = nil) throws {
+        var args = ["brew", "import-tap"]
+        
+        if let path {
+            args = args + ["-p", path]
         }
+        
+        try Nnex.testRun(contextFactory: testFactory, args: args)
     }
 }

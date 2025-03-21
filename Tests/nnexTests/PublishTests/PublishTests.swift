@@ -35,9 +35,6 @@ struct PublishTests {
         
         let formulaFileContents = try #require(try tempFolder.subfolder(named: "homebrew-\(tapName)").file(named: "\(projectName).rb").readAsString())
         
-        print(formulaFileContents)
-        print("")
-        
         #expect(formulaFileContents.contains(projectName))
         #expect(formulaFileContents.contains(sha256))
         #expect(formulaFileContents.contains(assetURL))
