@@ -20,15 +20,13 @@ extension Nnex.Brew {
         func run() throws {
             let context = try Nnex.makeContext()
             let name = try getTapName(name: name)
-            let tapListFolder = try getTapListFolder()
+            let tapListFolder = try getTapListFolder(context: context)
             let homebrewTapName = name.homebrewTapName
             let tapFolder = try tapListFolder.createSubfolder(named: homebrewTapName)
             
-            // TODO: - 
             print("Created folder for new tap named \(name) at \(tapFolder.path)")
             
             let remotePath = try createNewRepository(name: homebrewTapName, path: tapFolder.path)
-            
             let newTap = SwiftDataTap(name: name, localPath: tapFolder.path, remotePath: remotePath)
             
             try context.saveNewTap(newTap)
@@ -39,8 +37,32 @@ extension Nnex.Brew {
 
 // MARK: - Private Methods
 fileprivate extension Nnex.Brew.CreateTap {
-    func getTapListFolder() throws -> Folder {
-        fatalError()
+    func getTapListFolder(context: SharedContext) throws -> Folder {
+        if let path = context.loadTapListFolderPath() {
+            return try Folder(path: path)
+        }
+        
+        let picker = Nnex.makePicker()
+        let homeFolder = Folder.home
+        let addNewPath = "SET CUSTOM PATH"
+        let defaultTapFolderName = "NnexHomebrewTaps"
+        let defaultPath = homeFolder.path + defaultTapFolderName
+        let prompt = "Missing Taplist folder path. Where would you like new Homebrew Taps to be created?"
+        let selection = try picker.requiredSingleSelection(title: prompt, items: [addNewPath, defaultPath])
+        
+        var tapListFolder: Folder
+        
+        if selection == addNewPath {
+            let newPath = try picker.getRequiredInput(prompt: "Enter the path where you Homebrew Taps should be created.")
+            tapListFolder = try Folder(path: newPath)
+        } else {
+            tapListFolder = try homeFolder.createSubfolder(named: defaultTapFolderName)
+        }
+        
+        print("Created Homebrew Taplist folder at \(tapListFolder.path)")
+        context.saveTapListFolderPath(path: tapListFolder.path)
+        print("Saved path for Taplist folder")
+        return tapListFolder
     }
     
     func createNewRepository(name: String, path: String) throws -> String {
