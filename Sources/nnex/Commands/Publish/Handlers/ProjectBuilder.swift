@@ -36,21 +36,6 @@ extension ProjectBuilder {
     }
 }
 
-//extension ProjectBuilder {
-//    func buildProject(name: String, path: String, buildType: BuildType) throws -> BinaryInfo {
-//        let projectPath = path.hasSuffix("/") ? path : path + "/"
-//        
-//        for arch in buildType.archs {
-//            try build(for: arch, projectPath: path)
-//        }
-//        
-//        let binaryPath = try buildUniversalBinary(projectName: name, projectPath: projectPath)
-//        let sha256 = try getSha256(binaryPath: binaryPath)
-//        
-//        return .init(path: binaryPath, sha256: sha256)
-//    }
-//}
-
 
 // MARK: - Private Methods
 private extension ProjectBuilder {
