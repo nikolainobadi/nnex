@@ -20,8 +20,8 @@ extension Nnex.Brew {
         
         func run() throws {
             let shell = Nnex.makeShell()
-            let gitHandler = GitHandler(shell: shell)
             let context = try Nnex.makeContext()
+            let gitHandler = GitHandler(shell: shell)
             let path = try path ?? Nnex.makePicker().getRequiredInput(prompt: "Enter the local path to you Homebrew tap folder.")
             let folder = try Folder(path: path)
             let tapName = folder.name.removingHomebrewPrefix

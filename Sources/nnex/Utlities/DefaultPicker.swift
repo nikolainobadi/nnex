@@ -36,7 +36,6 @@ extension DefaultPicker: Picker {
 protocol Picker {
     func getPermission(prompt: String) -> Bool
     func requiredPermission(prompt: String) throws
-//    func getRequiredInput(_ type: InputType) throws -> String
     func getRequiredInput(prompt: String) throws -> String
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item
 }
