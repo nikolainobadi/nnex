@@ -21,7 +21,7 @@ extension Nnex.Brew {
         var version: ReleaseVersionInfo?
         
         @Option(name: .shortAndLong, help: "The build type to set. Options: \(BuildType.allCases.map(\.rawValue).joined(separator: ", "))")
-                var buildType: BuildType?
+        var buildType: BuildType?
         
         func run() throws {
             let projectFolder = try getProjectFolder(at: path)
