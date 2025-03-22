@@ -31,6 +31,7 @@ let package = Package(
             dependencies: [
                 "SwiftShell",
                 "NnSwiftDataKit",
+                .product(name: "GitShellKit", package: "NnGitKit"),
             ]
         ),
         .executableTarget(
@@ -39,7 +40,6 @@ let package = Package(
                 "Files",
                 "NnexKit",
                 "SwiftPicker",
-                .product(name: "GitShellKit", package: "NnGitKit"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             linkerSettings: [

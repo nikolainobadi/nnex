@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
-import NnexKit
 import GitShellKit
 
 public struct DefaultGitHandler {
@@ -78,16 +77,4 @@ extension DefaultGitHandler: GitHandler {
             throw NnexError.missingGitHubCLI
         }
     }
-}
-
-
-// MARK: - Dependencies
-public protocol GitHandler {
-    func ghVerification() throws
-    func gitInit(path: String) throws
-    func getRemoteURL(path: String) throws -> String
-    func commitAndPush(message: String, path: String) throws
-    func getPreviousReleaseVersion(path: String) throws -> String
-    func remoteRepoInit(tapName: String, path: String, projectDetails: String, visibility: RepoVisibility) throws -> String
-    func createNewRelease(version: String, binaryPath: String, releaseNotes: String, path: String) throws -> String
 }

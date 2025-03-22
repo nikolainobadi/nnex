@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 3/21/25.
 //
 
-import NnexKit
 import GitShellKit
 
 struct GitShellAdapter {
