@@ -45,9 +45,9 @@ extension Nnex.Brew {
 // MARK: - Private Methods
 private extension Nnex.Brew.ImportTap {
     func decodeBrewFormula(_ file: File) throws -> BrewFormula? {
-        let output = try Nnex.makeShell().run("brew info --json=v2 \(file.path)")
+        let output = try makeBrewOutput(filePath: file.path)
         
-        if output.isEmpty {
+        if output.isEmpty || output.contains("⚠️⚠️⚠️") {
             let formulaContent = try file.readAsString()
             let name = extractField(from: formulaContent, pattern: #"class (\w+) < Formula"#) ?? "Unknown"
             let desc = extractField(from: formulaContent, pattern: #"desc\s+"([^"]+)""#) ?? "No description"
@@ -63,6 +63,18 @@ private extension Nnex.Brew.ImportTap {
         }
         
         return nil
+    }
+    
+    func makeBrewOutput(filePath: String) throws -> String {
+        let shell = Nnex.makeShell()
+        let brewCheck = try shell.run("which brew")
+        
+        if brewCheck.contains("not found") {
+            print("⚠️⚠️⚠️\nHomebrew has NOT been installed. You may want to install it soon...".red.bold)
+            return ""
+        }
+        
+        return try shell.run("brew info --json=v2 \(filePath)")
     }
     
     func extractField(from text: String, pattern: String) -> String? {
