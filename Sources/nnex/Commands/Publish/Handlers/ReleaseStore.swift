@@ -5,6 +5,8 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
+import NnexKit
+
 struct ReleaseStore {
     private let picker: Picker
     private let gitHandler: DefaultGitHandler

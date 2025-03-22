@@ -1,25 +1,23 @@
 //
-//  VersionOrIncrement.swift
+//  ReleaseVersionInfo.swift
 //  nnex
 //
-//  Created by Nikolai Nobadi on 3/20/25.
+//  Created by Nikolai Nobadi on 3/22/25.
 //
 
-import ArgumentParser
-
-enum ReleaseVersionInfo: ExpressibleByArgument {
+public enum ReleaseVersionInfo {
     case version(String)
     case increment(VersionPart)
     
-    enum VersionPart: String, ExpressibleByArgument {
+    public enum VersionPart: String {
         case major, minor, patch
         
-        init?(string: String) {
+        public init?(string: String) {
             self.init(rawValue: string.lowercased())
         }
     }
     
-    init?(argument: String) {
+    public init?(argument: String) {
         if let versionPart = VersionPart(rawValue: argument) {
             self = .increment(versionPart)
         } else {
