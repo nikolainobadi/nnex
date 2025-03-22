@@ -80,6 +80,10 @@ extension SharedContext {
         return try context.fetch(FetchDescriptor<SwiftDataTap>())
     }
     
+    func loadFormulas() throws -> [SwiftDataFormula] {
+        return try context.fetch(FetchDescriptor<SwiftDataFormula>())
+    }
+    
     func saveNewTap(_ tap: SwiftDataTap, formulas: [SwiftDataFormula] = []) throws {
         context.insert(tap)
         
