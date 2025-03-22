@@ -29,6 +29,7 @@ let package = Package(
         .target(
             name: "NnexKit",
             dependencies: [
+                "SwiftShell",
                 "NnSwiftDataKit",
             ]
         ),
@@ -37,7 +38,6 @@ let package = Package(
             dependencies: [
                 "Files",
                 "NnexKit",
-                "SwiftShell",
                 "SwiftPicker",
                 .product(name: "GitShellKit", package: "NnGitKit"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")

@@ -5,13 +5,14 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
+import NnexKit
 import GitShellKit
 
-struct DefaultGitHandler {
+public struct DefaultGitHandler {
     private let shell: Shell
     private let gitShell: GitShell
     
-    init(shell: Shell) {
+    public init(shell: Shell) {
         self.shell = shell
         self.gitShell = GitShellAdapter(shell: shell)
     }
@@ -20,30 +21,30 @@ struct DefaultGitHandler {
 
 // MARK: - Actions
 extension DefaultGitHandler: GitHandler {
-    func commitAndPush(message: String, path: String) throws {
+    public func commitAndPush(message: String, path: String) throws {
         try shell.runAndPrint(makeGitCommand(.commit(message), path: path))
         try shell.runAndPrint(makeGitCommand(.push, path: path))
     }
     
-    func getRemoteURL(path: String) throws -> String {
+    public func getRemoteURL(path: String) throws -> String {
         return try gitShell.getGitHubURL(at: path)
     }
     
-    func getPreviousReleaseVersion(path: String) throws -> String {
+    public func getPreviousReleaseVersion(path: String) throws -> String {
         return try shell.run(makeGitHubCommand(.getPreviousReleaseVersion, path: path))
     }
     
-    func gitInit(path: String) throws {
+    public func gitInit(path: String) throws {
         try GitStarter(path: path, shell: gitShell).gitInit()
     }
     
-    func remoteRepoInit(tapName: String, path: String, projectDetails: String, visibility: RepoVisibility) throws -> String {
+    public func remoteRepoInit(tapName: String, path: String, projectDetails: String, visibility: RepoVisibility) throws -> String {
         let info = RepoInfo(name: tapName, details: projectDetails, visibility: visibility, canUploadFromNonMainBranch: false)
         
         return try GitHubRepoStarter(path: path, shell: gitShell, repoInfo: info).repoInit()
     }
     
-    func createNewRelease(version: String, binaryPath: String, releaseNotes: String, path: String) throws -> String {
+    public func createNewRelease(version: String, binaryPath: String, releaseNotes: String, path: String) throws -> String {
         let command = makeGitHubCommand(.createNewReleaseWithBinary(version: version, binaryPath: binaryPath, releaseNotes: releaseNotes), path: path)
         
         try shell.runAndPrint(command)
@@ -51,7 +52,7 @@ extension DefaultGitHandler: GitHandler {
         return try shell.run(makeGitHubCommand(.getLatestReleaseAssetURL, path: path))
     }
     
-    func ghVerification() throws {
+    public func ghVerification() throws {
         let output = try shell.run("which gh")
         
         if output.contains("not found") {
@@ -81,7 +82,7 @@ extension DefaultGitHandler: GitHandler {
 
 
 // MARK: - Dependencies
-protocol GitHandler {
+public protocol GitHandler {
     func ghVerification() throws
     func gitInit(path: String) throws
     func getRemoteURL(path: String) throws -> String

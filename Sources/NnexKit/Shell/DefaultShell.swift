@@ -7,12 +7,16 @@
 
 import SwiftShell
 
-struct DefaultShell: Shell {
-    func runAndPrint(_ command: String) throws {
+public struct DefaultShell {
+    public init() { }
+}
+
+extension DefaultShell: Shell {
+    public func runAndPrint(_ command: String) throws {
         try SwiftShell.runAndPrint(bash: command)
     }
     
-    func run(_ command: String) throws -> String {
+    public func run(_ command: String) throws -> String {
         let output = SwiftShell.run(bash: command)
         
         guard output.succeeded else {
@@ -21,11 +25,4 @@ struct DefaultShell: Shell {
         
         return output.stdout.trimmingCharacters(in: .whitespaces)
     }
-}
-
-
-// MARK: - Dependencies
-protocol Shell {
-    func run(_ command: String) throws -> String
-    func runAndPrint(_ command: String) throws
 }
