@@ -5,7 +5,7 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
-enum ReleaseArchitecture {
+public enum ReleaseArchitecture {
     case arm, intel
     
     var name: String {

@@ -5,19 +5,17 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
-import NnexKit
-
-struct ProjectBuilder {
+public struct ProjectBuilder {
     private let shell: Shell
     
-    init(shell: Shell) {
+    public init(shell: Shell) {
         self.shell = shell
     }
 }
 
 
 // MARK: - Build
-extension ProjectBuilder {
+public extension ProjectBuilder {
     func buildProject(name: String, path: String, buildType: BuildType) throws -> BinaryInfo {
         let projectPath = path.hasSuffix("/") ? path : path + "/"
         

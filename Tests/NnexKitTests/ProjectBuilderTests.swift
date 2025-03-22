@@ -7,7 +7,7 @@
 
 import Testing
 import NnexSharedTestHelpers
-@testable import nnex
+@testable import NnexKit
 
 struct ProjectBuilderTests {
     private let sha256 = "abc123def456"
