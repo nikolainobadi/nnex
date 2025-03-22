@@ -6,35 +6,33 @@
 //
 
 import Files
-import NnexKit
 
-struct FormulaPublisher {
+public struct FormulaPublisher {
     private let gitHandler: GitHandler
     
-    init(gitHandler: GitHandler) {
+    public init(gitHandler: GitHandler) {
         self.gitHandler = gitHandler
     }
 }
 
 
 // MARK: - Publish
-extension FormulaPublisher {
-    func publishFormula(_ content: String, formulaName: String, commitMessage: String?, tap: SwiftDataTap) throws {
+public extension FormulaPublisher {
+    func publishFormula(_ content: String, formulaName: String, commitMessage: String?, tapFolderPath: String) throws -> String {
         let fileName = "\(formulaName).rb"
-        let tapFolder = try Folder(path: tap.localPath)
+        let tapFolder = try Folder(path: tapFolderPath)
         
         if tapFolder.containsFile(named: fileName) {
-            print("\nDeleting old \(formulaName) formula to replace with new formula...")
             try tapFolder.file(named: fileName).delete()
         }
         
         let newFile = try tapFolder.createFile(named: fileName)
         try newFile.write(content)
         
-        print("\nSuccessfully created formula at \(newFile.path)")
-        
         if let commitMessage {
-            try gitHandler.commitAndPush(message: commitMessage, path: tap.localPath)
+            try gitHandler.commitAndPush(message: commitMessage, path: tapFolderPath)
         }
+        
+        return newFile.path
     }
 }

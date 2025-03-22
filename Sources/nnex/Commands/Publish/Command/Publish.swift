@@ -112,7 +112,12 @@ private extension Nnex.Brew.Publish {
         let publisher = FormulaPublisher(gitHandler: gitHandler)
         let commitMessage = try getMessage(message: message)
         
-        try publisher.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tap: tap)
+        let formulaPath = try publisher.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tap.localPath)
+        
+        print("\nSuccessfully created formula at \(formulaPath)")
+        if commitMessage != nil {
+            print("pushed \(tap.name) to github.")
+        }
     }
     
     func getMessage(message: String?) throws -> String? {
