@@ -8,10 +8,12 @@
 import Files
 
 struct FormulaPublisher {
-    private let shell: Shell
+    private let picker: Picker
+    private let gitHandler: GitHandler
     
-    init(shell: Shell) {
-        self.shell = shell
+    init(picker: Picker, gitHandler: GitHandler) {
+        self.picker = picker
+        self.gitHandler = gitHandler
     }
 }
 
@@ -32,7 +34,9 @@ extension FormulaPublisher {
         
         print("\nSuccessfully created formula at \(newFile.path)")
         
-        // TODO: - commit changes to tap folder and push to github
-        // maybe I should ask permission and allow a flag to be passed in to 'force' the push or something
+        if picker.getPermission(prompt: "Would you like to commit and push the tap to GitHub?") {
+            let message = try picker.getRequiredInput(prompt: "Enter your commit message.")
+            try gitHandler.commitAndPush(message: message, path: tap.localPath)
+        }
     }
 }

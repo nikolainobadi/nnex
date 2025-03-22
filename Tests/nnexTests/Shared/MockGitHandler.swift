@@ -23,6 +23,10 @@ final class MockGitHandler {
 
 // MARK: - Delegate
 extension MockGitHandler: GitHandler {
+    func commitAndPush(message: String, path: String) throws {
+        // TODO: - 
+    }
+    
     func gitInit(path: String) throws {
         // TODO: -
     }

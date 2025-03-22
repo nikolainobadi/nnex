@@ -22,8 +22,8 @@ extension Nnex.Brew {
             let shell = Nnex.makeShell()
             let picker = Nnex.makePicker()
             let context = try Nnex.makeContext()
-            let gitHandler = DefaultGitHandler(shell: shell, picker: picker)
-            let path = try path ?? Nnex.makePicker().getRequiredInput(prompt: "Enter the local path to you Homebrew tap folder.")
+            let gitHandler = Nnex.makeGitHandler()
+            let path = try path ?? picker.getRequiredInput(prompt: "Enter the local path to you Homebrew tap folder.")
             let folder = try Folder(path: path)
             let tapName = folder.name.removingHomebrewPrefix
             let formulaFiles = folder.files.filter({ $0.extension == "rb" })

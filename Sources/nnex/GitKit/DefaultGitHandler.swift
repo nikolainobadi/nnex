@@ -22,6 +22,11 @@ struct DefaultGitHandler {
 
 // MARK: - Actions
 extension DefaultGitHandler: GitHandler {
+    func commitAndPush(message: String, path: String) throws {
+        try shell.runAndPrint(makeGitCommand(.commit(message), path: path))
+        try shell.runAndPrint(makeGitCommand(.push, path: path))
+    }
+    
     func getRemoteURL(path: String) throws -> String {
         return try gitShell.getGitHubURL(at: path)
     }
@@ -54,6 +59,7 @@ extension DefaultGitHandler: GitHandler {
 protocol GitHandler {
     func gitInit(path: String) throws
     func getRemoteURL(path: String) throws -> String
+    func commitAndPush(message: String, path: String) throws
     func getPreviousReleaseVersion(path: String) throws -> String
     func remoteRepoInit(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String
     func createNewRelease(version: String, binaryPath: String, releaseNotes: String, path: String) throws -> String

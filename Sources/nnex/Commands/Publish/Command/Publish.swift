@@ -82,7 +82,8 @@ private extension Nnex.Brew.Publish {
     }
 
     func publishFormula(_ content: String, formulaName: String, tap: SwiftDataTap) throws {
-        let publisher = FormulaPublisher(shell: shell)
+        let gitHandler = Nnex.makeGitHandler()
+        let publisher = FormulaPublisher(picker: picker, gitHandler: gitHandler)
         
         try publisher.publishFormula(content, formulaName: formulaName, tap: tap)
     }
