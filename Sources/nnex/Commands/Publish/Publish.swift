@@ -67,7 +67,7 @@ private extension Nnex.Brew.Publish {
     func getTapAndFormula(projectFolder: Folder, buildType: BuildType?) throws -> (SwiftDataTap, SwiftDataFormula, BuildType) {
         let context = try Nnex.makeContext()
         let buildType = buildType ?? context.loadDefaultBuildType()
-        let loader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context)
+        let loader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler)
         
         let (tap, formula) = try loader.loadPublishInfo()
         
@@ -132,3 +132,8 @@ private extension Nnex.Brew.Publish {
         return try picker.getRequiredInput(prompt: "Enter your commit message.")
     }
 }
+
+
+// MARK: - Extension Dependencies
+extension ReleaseVersionInfo: ExpressibleByArgument { }
+extension ReleaseVersionInfo.VersionPart: ExpressibleByArgument { }

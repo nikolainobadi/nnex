@@ -12,13 +12,15 @@ struct PublishInfoLoader {
     private let shell: Shell
     private let picker: Picker
     private let projectFolder: Folder
+    private let gitHandler: GitHandler
     private let context: NnexContext
     
-    init(shell: Shell, picker: Picker, projectFolder: Folder, context: NnexContext) {
+    init(shell: Shell, picker: Picker, projectFolder: Folder, context: NnexContext, gitHandler: GitHandler) {
         self.shell = shell
         self.picker = picker
         self.projectFolder = projectFolder
         self.context = context
+        self.gitHandler = gitHandler
     }
 }
 
@@ -54,10 +56,9 @@ private extension PublishInfoLoader {
     }
     
     func createNewFormula(for folder: Folder) throws -> SwiftDataFormula {
-        let gitHandler = DefaultGitHandler(shell: shell)
         let details = try picker.getRequiredInput(prompt: "Enter the description for this formula.")
         let homepage = try gitHandler.getRemoteURL(path: folder.path)
-        let license = detectLicense(in: folder)
+        let license = LicenseDetector.detectLicense(in: folder)
         
         return .init(
             name: folder.name,
@@ -67,28 +68,5 @@ private extension PublishInfoLoader {
             localProjectPath: folder.path,
             uploadType: .binary
         )
-    }
-    
-    func detectLicense(in folder: Folder) -> String {
-        let licenseFiles = ["LICENSE", "LICENSE.md", "COPYING"]
-        
-        for fileName in licenseFiles {
-            if let file = try? folder.file(named: fileName) {
-                let content = try? file.readAsString()
-                if let content = content {
-                    if content.contains("MIT License") {
-                        return "MIT"
-                    } else if content.contains("Apache License") {
-                        return "Apache"
-                    } else if content.contains("GNU General Public License") {
-                        return "GPL"
-                    } else if content.contains("BSD License") {
-                        return "BSD"
-                    }
-                }
-            }
-        }
-        
-        return ""
     }
 }
