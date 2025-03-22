@@ -22,9 +22,7 @@ struct ReleaseStore {
 extension ReleaseStore {
     func uploadRelease(info: ReleaseInfo) throws -> String {
         let versionNumber = try getVersionNumber(info)
-        let releaseNotes = try getReleaseNotes()
-        
-        let assetURL = try gitHandler.createNewRelease(version: versionNumber, binaryPath: info.binaryPath, releaseNotes: releaseNotes, path: info.projectPath)
+        let assetURL = try gitHandler.createNewRelease(version: versionNumber, binaryPath: info.binaryPath, releaseNotes: info.releaseNotes, path: info.projectPath)
         print("GitHub release \(versionNumber) created and binary uploaded to \(assetURL)")
         
         return assetURL
@@ -34,11 +32,6 @@ extension ReleaseStore {
 
 // MARK: - Private Methods
 private extension ReleaseStore {
-    func getReleaseNotes() throws -> String {
-        // TODO: - may be useful to allow user to provide path to release notes files as well
-        return try picker.getRequiredInput(prompt: "Enter notes for this new release.")
-    }
-    
     func incrementVersion(_ part: ReleaseVersionInfo.VersionPart, path: String) throws -> String {
         let previousVersion = try gitHandler.getPreviousReleaseVersion(path: path)
         

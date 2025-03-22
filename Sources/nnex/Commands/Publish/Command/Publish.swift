@@ -33,7 +33,7 @@ extension Nnex.Brew {
             let projectFolder = try getProjectFolder(at: path)
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
             let binaryInfo = try buildBinary(for: projectFolder, buildType: buildType)
-            let releaseInfo = makeReleaseInfo(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version)
+            let releaseInfo = try makeReleaseInfo(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version)
             let assetURL = try uploadRelease(info: releaseInfo)
             let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
             
@@ -77,8 +77,10 @@ private extension Nnex.Brew.Publish {
         return try builder.buildProject(name: folder.name, path: folder.path, buildType: buildType)
     }
     
-    func makeReleaseInfo(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?) -> ReleaseInfo {
-        return .init(binaryPath: binaryInfo.path, projectPath: folder.path, versionInfo: versionInfo)
+    func makeReleaseInfo(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?) throws -> ReleaseInfo {
+        let releaseNotes = try picker.getRequiredInput(prompt: "Enter notes for this new release.")
+        
+        return .init(binaryPath: binaryInfo.path, projectPath: folder.path, releaseNotes: releaseNotes, versionInfo: versionInfo)
     }
     
     func uploadRelease(info: ReleaseInfo) throws -> String {
