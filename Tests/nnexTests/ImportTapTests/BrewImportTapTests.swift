@@ -5,8 +5,8 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
+import NnexKit
 import Testing
-import SwiftShell
 @testable import nnex
 @preconcurrency import Files
 

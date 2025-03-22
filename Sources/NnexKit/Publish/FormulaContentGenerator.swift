@@ -5,10 +5,8 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
-import NnexKit
-
-enum FormulaContentGenerator {
-    static func makeFormulaFileContent(formula: SwiftDataFormula, assetURL: String, sha256: String) -> String {
+public enum FormulaContentGenerator {
+    public static func makeFormulaFileContent(formula: SwiftDataFormula, assetURL: String, sha256: String) -> String {
         return makeFormulaFileContent(
             name: formula.name,
             details: formula.details,
@@ -19,7 +17,7 @@ enum FormulaContentGenerator {
         )
     }
     
-    static func makeFormulaFileContent(name: String, details: String, homepage: String, license: String, assetURL: String, sha256: String) -> String {
+    public static func makeFormulaFileContent(name: String, details: String, homepage: String, license: String, assetURL: String, sha256: String) -> String {
         return """
         class \(name.capitalized) < Formula
             desc "\(details)"
