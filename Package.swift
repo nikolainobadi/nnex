@@ -55,5 +55,9 @@ let package = Package(
             name: "nnexTests",
             dependencies: ["nnex"]
         ),
+        .testTarget(
+            name: "NnexKitTests",
+            dependencies: ["NnexKit"]
+        )
     ]
 )
