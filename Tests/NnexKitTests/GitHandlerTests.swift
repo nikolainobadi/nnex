@@ -7,6 +7,7 @@
 
 import Testing
 import GitShellKit
+import NnexSharedTestHelpers
 @testable import NnexKit
 
 struct GitHandlerTests {
@@ -120,40 +121,5 @@ private extension GitHandlerTests {
         let sut = DefaultGitHandler(shell: shell)
         
         return (sut, shell)
-    }
-}
-
-
-// TODO: - move to shared testhelpers package
-import Foundation
-final class MockShell {
-    private let shouldThrowError: Bool
-    private let errorMessage = "MockShell error"
-    private var runResults: [String]
-    private(set) var printedCommands: [String] = []
-    
-    init(runResults: [String] = [], shouldThrowError: Bool = false) {
-        self.runResults = runResults
-        self.shouldThrowError = shouldThrowError
-    }
-}
-
-
-// MARK: - Shell
-extension MockShell: Shell {
-    func run(_ command: String) throws -> String {
-        printedCommands.append(command)
-        if shouldThrowError {
-            throw NSError(domain: "MockShell", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-        }
-        
-        return runResults.isEmpty ? "" : runResults.removeFirst()
-    }
-
-    func runAndPrint(_ command: String) throws {
-        printedCommands.append(command)
-        if shouldThrowError {
-            throw NSError(domain: "MockShell", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-        }
     }
 }

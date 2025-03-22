@@ -6,15 +6,21 @@
 //
 
 import Testing
+import NnexSharedTestHelpers
 @testable import nnex
 
 struct ProjectBuilderTests {
+    private let sha256 = "abc123def456"
+    private let projectName = "TestProject"
+    private let projectPath = "/path/to/project"
+}
+
+
+// MARK: - Unit Tests
+extension ProjectBuilderTests {
     @Test("Successfully builds a universal binary")
     func buildUniversalBinary() throws {
-        let sha256 = "abc123def456"
         let sut = makeSUT(runResults: [sha256]).sut
-        let projectName = "TestProject"
-        let projectPath = "/path/to/project"
         let result = try sut.buildProject(name: projectName, path: projectPath, buildType: .universal)
         
         #expect(result.path.contains(projectPath))
@@ -51,10 +57,7 @@ struct ProjectBuilderTests {
     
     @Test("Successfully builds an arm64 binary")
     func buildArm64Binary() throws {
-        let sha256 = "arm64sha256"
         let sut = makeSUT(runResults: [sha256]).sut
-        let projectName = "TestProject"
-        let projectPath = "/path/to/project"
         let result = try sut.buildProject(name: projectName, path: projectPath, buildType: .arm64)
         
         #expect(result.path.contains(projectPath))
@@ -65,10 +68,7 @@ struct ProjectBuilderTests {
     
     @Test("Successfully builds an x86_64 binary")
     func buildX86_64Binary() throws {
-        let sha256 = "x86_64sha256"
         let sut = makeSUT(runResults: [sha256]).sut
-        let projectName = "TestProject"
-        let projectPath = "/path/to/project"
         let result = try sut.buildProject(name: projectName, path: projectPath, buildType: .x86_64)
         
         #expect(result.path.contains(projectPath))
