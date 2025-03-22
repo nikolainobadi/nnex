@@ -14,6 +14,9 @@ final class MockGitHandler {
     private let assetURL: String
     private let ghIsInstalled: Bool
     private(set) var message: String?
+    private(set) var gitInitPath: String?
+    private(set) var remoteTapName: String?
+    private(set) var remoteTapPath: String?
     
     init(remoteURL: String = "", previousVersion: String = "", assetURL: String = "", ghIsInstalled: Bool = true) {
         self.remoteURL = remoteURL
@@ -37,7 +40,7 @@ extension MockGitHandler: GitHandler {
     }
     
     func gitInit(path: String) throws {
-        // TODO: -
+        gitInitPath = path
     }
     
     func getRemoteURL(path: String) throws -> String {
@@ -49,6 +52,8 @@ extension MockGitHandler: GitHandler {
     }
     
     func remoteRepoInit(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String {
+        remoteTapPath = path
+        remoteTapName = tapName
         return remoteURL
     }
     

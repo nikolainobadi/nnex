@@ -27,13 +27,30 @@ final class CreateTapTests {
 extension CreateTapTests {
     @Test("ensures no folders exist in temporary folder")
     func startingValuesEmpty() throws {
-        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path)
+        let gitHandler = MockGitHandler()
+        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
         let context = try factory.makeContext()
         let tapList = try context.loadTaps()
         let subfolders = tapListFolder.subfolders.map({ $0 })
         
         #expect(tapList.isEmpty)
         #expect(subfolders.isEmpty)
+        #expect(gitHandler.gitInitPath == nil)
+        #expect(gitHandler.remoteTapName == nil)
+        #expect(gitHandler.remoteTapPath == nil)
+    }
+    
+    @Test("Cannot create tap if 'gh' is not installed")
+    func createTapFailsWithoutGHCLI() throws {
+        let gitHandler = MockGitHandler(ghIsInstalled: false)
+        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
+        
+        #expect(throws: NnexError.missingGitHubCLI) {
+            try runCommand(factory)
+        }
+        
+        #expect(gitHandler.gitInitPath == nil)
+        #expect(tapListFolder.subfolders.map({ $0 }).isEmpty)
     }
     
     @Test("Creates new tap folder with 'homebrew-' prefix when name from arg does not include the prefix")
@@ -87,6 +104,23 @@ extension CreateTapTests {
         try runCommand(factory, name: name)
         
         #expect(try context.loadTaps().first?.name == name)
+    }
+    
+    @Test("New repository is initialized for new Homebrew Tap folder")
+    func newGitInitForTap() throws {
+        let name = "myNewTap"
+        let tapName = name.homebrewTapName
+        let remoteURL = "remoteURL"
+        let gitHandler = MockGitHandler(remoteURL: remoteURL)
+        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
+        
+        try runCommand(factory, name: name)
+        
+        let tapFolder = try #require(try Folder(path: tapListFolder.path).subfolder(named: tapName))
+        
+        #expect(gitHandler.gitInitPath == tapFolder.path)
+        #expect(gitHandler.remoteTapName == tapName)
+        #expect(gitHandler.remoteTapPath == tapFolder.path)
     }
 }
 

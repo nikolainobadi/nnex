@@ -40,22 +40,6 @@ final class PublishTests {
 
 // MARK: - Unit Tests
 extension PublishTests {
-    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, and message when 'gh' is installed")
-    func testPublishCommand() throws {
-        let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
-        
-        try createTestTapAndFormula(factory: factory)
-        try runCommand(factory, version: .version(versionNumber), message: commitMessage)
-        
-        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
-        
-        #expect(formulaFileContents.contains(projectName))
-        #expect(formulaFileContents.contains(sha256))
-        #expect(formulaFileContents.contains(assetURL))
-        #expect(gitHandler.message == commitMessage)
-    }
-    
     @Test("Cannot publish if 'gh' is not installed")
     func publishFailsWithNoGHCLI() throws {
         let gitHandler = MockGitHandler(ghIsInstalled: false)
@@ -71,6 +55,22 @@ extension PublishTests {
         
         #expect(gitHandler.message == nil)
         #expect(tapFolder.containsFile(named: formulaFileName) == false)
+    }
+    
+    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, and message")
+    func testPublishCommand() throws {
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
+        
+        try createTestTapAndFormula(factory: factory)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage)
+        
+        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
+        
+        #expect(formulaFileContents.contains(projectName))
+        #expect(formulaFileContents.contains(sha256))
+        #expect(formulaFileContents.contains(assetURL))
+        #expect(gitHandler.message == commitMessage)
     }
     
     @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input")
