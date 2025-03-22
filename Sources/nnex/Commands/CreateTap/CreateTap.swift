@@ -70,6 +70,7 @@ fileprivate extension Nnex.Brew.CreateTap {
     }
     
     func createNewRepository(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String {
+        let projectDetails = try projectDetails ?? picker.getRequiredInput(prompt: "Enter the details for this new tap")
         try gitHandler.gitInit(path: path)
         print("Initialized local git repository for \(tapName)")
         let remotePath = try gitHandler.remoteRepoInit(tapName: tapName, path: path, projectDetails: projectDetails, visibility: visibility)

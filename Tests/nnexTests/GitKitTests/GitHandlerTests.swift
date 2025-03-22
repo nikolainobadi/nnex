@@ -117,8 +117,8 @@ extension GitHandlerTests {
 private extension GitHandlerTests {
     func makeSUT(runResults: [String] = [], throwError: Bool = false) -> (sut: DefaultGitHandler, shell: MockShell) {
         let shell = MockShell(runResults: runResults, shouldThrowError: throwError)
-        let picker = MockPicker()
-        let sut = DefaultGitHandler(shell: shell, picker: picker)
+        let sut = DefaultGitHandler(shell: shell)
+        
         return (sut, shell)
     }
 }

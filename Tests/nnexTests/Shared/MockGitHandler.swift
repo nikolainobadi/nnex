@@ -51,7 +51,7 @@ extension MockGitHandler: GitHandler {
         return previousVersion
     }
     
-    func remoteRepoInit(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String {
+    func remoteRepoInit(tapName: String, path: String, projectDetails: String, visibility: RepoVisibility) throws -> String {
         remoteTapPath = path
         remoteTapName = tapName
         return remoteURL

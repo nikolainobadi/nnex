@@ -9,12 +9,10 @@ import GitShellKit
 
 struct DefaultGitHandler {
     private let shell: Shell
-    private let picker: Picker
     private let gitShell: GitShell
     
-    init(shell: Shell, picker: Picker) {
+    init(shell: Shell) {
         self.shell = shell
-        self.picker = picker
         self.gitShell = GitShellAdapter(shell: shell)
     }
 }
@@ -39,10 +37,10 @@ extension DefaultGitHandler: GitHandler {
         try GitStarter(path: path, shell: gitShell).gitInit()
     }
     
-    func remoteRepoInit(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String {
-        let infoProvider = RepoInfoProviderAdapter(picker: picker, tapName: tapName, projectDetails: projectDetails, visibility: visibility)
+    func remoteRepoInit(tapName: String, path: String, projectDetails: String, visibility: RepoVisibility) throws -> String {
+        let info = RepoInfo(name: tapName, details: projectDetails, visibility: visibility, canUploadFromNonMainBranch: false)
         
-        return try GitHubRepoStarter(path: path, shell: gitShell, infoProvider: infoProvider).repoInit()
+        return try GitHubRepoStarter(path: path, shell: gitShell, repoInfo: info).repoInit()
     }
     
     func createNewRelease(version: String, binaryPath: String, releaseNotes: String, path: String) throws -> String {
@@ -89,6 +87,6 @@ protocol GitHandler {
     func getRemoteURL(path: String) throws -> String
     func commitAndPush(message: String, path: String) throws
     func getPreviousReleaseVersion(path: String) throws -> String
-    func remoteRepoInit(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String
+    func remoteRepoInit(tapName: String, path: String, projectDetails: String, visibility: RepoVisibility) throws -> String
     func createNewRelease(version: String, binaryPath: String, releaseNotes: String, path: String) throws -> String
 }

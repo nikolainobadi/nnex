@@ -18,7 +18,7 @@ struct DefaultContextFactory: ContextFactory {
     }
     
     func makeGitHandler() -> any GitHandler {
-        return DefaultGitHandler(shell: makeShell(), picker: makePicker())
+        return DefaultGitHandler(shell: makeShell())
     }
     
     func makeContext() throws -> NnexContext {

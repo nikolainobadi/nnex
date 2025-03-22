@@ -1,5 +1,5 @@
 {
-  "originHash" : "619210fcbbc760fad3ac1027beac759564a5fa6112579ac5cd24e6bfcecd5436",
+  "originHash" : "193958f75f18493ce2b41ca0a3217fa27a96fdb6308ab04b246f3923d51ff233",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/NnGitKit.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "76f275225ce307c33c2dcb7251442c522baa0334"
+        "revision" : "1c53036ea1a25d1763baaf9e02ab075ce0423165",
+        "version" : "1.0.0"
       }
     },
     {
