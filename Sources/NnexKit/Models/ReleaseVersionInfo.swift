@@ -5,11 +5,11 @@
 //  Created by Nikolai Nobadi on 3/22/25.
 //
 
-public enum ReleaseVersionInfo {
+public enum ReleaseVersionInfo: Sendable {
     case version(String)
     case increment(VersionPart)
     
-    public enum VersionPart: String {
+    public enum VersionPart: String, CaseIterable, Sendable {
         case major, minor, patch
         
         public init?(string: String) {

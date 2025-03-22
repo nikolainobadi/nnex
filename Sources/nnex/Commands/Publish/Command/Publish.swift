@@ -33,8 +33,7 @@ extension Nnex.Brew {
             let projectFolder = try getProjectFolder(at: path)
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
             let binaryInfo = try buildBinary(for: projectFolder, buildType: buildType)
-            let releaseInfo = try makeReleaseInfo(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version)
-            let assetURL = try uploadRelease(info: releaseInfo)
+            let assetURL = try uploadRelease(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version)
             let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
             
             try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
@@ -51,6 +50,10 @@ private extension Nnex.Brew.Publish {
     
     var picker: Picker {
         return Nnex.makePicker()
+    }
+    
+    var gitHandler: GitHandler {
+        return Nnex.makeGitHandler()
     }
     
     func getProjectFolder(at path: String?) throws -> Folder {
@@ -77,20 +80,35 @@ private extension Nnex.Brew.Publish {
         return try builder.buildProject(name: folder.name, path: folder.path, buildType: buildType)
     }
     
-    func makeReleaseInfo(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?) throws -> ReleaseInfo {
+    func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?) throws -> String {
+        let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: folder.path)
+        let versionInfo = try getVersionInput(previousVersion: previousVersion)
         let releaseNotes = try picker.getRequiredInput(prompt: "Enter notes for this new release.")
+        let releaseInfo = ReleaseInfo(binaryPath: binaryInfo.path, projectPath: folder.path, releaseNotes: releaseNotes, previousVersion: previousVersion, versionInfo: versionInfo)
+        let store = ReleaseStore(gitHandler: gitHandler)
         
-        return .init(binaryPath: binaryInfo.path, projectPath: folder.path, releaseNotes: releaseNotes, versionInfo: versionInfo)
+        let (assetURL, versionNumber) = try store.uploadRelease(info: releaseInfo)
+        print("GitHub release \(versionNumber) created and binary uploaded to \(assetURL)")
+        return assetURL
     }
     
-    func uploadRelease(info: ReleaseInfo) throws -> String {
-        let store = ReleaseStore(shell: shell, picker: picker)
+    func getVersionInput(previousVersion: String?) throws -> ReleaseVersionInfo {
+        var prompt = "Enter the version number for this release. (v1.1.0 or 1.1.0)"
         
-        return try store.uploadRelease(info: info)
+        if let previousVersion {
+            prompt.append(" Previous release: \(previousVersion) (To increment, simply type major, minor, or patch)")
+        }
+        
+        let input = try picker.getRequiredInput(prompt: prompt)
+        
+        if let versionPart = ReleaseVersionInfo.VersionPart(string: input) {
+            return .increment(versionPart)
+        }
+        
+        return .version(input)
     }
 
     func publishFormula(_ content: String, formulaName: String, message: String?, tap: SwiftDataTap) throws {
-        let gitHandler = Nnex.makeGitHandler()
         let publisher = FormulaPublisher(picker: picker, message: message, gitHandler: gitHandler)
         
         try publisher.publishFormula(content, formulaName: formulaName, tap: tap)

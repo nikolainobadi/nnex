@@ -15,7 +15,12 @@ let package = Package(
         ),
         .executable(
             name: "nnex",
-            targets: ["nnex"]),
+            targets: ["nnex"]
+        ),
+        .library(
+            name: "NnexSharedTestHelpers",
+            targets: ["NnexSharedTestHelpers"]
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/JohnSundell/Files", from: "4.0.0"),
@@ -51,13 +56,25 @@ let package = Package(
                 ])
             ]
         ),
+        .target(
+            name: "NnexSharedTestHelpers",
+            dependencies: [
+                "NnexKit"
+            ]
+        ),
         .testTarget(
             name: "nnexTests",
-            dependencies: ["nnex"]
+            dependencies: [
+                "nnex",
+                "NnexSharedTestHelpers"
+            ]
         ),
         .testTarget(
             name: "NnexKitTests",
-            dependencies: ["NnexKit"]
+            dependencies: [
+                "NnexKit",
+                "NnexSharedTestHelpers"
+            ]
         )
     ]
 )

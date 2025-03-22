@@ -10,8 +10,8 @@ public enum NnexError: Error {
     case missingSha256
     case invalidTapName
     case missingGitHubCLI
-    case noPreviousVersion
     case shellCommandFailed
     case invalidVersionNumber
     case missingGitHubUsername
+    case noPreviousVersionToIncrement
 }
