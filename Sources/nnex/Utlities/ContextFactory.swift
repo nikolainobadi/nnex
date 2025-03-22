@@ -6,15 +6,8 @@
 //
 
 import Files
+import NnexKit
 
-protocol ContextFactory {
-    func makeShell() -> Shell
-    func makePicker() -> Picker
-    func makeGitHandler() -> GitHandler
-    func makeContext() throws -> SharedContext
-}
-
-// MARK: - Default Factory
 struct DefaultContextFactory: ContextFactory {
     func makeShell() -> any Shell {
         return DefaultShell()
@@ -28,7 +21,14 @@ struct DefaultContextFactory: ContextFactory {
         return DefaultGitHandler(shell: makeShell(), picker: makePicker())
     }
     
-    func makeContext() throws -> SharedContext {
-        return try SharedContext()
+    func makeContext() throws -> NnexContext {
+        return try NnexContext()
     }
+}
+
+protocol ContextFactory {
+    func makeShell() -> Shell
+    func makePicker() -> Picker
+    func makeGitHandler() -> GitHandler
+    func makeContext() throws -> NnexContext
 }

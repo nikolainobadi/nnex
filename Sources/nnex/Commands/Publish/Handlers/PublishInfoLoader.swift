@@ -6,14 +6,15 @@
 //
 
 import Files
+import NnexKit
 
 struct PublishInfoLoader {
     private let shell: Shell
     private let picker: Picker
     private let projectFolder: Folder
-    private let context: SharedContext
+    private let context: NnexContext
     
-    init(shell: Shell, picker: Picker, projectFolder: Folder, context: SharedContext) {
+    init(shell: Shell, picker: Picker, projectFolder: Folder, context: NnexContext) {
         self.shell = shell
         self.picker = picker
         self.projectFolder = projectFolder

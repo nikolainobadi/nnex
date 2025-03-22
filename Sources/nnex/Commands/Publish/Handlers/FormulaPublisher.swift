@@ -6,6 +6,7 @@
 //
 
 import Files
+import NnexKit
 
 struct FormulaPublisher {
     private let picker: Picker

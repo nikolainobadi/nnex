@@ -5,6 +5,8 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
+import NnexKit
+
 enum FormulaContentGenerator {
     static func makeFormulaFileContent(formula: SwiftDataFormula, assetURL: String, sha256: String) -> String {
         return makeFormulaFileContent(

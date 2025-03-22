@@ -5,8 +5,7 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
+import NnexKit
 import ArgumentParser
 
-enum BuildType: String, CaseIterable, ExpressibleByArgument {
-    case universal, arm64, x86_64
-}
+extension BuildType: ExpressibleByArgument { }

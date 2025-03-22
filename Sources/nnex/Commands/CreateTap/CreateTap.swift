@@ -6,6 +6,7 @@
 //
 
 import Files
+import NnexKit
 import GitShellKit
 import ArgumentParser
 
@@ -77,7 +78,7 @@ fileprivate extension Nnex.Brew.CreateTap {
         return remotePath
     }
     
-    func getTapListFolder(context: SharedContext) throws -> Folder {
+    func getTapListFolder(context: NnexContext) throws -> Folder {
         if let path = context.loadTapListFolderPath() {
             return try Folder(path: path)
         }

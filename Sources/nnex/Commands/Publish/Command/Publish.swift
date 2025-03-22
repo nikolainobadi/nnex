@@ -6,6 +6,7 @@
 //
 
 import Files
+import NnexKit
 import ArgumentParser
 
 extension Nnex.Brew {

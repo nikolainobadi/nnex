@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  NnexContext.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 3/19/25.
@@ -9,13 +9,13 @@ import SwiftData
 import Foundation
 import NnSwiftDataKit
 
-final class SharedContext {
+public final class NnexContext {
     private let context: ModelContext
     private let defaults: UserDefaults
     private let defaultBuildTypeKey = "defaultBuildTypeKey"
     private let tapListFolderPathKey = "tapListFolderPathKey"
     
-    init(config: ModelConfiguration? = nil, defaults: UserDefaults? = nil) throws {
+    public init(config: ModelConfiguration? = nil, defaults: UserDefaults? = nil) throws {
         if let config, let defaults {
             let container = try ModelContainer(for: SwiftDataTap.self, configurations: config)
             
@@ -51,7 +51,7 @@ final class SharedContext {
 
 
 // MARK: - UserDefaults
-extension SharedContext {
+public extension NnexContext {
     func saveTapListFolderPath(path: String) {
         defaults.set(path, forKey: tapListFolderPathKey)
     }
@@ -75,7 +75,7 @@ extension SharedContext {
 
 
 // MARK: - SwiftData
-extension SharedContext {
+public extension NnexContext {
     func loadTaps() throws -> [SwiftDataTap] {
         return try context.fetch(FetchDescriptor<SwiftDataTap>())
     }
@@ -111,43 +111,4 @@ extension SharedContext {
         formula.tap = tap
         try context.save()
     }
-}
-
-
-@Model
-final class SwiftDataTap {
-    @Attribute(.unique) var name: String
-    @Attribute(.unique) var localPath: String
-    @Attribute(.unique) var remotePath: String
-    @Relationship(deleteRule: .cascade, inverse: \SwiftDataFormula.tap) public var formulas: [SwiftDataFormula] = []
-    
-    init(name: String, localPath: String, remotePath: String) {
-        self.name = name
-        self.localPath = localPath
-        self.remotePath = remotePath
-    }
-}
-
-@Model
-final class SwiftDataFormula {
-    var name: String
-    var details: String
-    var homepage: String
-    var license: String
-    var localProjectPath: String
-    var uploadType: FormulaUploadType
-    var tap: SwiftDataTap?
-    
-    init(name: String, details: String, homepage: String, license: String, localProjectPath: String, uploadType: FormulaUploadType) {
-        self.name = name
-        self.details = details
-        self.homepage = homepage
-        self.license = license
-        self.localProjectPath = localProjectPath
-        self.uploadType = uploadType
-    }
-}
-
-enum FormulaUploadType: String, Codable {
-    case binary, tarball
 }

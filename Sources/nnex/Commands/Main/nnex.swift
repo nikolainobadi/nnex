@@ -1,6 +1,7 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
 
+import NnexKit
 import ArgumentParser
 
 @main
@@ -24,7 +25,7 @@ extension Nnex {
         return contextFactory.makePicker()
     }
     
-    static func makeContext() throws -> SharedContext {
+    static func makeContext() throws -> NnexContext {
         return try contextFactory.makeContext()
     }
     

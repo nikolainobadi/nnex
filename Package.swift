@@ -9,6 +9,10 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
+        .library(
+            name: "NnexKit",
+            targets: ["NnexKit"]
+        ),
         .executable(
             name: "nnex",
             targets: ["nnex"]),
@@ -22,13 +26,19 @@ let package = Package(
         .package(url: "https://github.com/nikolainobadi/NnSwiftDataKit.git", branch: "main")
     ],
     targets: [
+        .target(
+            name: "NnexKit",
+            dependencies: [
+                "NnSwiftDataKit",
+            ]
+        ),
         .executableTarget(
             name: "nnex",
             dependencies: [
                 "Files",
+                "NnexKit",
                 "SwiftShell",
                 "SwiftPicker",
-                "NnSwiftDataKit",
                 .product(name: "GitShellKit", package: "NnGitKit"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],

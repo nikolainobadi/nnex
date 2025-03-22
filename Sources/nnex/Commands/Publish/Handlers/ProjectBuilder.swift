@@ -5,6 +5,8 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
+import NnexKit
+
 struct ProjectBuilder {
     private let shell: Shell
     

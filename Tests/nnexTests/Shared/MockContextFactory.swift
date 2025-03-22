@@ -5,6 +5,7 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
+import NnexKit
 import SwiftData
 import Foundation
 @testable import nnex
@@ -17,7 +18,7 @@ final class MockContextFactory {
     private let gitHandler: MockGitHandler
     private var shell: MockShell?
     private var picker: MockPicker?
-    private var context: SharedContext?
+    private var context: NnexContext?
     
     init(tapListFolderPath: String? = nil, runResults: [String] = [], inputResponses: [String] = [], permissionResponses: [Bool] = [], gitHandler: MockGitHandler = .init()) {
         self.tapListFolderPath = tapListFolderPath
@@ -55,14 +56,14 @@ extension MockContextFactory: ContextFactory {
         return gitHandler
     }
     
-    func makeContext() throws -> SharedContext {
+    func makeContext() throws -> NnexContext {
         if let context {
             return context
         }
         
         let defaults = makeDefaults()
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let context = try SharedContext(config: config, defaults: defaults)
+        let context = try NnexContext(config: config, defaults: defaults)
         
         if let tapListFolderPath {
             context.saveTapListFolderPath(path: tapListFolderPath)

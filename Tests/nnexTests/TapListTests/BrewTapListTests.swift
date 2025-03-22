@@ -5,6 +5,7 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
+import NnexKit
 import Testing
 @testable import nnex
 
