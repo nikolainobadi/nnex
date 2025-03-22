@@ -12,6 +12,7 @@ final class MockGitHandler {
     private let remoteURL: String
     private let previousVersion: String
     private let assetURL: String
+    private(set) var message: String?
     
     init(remoteURL: String = "", previousVersion: String = "", assetURL: String = "") {
         self.remoteURL = remoteURL
@@ -24,7 +25,7 @@ final class MockGitHandler {
 // MARK: - Delegate
 extension MockGitHandler: GitHandler {
     func commitAndPush(message: String, path: String) throws {
-        // TODO: - 
+        self.message = message
     }
     
     func gitInit(path: String) throws {

@@ -5,56 +5,90 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
-import Files
 import Testing
 @testable import nnex
+@preconcurrency import Files
 
 @MainActor // needs to be MainActor to ensure proper interactions with SwiftData
-struct PublishTests {
-    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path and versionInfo")
-    func testPublishCommand() throws {
+final class PublishTests {
+    private let tapFolder: Folder
+    private let projectFolder: Folder
+    private let tapName = "testTap"
+    private let assetURL = "assetURL"
+    private let sha256 = "abc123def456"
+    private let versionNumber = "v1.0.0"
+    private let projectName = "testProject"
+    private let releaseNotes = "release notes"
+    private let commitMessage = "commit message"
+    
+    init() throws {
         let tempFolder = Folder.temporary
-        defer {
-            try? tempFolder.delete()
-        }
-        
-        let tapName = "testTap"
-        let projectName = "testProject"
-        let versionNumber = "v1.0.0"
-        let projectFolder = try tempFolder.createSubfolder(named: projectName)
-        let tapFolder = try tempFolder.createSubfolder(named: "homebrew-\(tapName)")
-        let sha256 = "abc123def456"
-        let assetURL = "assetURL"
-        let factory = MockContextFactory(runResults: [sha256, assetURL])
+        self.projectFolder = try tempFolder.createSubfolder(named: projectName)
+        self.tapFolder = try tempFolder.createSubfolder(named: "homebrew-\(tapName)")
+    }
+    
+    deinit {
+        deleteFolderContents(tapFolder)
+        deleteFolderContents(projectFolder)
+    }
+}
+
+
+// MARK: - Unit Tests
+extension PublishTests {
+    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, and message")
+    func testPublishCommand() throws {
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
         let context = try factory.makeContext()
         let tap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "") // TODO: - may need remote path
         let formula = SwiftDataFormula(name: projectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: projectFolder.path, uploadType: .binary)
         
         try context.saveNewTap(tap, formulas: [formula])
-        try runCommand(factory, path: projectFolder.path, version: .version(versionNumber))
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage)
         
-        let formulaFileContents = try #require(try tempFolder.subfolder(named: "homebrew-\(tapName)").file(named: "\(projectName).rb").readAsString())
+        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: "\(projectName).rb").readAsString())
         
         #expect(formulaFileContents.contains(projectName))
         #expect(formulaFileContents.contains(sha256))
         #expect(formulaFileContents.contains(assetURL))
+        #expect(gitHandler.message == commitMessage)
+    }
+    
+    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input")
+    func testPublishCommandWithInputs() throws {
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let inputs = [versionNumber, releaseNotes, commitMessage]
+        let factory = MockContextFactory(runResults: [sha256, assetURL], inputResponses: inputs, permissionResponses: [true], gitHandler: gitHandler)
+        let context = try factory.makeContext()
+        let tap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        let formula = SwiftDataFormula(name: projectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: projectFolder.path, uploadType: .binary)
+        
+        try context.saveNewTap(tap, formulas: [formula])
+        try runCommand(factory)
+        
+        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: "\(projectName).rb").readAsString())
+        
+        #expect(formulaFileContents.contains(projectName))
+        #expect(formulaFileContents.contains(sha256))
+        #expect(formulaFileContents.contains(assetURL))
+        #expect(gitHandler.message == commitMessage)
     }
 }
 
+
 // MARK: - Run Command
 private extension PublishTests {
-    func runCommand(_ factory: MockContextFactory, path: String?, version: ReleaseVersionInfo?) throws {
-        var args = ["brew", "publish"]
-        
-        if let path {
-            args.append(contentsOf: ["--path", path])
-        }
+    func runCommand(_ factory: MockContextFactory, version: ReleaseVersionInfo? = nil, message: String? = nil) throws {
+        var args = ["brew", "publish", "-p", projectFolder.path]
         
         if let version {
-            args.append(contentsOf: ["--version", version.arg])
+            args.append(contentsOf: ["-v", version.arg])
         }
         
-        print(args.joined(separator: " "))
+        if let message {
+            args.append(contentsOf: ["-m", message])
+        }
         
         try Nnex.testRun(contextFactory: factory, args: args)
     }

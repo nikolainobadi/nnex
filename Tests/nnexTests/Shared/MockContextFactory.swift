@@ -13,14 +13,17 @@ final class MockContextFactory {
     private let tapListFolderPath: String?
     private let runResults: [String]
     private let inputResponses: [String]
+    private let permissionResponses: [Bool]
     private let gitHandler: MockGitHandler
     private var shell: MockShell?
+    private var picker: MockPicker?
     private var context: SharedContext?
     
-    init(tapListFolderPath: String? = nil, runResults: [String] = [], inputResponses: [String] = [], gitHandler: MockGitHandler = .init()) {
+    init(tapListFolderPath: String? = nil, runResults: [String] = [], inputResponses: [String] = [], permissionResponses: [Bool] = [], gitHandler: MockGitHandler = .init()) {
         self.tapListFolderPath = tapListFolderPath
         self.runResults = runResults
         self.inputResponses = inputResponses
+        self.permissionResponses = permissionResponses
         self.gitHandler = gitHandler
     }
 }
@@ -34,14 +37,18 @@ extension MockContextFactory: ContextFactory {
         }
         
         let newShell = MockShell(runResults: runResults)
-        
         shell = newShell
-        
         return newShell
     }
     
     func makePicker() -> Picker {
-        return MockPicker(inputResponses: inputResponses)
+        if let picker {
+            return picker
+        }
+        
+        let newPicker = MockPicker(inputResponses: inputResponses, permissionResponses: permissionResponses)
+        picker = newPicker
+        return newPicker
     }
     
     func makeGitHandler() -> any GitHandler {

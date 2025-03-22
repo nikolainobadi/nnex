@@ -14,11 +14,14 @@ extension Nnex.Brew {
             abstract: "Publish an executable to GitHub and Homebrew for distribution."
         )
         
-        @Option(name: .long, help: "Path to the project directory where the release will be built. Defaults to the current directory.")
+        @Option(name: .shortAndLong, help: "Path to the project directory where the release will be built. Defaults to the current directory.")
         var path: String?
         
         @Option(name: .shortAndLong, help: "The version number to publish or version part to increment: major, minor, patch.")
         var version: ReleaseVersionInfo?
+        
+        @Option(name: .shortAndLong, help: "The commit message when committing and pushing the tap to GitHub")
+        var message: String?
         
         @Option(name: .shortAndLong, help: "The build type to set. Options: \(BuildType.allCases.map(\.rawValue).joined(separator: ", "))")
         var buildType: BuildType?
@@ -31,7 +34,7 @@ extension Nnex.Brew {
             let assetURL = try uploadRelease(info: releaseInfo)
             let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
             
-            try publishFormula(formulaContent, formulaName: formula.name, tap: tap)
+            try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
         }
     }
 }
@@ -81,9 +84,9 @@ private extension Nnex.Brew.Publish {
         return try store.uploadRelease(info: info)
     }
 
-    func publishFormula(_ content: String, formulaName: String, tap: SwiftDataTap) throws {
+    func publishFormula(_ content: String, formulaName: String, message: String?, tap: SwiftDataTap) throws {
         let gitHandler = Nnex.makeGitHandler()
-        let publisher = FormulaPublisher(picker: picker, gitHandler: gitHandler)
+        let publisher = FormulaPublisher(picker: picker, message: message, gitHandler: gitHandler)
         
         try publisher.publishFormula(content, formulaName: formulaName, tap: tap)
     }

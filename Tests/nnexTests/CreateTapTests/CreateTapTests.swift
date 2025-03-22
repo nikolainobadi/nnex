@@ -11,7 +11,7 @@ import Testing
 
 @MainActor // needs to be MainActor to ensure proper interactions with SwiftData
 final class CreateTapTests {
-    let tapListFolder: Folder
+    private let tapListFolder: Folder
     
     init() throws {
         self.tapListFolder = try Folder.temporary.createSubfolder(named: "tapListFolder")

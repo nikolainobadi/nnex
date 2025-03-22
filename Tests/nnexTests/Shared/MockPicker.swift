@@ -12,13 +12,13 @@ import SwiftPicker
 final class MockPicker {
     private let shouldThrowError: Bool
     private let errorMessage = "MockPicker error"
-    private var permissionResponses: [Bool]
     private var inputResponses: [String]
+    private var permissionResponses: [Bool]
     
-    init(permissionResponses: [Bool] = [], inputResponses: [String] = [], shouldThrowError: Bool = false) {
+    init(inputResponses: [String] = [], permissionResponses: [Bool] = [], shouldThrowError: Bool = false) {
         self.shouldThrowError = shouldThrowError
-        self.permissionResponses = permissionResponses
         self.inputResponses = inputResponses
+        self.permissionResponses = permissionResponses
     }
 }
 
