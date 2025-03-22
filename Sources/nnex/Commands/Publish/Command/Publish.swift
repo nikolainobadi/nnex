@@ -109,8 +109,21 @@ private extension Nnex.Brew.Publish {
     }
 
     func publishFormula(_ content: String, formulaName: String, message: String?, tap: SwiftDataTap) throws {
-        let publisher = FormulaPublisher(picker: picker, message: message, gitHandler: gitHandler)
+        let publisher = FormulaPublisher(gitHandler: gitHandler)
+        let commitMessage = try getMessage(message: message)
         
-        try publisher.publishFormula(content, formulaName: formulaName, tap: tap)
+        try publisher.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tap: tap)
+    }
+    
+    func getMessage(message: String?) throws -> String? {
+        if let message {
+            return message
+        }
+        
+        guard picker.getPermission(prompt: "Would you like to commit and push the tap to GitHub?") else {
+            return nil
+        }
+        
+        return try picker.getRequiredInput(prompt: "Enter your commit message.")
     }
 }
