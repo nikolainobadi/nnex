@@ -25,6 +25,8 @@ extension Nnex.Brew {
         var visibility: RepoVisibility = .publicRepo
         
         func run() throws {
+            try gitHandler.ghVerification()
+            
             let context = try Nnex.makeContext()
             let name = try getTapName(name: name)
             let tapListFolder = try getTapListFolder(context: context)
@@ -48,6 +50,10 @@ fileprivate extension Nnex.Brew.CreateTap {
         return Nnex.makePicker()
     }
     
+    var gitHandler: GitHandler {
+        return Nnex.makeGitHandler()
+    }
+    
     func getTapName(name: String?) throws -> String {
         if let name, !name.isEmpty {
             return name
@@ -63,8 +69,6 @@ fileprivate extension Nnex.Brew.CreateTap {
     }
     
     func createNewRepository(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String {
-        let gitHandler = Nnex.makeGitHandler()
-        
         try gitHandler.gitInit(path: path)
         print("Initialized local git repository for \(tapName)")
         let remotePath = try gitHandler.remoteRepoInit(tapName: tapName, path: path, projectDetails: projectDetails, visibility: visibility)

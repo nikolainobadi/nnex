@@ -27,6 +27,8 @@ extension Nnex.Brew {
         var buildType: BuildType?
         
         func run() throws {
+            try Nnex.makeGitHandler().ghVerification()
+            
             let projectFolder = try getProjectFolder(at: path)
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
             let binaryInfo = try buildBinary(for: projectFolder, buildType: buildType)

@@ -52,11 +52,39 @@ extension DefaultGitHandler: GitHandler {
         
         return try shell.run(makeGitHubCommand(.getLatestReleaseAssetURL, path: path))
     }
+    
+    func ghVerification() throws {
+        let output = try shell.run("which gh")
+        
+        if output.contains("not found") {
+            print("""
+            GitHub CLI (gh) is not installed on your system. Please install it to proceed.
+            
+            To install using Homebrew (recommended since 'nnex' is designed to streamline Homebrew Taps/Formula distribution):
+            1. Make sure Homebrew is installed:
+               brew --version
+            2. If Homebrew is not installed, run:
+               /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            3. Install GitHub CLI:
+               brew install gh
+            4. Verify installation:
+               gh --version
+            
+            Alternatively, install directly using the official script:
+            curl -fsSL https://cli.github.com/install.sh | sudo bash
+            
+            Once installed, please rerun this command.
+            """)
+            
+            throw NnexError.missingGitHubCLI
+        }
+    }
 }
 
 
 // MARK: - Dependencies
 protocol GitHandler {
+    func ghVerification() throws
     func gitInit(path: String) throws
     func getRemoteURL(path: String) throws -> String
     func commitAndPush(message: String, path: String) throws

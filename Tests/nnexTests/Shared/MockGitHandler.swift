@@ -12,18 +12,26 @@ final class MockGitHandler {
     private let remoteURL: String
     private let previousVersion: String
     private let assetURL: String
+    private let ghIsInstalled: Bool
     private(set) var message: String?
     
-    init(remoteURL: String = "", previousVersion: String = "", assetURL: String = "") {
+    init(remoteURL: String = "", previousVersion: String = "", assetURL: String = "", ghIsInstalled: Bool = true) {
         self.remoteURL = remoteURL
         self.previousVersion = previousVersion
         self.assetURL = assetURL
+        self.ghIsInstalled = ghIsInstalled
     }
 }
 
 
 // MARK: - Delegate
 extension MockGitHandler: GitHandler {
+    func ghVerification() throws {
+        if !ghIsInstalled {
+            throw NnexError.missingGitHubCLI
+        }
+    }
+    
     func commitAndPush(message: String, path: String) throws {
         self.message = message
     }
