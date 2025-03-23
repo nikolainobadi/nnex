@@ -59,7 +59,7 @@ extension PublishTests {
         #expect(tapFolder.containsFile(named: formulaFileName) == false)
     }
     
-    // TODO: - 
+    // TODO: - not sure why this is failing
     @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, and message", .disabled())
     func testPublishCommand() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
@@ -115,10 +115,10 @@ private extension PublishTests {
 
 // MARK: - Helpers
 private extension PublishTests {
-    func createTestTapAndFormula(factory: MockContextFactory) throws {
+    func createTestTapAndFormula(factory: MockContextFactory, extraBuildArgs: [String] = []) throws {
         let context = try factory.makeContext()
         let tap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let formula = SwiftDataFormula(name: projectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: projectFolder.path, uploadType: .binary)
+        let formula = SwiftDataFormula(name: projectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: projectFolder.path, uploadType: .binary, extraBuildArgs: extraBuildArgs)
         
         try context.saveNewTap(tap, formulas: [formula])
     }

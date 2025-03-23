@@ -64,7 +64,7 @@ extension MockContextFactory: ContextFactory {
         
         let defaults = makeDefaults()
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let context = try NnexContext(config: config, defaults: defaults)
+        let context = try NnexContext(appGroupId: "not needed", config: config, defaults: defaults)
         
         if let tapListFolderPath {
             context.saveTapListFolderPath(path: tapListFolderPath)

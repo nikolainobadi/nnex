@@ -35,7 +35,8 @@ extension SwiftDataFormula {
             homepage: brewFormula.homepage,
             license: brewFormula.license ?? "",
             localProjectPath: "",
-            uploadType: uploadType
+            uploadType: uploadType,
+            extraBuildArgs: []
         )
     }
 }

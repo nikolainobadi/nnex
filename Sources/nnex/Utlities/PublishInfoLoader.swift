@@ -28,9 +28,8 @@ struct PublishInfoLoader {
 // MARK: - Load
 extension PublishInfoLoader {
     func loadPublishInfo() throws -> (SwiftDataTap, SwiftDataFormula) {
-        guard let tap = try getTap() else {
-            throw NnexError.missingTap
-        }
+        let allTaps = try context.loadTaps()
+        let tap = try getTap(allTaps: allTaps) ?? picker.requiredSingleSelection(title: "\(projectFolder.name) does not yet have a formula. Select a tap for this formula.", items: allTaps)
         
         if let formula = tap.formulas.first(where: { $0.name.lowercased() == projectFolder.name.lowercased() }) {
             return (tap, formula)
@@ -49,8 +48,8 @@ extension PublishInfoLoader {
 
 // MARK: - Private Methods
 private extension PublishInfoLoader {
-    func getTap() throws -> SwiftDataTap? {
-        return try context.loadTaps().first { tap in
+    func getTap(allTaps: [SwiftDataTap]) -> SwiftDataTap? {
+        return allTaps.first { tap in
             return tap.formulas.contains(where: { $0.name.lowercased() == projectFolder.name.lowercased() })
         }
     }
@@ -59,6 +58,7 @@ private extension PublishInfoLoader {
         let details = try picker.getRequiredInput(prompt: "Enter the description for this formula.")
         let homepage = try gitHandler.getRemoteURL(path: folder.path)
         let license = LicenseDetector.detectLicense(in: folder)
+        let extraArgs = getExtraArgs()
         
         return .init(
             name: folder.name,
@@ -66,7 +66,12 @@ private extension PublishInfoLoader {
             homepage: homepage,
             license: license,
             localProjectPath: folder.path,
-            uploadType: .binary
+            uploadType: .binary,
+            extraBuildArgs: extraArgs
         )
+    }
+    
+    func getExtraArgs() -> [String] {
+        return []
     }
 }

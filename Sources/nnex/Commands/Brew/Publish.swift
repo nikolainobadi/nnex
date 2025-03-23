@@ -32,7 +32,7 @@ extension Nnex.Brew {
             
             let projectFolder = try getProjectFolder(at: path)
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
-            let binaryInfo = try buildBinary(for: projectFolder, buildType: buildType)
+            let binaryInfo = try buildBinary(for: projectFolder, formula: formula, buildType: buildType)
             let assetURL = try uploadRelease(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version)
             let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
             
@@ -74,10 +74,10 @@ private extension Nnex.Brew.Publish {
         return (tap, formula, buildType)
     }
     
-    func buildBinary(for folder: Folder, buildType: BuildType) throws -> BinaryInfo {
+    func buildBinary(for folder: Folder, formula: SwiftDataFormula, buildType: BuildType) throws -> BinaryInfo {
         let builder = ProjectBuilder(shell: shell)
         
-        return try builder.buildProject(name: folder.name, path: folder.path, buildType: buildType)
+        return try builder.buildProject(name: folder.name, path: folder.path, buildType: buildType, extraBuildArgs: formula.extraBuildArgs)
     }
     
     func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?) throws -> String {
@@ -93,10 +93,12 @@ private extension Nnex.Brew.Publish {
     }
     
     func getVersionInput(previousVersion: String?) throws -> ReleaseVersionInfo {
-        var prompt = "Enter the version number for this release. (v1.1.0 or 1.1.0)"
+        var prompt = "\nEnter the version number for this release."
         
         if let previousVersion {
-            prompt.append(" Previous release: \(previousVersion) (To increment, simply type major, minor, or patch)")
+            prompt.append(" Previous release: \(previousVersion.red) (To increment, simply type major, minor, or patch)")
+        } else {
+            prompt.append(" (v1.1.0 or 1.1.0)")
         }
         
         let input = try picker.getRequiredInput(prompt: prompt)
@@ -114,9 +116,9 @@ private extension Nnex.Brew.Publish {
         
         let formulaPath = try publisher.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tap.localPath)
         
-        print("\nSuccessfully created formula at \(formulaPath)")
+        print("\nSuccessfully created formula at \(formulaPath.yellow)")
         if commitMessage != nil {
-            print("pushed \(tap.name) to github.")
+            print("pushed \(tap.name.blue.underline) to \("GitHub".green).")
         }
     }
     
@@ -125,7 +127,7 @@ private extension Nnex.Brew.Publish {
             return message
         }
         
-        guard picker.getPermission(prompt: "Would you like to commit and push the tap to GitHub?") else {
+        guard picker.getPermission(prompt: "\nWould you like to commit and push the tap to \("GitHub".green)?") else {
             return nil
         }
         

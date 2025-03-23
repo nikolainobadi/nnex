@@ -7,6 +7,9 @@
 
 import Files
 import NnexKit
+import Foundation
+
+//let APP_GROUP_ID = "your app group id"
 
 struct DefaultContextFactory: ContextFactory {
     func makeShell() -> any Shell {
@@ -22,6 +25,6 @@ struct DefaultContextFactory: ContextFactory {
     }
     
     func makeContext() throws -> NnexContext {
-        return try NnexContext()
+        return try .init(appGroupId: APP_GROUP_ID)
     }
 }
