@@ -1,5 +1,5 @@
 {
-  "originHash" : "3c517fa25bb00a4761f796b341d8648173830e31d9b6756dd93951b0149e0ca3",
+  "originHash" : "f0df7b69a43296bd3d4678cc82d232f0364c0a1f59017443497780bcd15b9034",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -25,7 +25,7 @@
       "location" : "https://github.com/nikolainobadi/NnexKit.git",
       "state" : {
         "branch" : "main",
-        "revision" : "47d1d8cedef372de165f4ab001e861bbcdc9fa2c"
+        "revision" : "a80f24ea9a210d5c28877e7436ef333d22dc7fb1"
       }
     },
     {
