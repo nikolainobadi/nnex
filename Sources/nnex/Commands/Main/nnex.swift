@@ -33,15 +33,3 @@ extension Nnex {
         return contextFactory.makeGitHandler()
     }
 }
-
-
-// MARK: - Brew
-extension Nnex {
-    struct Brew: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Commands to manage Homebrew distribution",
-            usage: "",
-            subcommands: [ImportTap.self, CreateTap.self, TapList.self, Publish.self, Untap.self]
-        )
-    }
-}

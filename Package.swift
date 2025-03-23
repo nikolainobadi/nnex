@@ -9,42 +9,22 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
-        .library(
-            name: "NnexKit",
-            targets: ["NnexKit"]
-        ),
         .executable(
             name: "nnex",
             targets: ["nnex"]
         ),
-        .library(
-            name: "NnexSharedTestHelpers",
-            targets: ["NnexSharedTestHelpers"]
-        )
     ],
     dependencies: [
-        .package(url: "https://github.com/JohnSundell/Files", from: "4.0.0"),
-        .package(url: "https://github.com/kareman/SwiftShell", from: "5.0.0"),
-        .package(url: "https://github.com/nikolainobadi/NnGitKit.git", from: "1.0.0"),
+        .package(url: "https://github.com/nikolainobadi/NnexKit.git", branch: "main"),
         .package(url: "https://github.com/nikolainobadi/SwiftPicker.git", from: "0.8.0"),
-        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
-        .package(url: "https://github.com/nikolainobadi/NnSwiftDataKit.git", branch: "main")
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0")
     ],
     targets: [
-        .target(
-            name: "NnexKit",
-            dependencies: [
-                "Files",
-                "SwiftShell",
-                "NnSwiftDataKit",
-                .product(name: "GitShellKit", package: "NnGitKit"),
-            ]
-        ),
         .executableTarget(
             name: "nnex",
             dependencies: [
-                "NnexKit",
                 "SwiftPicker",
+                .product(name: "NnexKit", package: "NnexKit"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             linkerSettings: [
@@ -56,24 +36,11 @@ let package = Package(
                 ])
             ]
         ),
-        .target(
-            name: "NnexSharedTestHelpers",
-            dependencies: [
-                "NnexKit"
-            ]
-        ),
         .testTarget(
             name: "nnexTests",
             dependencies: [
                 "nnex",
-                "NnexSharedTestHelpers"
-            ]
-        ),
-        .testTarget(
-            name: "NnexKitTests",
-            dependencies: [
-                "NnexKit",
-                "NnexSharedTestHelpers"
+                .product(name: "NnexSharedTestHelpers", package: "NnexKit")
             ]
         )
     ]

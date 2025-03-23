@@ -43,19 +43,19 @@ protocol Picker {
 
 
 // MARK: - DisplayablePickerItem
-extension SwiftDataTap: DisplayablePickerItem {
+extension SwiftDataTap: @retroactive DisplayablePickerItem {
     public var displayName: String {
         return name
     }
 }
 
-extension SwiftDataFormula: DisplayablePickerItem {
+extension SwiftDataFormula: @retroactive DisplayablePickerItem {
     public var displayName: String {
         return name
     }
 }
 
-extension BuildType: DisplayablePickerItem {
+extension BuildType: @retroactive DisplayablePickerItem {
     public var displayName: String {
         switch self {
         case .universal:

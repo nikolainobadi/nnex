@@ -135,5 +135,5 @@ private extension Nnex.Brew.Publish {
 
 
 // MARK: - Extension Dependencies
-extension ReleaseVersionInfo: ExpressibleByArgument { }
-extension ReleaseVersionInfo.VersionPart: ExpressibleByArgument { }
+extension ReleaseVersionInfo: @retroactive ExpressibleByArgument { }
+extension ReleaseVersionInfo.VersionPart: @retroactive ExpressibleByArgument { }

@@ -8,4 +8,4 @@
 import NnexKit
 import ArgumentParser
 
-extension BuildType: ExpressibleByArgument { }
+extension BuildType: @retroactive ExpressibleByArgument { }
