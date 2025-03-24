@@ -9,10 +9,7 @@ import ArgumentParser
 
 extension Nnex.Brew {
     struct TapList: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Prints the list of registered taps.",
-            usage: ""
-        )
+        static let configuration = CommandConfiguration(abstract: "Prints the list of registered taps.")
         
         func run() throws {
             let context = try Nnex.makeContext()

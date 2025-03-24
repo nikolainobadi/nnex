@@ -24,11 +24,9 @@ extension Nnex {
 // MARK: - SetTapFolder
 extension Nnex.Config {
     struct SetTapFolder: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Sets the path the the folder where new taps will be created"
-        )
+        static let configuration = CommandConfiguration(abstract: "Sets the path the the folder where new taps will be created")
         
-        @Option(name: .shortAndLong, help: "")
+        @Option(name: .shortAndLong, help: "The path to the folder where new Homebrew Taps should be saved.")
         var path: String?
         
         func run() throws {
@@ -44,9 +42,7 @@ extension Nnex.Config {
 // MARK: - ShowTapFolder
 extension Nnex.Config {
     struct ShowTapFolder: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Displays the current path to the folder where new taps will be created."
-        )
+        static let configuration = CommandConfiguration(abstract: "Displays the current path to the folder where new taps will be created.")
 
         func run() throws {
             let context = try Nnex.makeContext()
@@ -64,9 +60,7 @@ extension Nnex.Config {
 // MARK: - OpenTapFolder
 extension Nnex.Config {
     struct OpenTapFolder: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Opens the current tap folder in Finder."
-        )
+        static let configuration = CommandConfiguration(abstract: "Opens the current tap folder in Finder.")
 
         func run() throws {
             let context = try Nnex.makeContext()
@@ -85,9 +79,7 @@ extension Nnex.Config {
 // MARK: - SetBuildType
 extension Nnex.Config {
     struct SetBuildType: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Sets the default binary build type."
-        )
+        static let configuration = CommandConfiguration(abstract: "Sets the default binary build type.")
         
         @Argument(help: "The build type to set. Options: \(BuildType.allCases.map(\.rawValue).joined(separator: ", "))")
         var buildType: BuildType?
@@ -106,9 +98,7 @@ extension Nnex.Config {
 // MARK: - ShowBuildType
 extension Nnex.Config {
     struct ShowBuildType: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Displays the current default binary build type."
-        )
+        static let configuration = CommandConfiguration(abstract: "Displays the current default binary build type.")
 
         func run() throws {
             let context = try Nnex.makeContext()

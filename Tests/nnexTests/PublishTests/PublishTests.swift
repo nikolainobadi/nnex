@@ -59,9 +59,8 @@ extension PublishTests {
         #expect(tapFolder.containsFile(named: formulaFileName) == false)
     }
     
-    // TODO: - not sure why this is failing
-    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, and message", .disabled())
-    func testPublishCommand() throws {
+    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, and message")
+    func publishCommand() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
         
@@ -77,7 +76,7 @@ extension PublishTests {
     }
     
     @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input")
-    func testPublishCommandWithInputs() throws {
+    func publishCommandWithInputs() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let inputs = [versionNumber, releaseNotes, commitMessage]
         let factory = MockContextFactory(runResults: [sha256, assetURL], inputResponses: inputs, permissionResponses: [true], gitHandler: gitHandler)
