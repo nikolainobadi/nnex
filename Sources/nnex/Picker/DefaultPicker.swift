@@ -48,12 +48,3 @@ extension DefaultPicker: Picker {
         return try picker.requiredSingleSelection(title: title, items: items)
     }
 }
-
-
-
-// MARK: - Dependencies
-
-
-
-// MARK: - DisplayablePickerItem
-

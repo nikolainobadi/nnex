@@ -45,6 +45,10 @@ extension Nnex.Brew {
 
 // MARK: - Private Methods
 private extension Nnex.Brew.ImportTap {
+    /// Decodes a Homebrew formula from a file.
+    /// - Parameter file: The file containing the formula.
+    /// - Returns: A BrewFormula instance if decoding is successful, or nil otherwise.
+    /// - Throws: An error if the decoding process fails.
     func decodeBrewFormula(_ file: File) throws -> BrewFormula? {
         let output = try makeBrewOutput(filePath: file.path)
         
@@ -66,6 +70,10 @@ private extension Nnex.Brew.ImportTap {
         return nil
     }
     
+    /// Generates Homebrew formula output by running the brew info command.
+    /// - Parameter filePath: The path to the formula file.
+    /// - Returns: The output from the brew info command.
+    /// - Throws: An error if the command execution fails.
     func makeBrewOutput(filePath: String) throws -> String {
         let shell = Nnex.makeShell()
         let brewCheck = try shell.run("which brew")
@@ -78,6 +86,11 @@ private extension Nnex.Brew.ImportTap {
         return try shell.run("brew info --json=v2 \(filePath)")
     }
     
+    /// Extracts a specific field from the given text using a regular expression pattern.
+    /// - Parameters:
+    ///   - text: The text to search within.
+    ///   - pattern: The regular expression pattern to use for extraction.
+    /// - Returns: The extracted field as a string, or nil if not found.
     func extractField(from text: String, pattern: String) -> String? {
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
         let range = NSRange(text.startIndex..., in: text)
