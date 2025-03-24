@@ -1,5 +1,5 @@
 {
-  "originHash" : "619210fcbbc760fad3ac1027beac759564a5fa6112579ac5cd24e6bfcecd5436",
+  "originHash" : "f0df7b69a43296bd3d4678cc82d232f0364c0a1f59017443497780bcd15b9034",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -20,12 +20,21 @@
       }
     },
     {
+      "identity" : "nnexkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nikolainobadi/NnexKit.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "9fa979939316b2e62ff0ceb61b7ace0a7a4e8730"
+      }
+    },
+    {
       "identity" : "nngitkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/NnGitKit.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "76f275225ce307c33c2dcb7251442c522baa0334"
+        "revision" : "1c53036ea1a25d1763baaf9e02ab075ce0423165",
+        "version" : "1.0.0"
       }
     },
     {

@@ -1,6 +1,7 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
 
+import NnexKit
 import ArgumentParser
 
 @main
@@ -24,23 +25,11 @@ extension Nnex {
         return contextFactory.makePicker()
     }
     
-    static func makeContext() throws -> SharedContext {
+    static func makeContext() throws -> NnexContext {
         return try contextFactory.makeContext()
     }
     
     static func makeGitHandler() -> GitHandler {
         return contextFactory.makeGitHandler()
-    }
-}
-
-
-// MARK: - Brew
-extension Nnex {
-    struct Brew: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Commands to manage Homebrew distribution",
-            usage: "",
-            subcommands: [ImportTap.self, CreateTap.self, TapList.self, Publish.self, Untap.self]
-        )
     }
 }

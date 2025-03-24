@@ -5,6 +5,8 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
+import NnexKit
+
 struct BrewFormula: Codable {
     let name: String
     let desc: String
@@ -33,7 +35,8 @@ extension SwiftDataFormula {
             homepage: brewFormula.homepage,
             license: brewFormula.license ?? "",
             localProjectPath: "",
-            uploadType: uploadType
+            uploadType: uploadType,
+            extraBuildArgs: []
         )
     }
 }

@@ -11,25 +11,20 @@ let package = Package(
     products: [
         .executable(
             name: "nnex",
-            targets: ["nnex"]),
+            targets: ["nnex"]
+        ),
     ],
     dependencies: [
-        .package(url: "https://github.com/JohnSundell/Files", from: "4.0.0"),
-        .package(url: "https://github.com/kareman/SwiftShell", from: "5.0.0"),
-        .package(url: "https://github.com/nikolainobadi/NnGitKit.git", branch: "main"),
+        .package(url: "https://github.com/nikolainobadi/NnexKit.git", branch: "main"),
         .package(url: "https://github.com/nikolainobadi/SwiftPicker.git", from: "0.8.0"),
-        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
-        .package(url: "https://github.com/nikolainobadi/NnSwiftDataKit.git", branch: "main")
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0")
     ],
     targets: [
         .executableTarget(
             name: "nnex",
             dependencies: [
-                "Files",
-                "SwiftShell",
                 "SwiftPicker",
-                "NnSwiftDataKit",
-                .product(name: "GitShellKit", package: "NnGitKit"),
+                .product(name: "NnexKit", package: "NnexKit"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             linkerSettings: [
@@ -43,7 +38,10 @@ let package = Package(
         ),
         .testTarget(
             name: "nnexTests",
-            dependencies: ["nnex"]
-        ),
+            dependencies: [
+                "nnex",
+                .product(name: "NnexSharedTestHelpers", package: "NnexKit")
+            ]
+        )
     ]
 )

@@ -5,6 +5,7 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
+import NnexKit
 import SwiftPicker
 
 struct DefaultPicker {
@@ -42,20 +43,20 @@ protocol Picker {
 
 
 // MARK: - DisplayablePickerItem
-extension SwiftDataTap: DisplayablePickerItem {
-    var displayName: String {
+extension SwiftDataTap: @retroactive DisplayablePickerItem {
+    public var displayName: String {
         return name
     }
 }
 
-extension SwiftDataFormula: DisplayablePickerItem {
-    var displayName: String {
+extension SwiftDataFormula: @retroactive DisplayablePickerItem {
+    public var displayName: String {
         return name
     }
 }
 
-extension BuildType: DisplayablePickerItem {
-    var displayName: String {
+extension BuildType: @retroactive DisplayablePickerItem {
+    public var displayName: String {
         switch self {
         case .universal:
             return "\(rawValue) (recommended)"

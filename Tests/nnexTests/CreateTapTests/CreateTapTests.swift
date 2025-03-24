@@ -5,7 +5,9 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
+import NnexKit
 import Testing
+import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
 
