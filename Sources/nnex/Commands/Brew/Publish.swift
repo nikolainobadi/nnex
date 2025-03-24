@@ -11,9 +11,7 @@ import ArgumentParser
 
 extension Nnex.Brew {
     struct Publish: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Publish an executable to GitHub and Homebrew for distribution."
-        )
+        static let configuration = CommandConfiguration(abstract: "Publish an executable to GitHub and Homebrew for distribution.")
         
         @Option(name: .shortAndLong, help: "Path to the project directory where the release will be built. Defaults to the current directory.")
         var path: String?

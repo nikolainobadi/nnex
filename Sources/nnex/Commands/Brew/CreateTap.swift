@@ -12,9 +12,7 @@ import ArgumentParser
 
 extension Nnex.Brew {
     struct CreateTap: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Registers a new homebrew tap."
-        )
+        static let configuration = CommandConfiguration(abstract: "Registers a new homebrew tap.")
         
         @Option(name: .shortAndLong, help: "The name of the new Homebrew Tap")
         var name: String?

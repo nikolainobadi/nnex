@@ -12,9 +12,7 @@ import ArgumentParser
 
 extension Nnex.Brew {
     struct ImportTap: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Select an existing homebrew tap folder on your computer to register."
-        )
+        static let configuration = CommandConfiguration(abstract: "Select an existing homebrew tap folder on your computer to register.")
         
         @Option(name: .shortAndLong, help: "The local path to your Homebrew tap folder. If not provided, you will be prompted to enter it.")
         var path: String?

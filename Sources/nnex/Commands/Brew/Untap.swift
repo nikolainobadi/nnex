@@ -9,11 +9,9 @@ import ArgumentParser
 
 extension Nnex.Brew {
     struct Untap: ParsableCommand {
-        static let configuration = CommandConfiguration(
-            abstract: "Unregisters an existing homebrew tap."
-        )
+        static let configuration = CommandConfiguration(abstract: "Unregisters an existing homebrew tap.")
         
-        @Option(name: .shortAndLong, help: "")
+        @Option(name: .shortAndLong, help: "The name of the Homebrew Tap to unregister")
         var name: String?
         
         func run() throws {
