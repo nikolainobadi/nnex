@@ -56,27 +56,53 @@ extension PublishTests {
         let tapFolder = try #require(try Folder(path: tapFolder.path))
         
         #expect(gitHandler.message == nil)
+        #expect(gitHandler.releaseNoteInfo == nil)
         #expect(tapFolder.containsFile(named: formulaFileName) == false)
     }
     
-    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, and message")
-    func publishCommand() throws {
+    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, message, and notes")
+    func publishCommandWithNotes() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory)
-        try runCommand(factory, version: .version(versionNumber), message: commitMessage)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
         
+        let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
         let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
         
         #expect(formulaFileContents.contains(projectName))
         #expect(formulaFileContents.contains(sha256))
         #expect(formulaFileContents.contains(assetURL))
         #expect(gitHandler.message == commitMessage)
+        #expect(releaseNoteInfo.isFromFile == false)
+        #expect(releaseNoteInfo.content == releaseNotes)
     }
     
-    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input")
-    func publishCommandWithInputs() throws {
+    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, message, and notesFile")
+    func publishCommandWithNotesFile() throws {
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
+        let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
+        let filePath = releaseNoteFile.path
+        
+        try releaseNoteFile.write(releaseNotes)
+        try createTestTapAndFormula(factory: factory)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notesFile: filePath)
+        
+        let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
+        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
+        
+        #expect(formulaFileContents.contains(projectName))
+        #expect(formulaFileContents.contains(sha256))
+        #expect(formulaFileContents.contains(assetURL))
+        #expect(gitHandler.message == commitMessage)
+        #expect(releaseNoteInfo.isFromFile)
+        #expect(releaseNoteInfo.content == filePath)
+    }
+    
+    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and release notes are input directly")
+    func publishCommandWithInputsAndDirectReleaseNotes() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let inputs = [versionNumber, releaseNotes, commitMessage]
         let factory = MockContextFactory(runResults: [sha256, assetURL], inputResponses: inputs, permissionResponses: [true], gitHandler: gitHandler)
@@ -84,19 +110,44 @@ extension PublishTests {
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory)
         
+        let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
         let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
         
         #expect(formulaFileContents.contains(projectName))
         #expect(formulaFileContents.contains(sha256))
         #expect(formulaFileContents.contains(assetURL))
         #expect(gitHandler.message == commitMessage)
+        #expect(releaseNoteInfo.isFromFile == false)
+        #expect(releaseNoteInfo.content == releaseNotes)
+    }
+    
+    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and file path for release notes is input.")
+    func publishCommandWithInputsAndFilePathReleaseNotes() throws {
+        let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
+        let filePath = releaseNoteFile.path
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let inputs = [versionNumber, filePath, commitMessage]
+        let factory = MockContextFactory(runResults: [sha256, assetURL], selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [true], gitHandler: gitHandler)
+        
+        try createTestTapAndFormula(factory: factory)
+        try runCommand(factory)
+        
+        let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
+        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
+        
+        #expect(formulaFileContents.contains(projectName))
+        #expect(formulaFileContents.contains(sha256))
+        #expect(formulaFileContents.contains(assetURL))
+        #expect(gitHandler.message == commitMessage)
+        #expect(releaseNoteInfo.isFromFile)
+        #expect(releaseNoteInfo.content == filePath)
     }
 }
 
 
 // MARK: - Run Command
 private extension PublishTests {
-    func runCommand(_ factory: MockContextFactory, version: ReleaseVersionInfo? = nil, message: String? = nil) throws {
+    func runCommand(_ factory: MockContextFactory, version: ReleaseVersionInfo? = nil, message: String? = nil, notes: String? = nil, notesFile: String? = nil) throws {
         var args = ["brew", "publish", "-p", projectFolder.path]
         
         if let version {
@@ -105,6 +156,14 @@ private extension PublishTests {
         
         if let message {
             args.append(contentsOf: ["-m", message])
+        }
+        
+        if let notes {
+            args.append(contentsOf: ["-n", notes])
+        }
+        
+        if let notesFile {
+            args.append(contentsOf: ["-F", notesFile])
         }
         
         try Nnex.testRun(contextFactory: factory, args: args)

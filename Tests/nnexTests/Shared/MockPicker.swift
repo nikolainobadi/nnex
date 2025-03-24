@@ -10,12 +10,14 @@ import SwiftPicker
 @testable import nnex
 
 final class MockPicker {
+    private let selectedItemIndex: Int
     private let shouldThrowError: Bool
     private let errorMessage = "MockPicker error"
     private var inputResponses: [String]
     private var permissionResponses: [Bool]
     
-    init(inputResponses: [String] = [], permissionResponses: [Bool] = [], shouldThrowError: Bool = false) {
+    init(selectedItemIndex: Int = 0, inputResponses: [String] = [], permissionResponses: [Bool] = [], shouldThrowError: Bool = false) {
+        self.selectedItemIndex = selectedItemIndex
         self.shouldThrowError = shouldThrowError
         self.inputResponses = inputResponses
         self.permissionResponses = permissionResponses
@@ -46,6 +48,6 @@ extension MockPicker: Picker {
         if shouldThrowError {
             throw NSError(domain: "MockPicker", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
         }
-        return items.first!
+        return items[selectedItemIndex]
     }
 }
