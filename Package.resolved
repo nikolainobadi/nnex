@@ -25,7 +25,7 @@
       "location" : "https://github.com/nikolainobadi/NnexKit.git",
       "state" : {
         "branch" : "main",
-        "revision" : "2138288608a8768a7bc52f301de5be6ffaf8acf1"
+        "revision" : "63afbf00efbb43db8d73ddbdc3be80afdca0d685"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/NnGitKit.git",
       "state" : {
-        "revision" : "1c53036ea1a25d1763baaf9e02ab075ce0423165",
-        "version" : "1.0.0"
+        "branch" : "main",
+        "revision" : "e68e0c4c73ce890006ac44c588d0ee9b6bf80f62"
       }
     },
     {

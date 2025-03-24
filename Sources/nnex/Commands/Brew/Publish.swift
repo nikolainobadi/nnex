@@ -25,13 +25,19 @@ extension Nnex.Brew {
         @Option(name: .shortAndLong, help: "The build type to set. Options: \(BuildType.allCases.map(\.rawValue).joined(separator: ", "))")
         var buildType: BuildType?
         
+        @Option(name: .shortAndLong, help: "Release notes content provided directly.")
+        var notes: String?
+
+        @Option(name: [.customShort("F"), .customLong("notes-file")], help: "Path to a file containing release notes.")
+        var notesFile: String?
+
         func run() throws {
             try Nnex.makeGitHandler().checkForGitHubCLI()
             
             let projectFolder = try getProjectFolder(at: path)
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
             let binaryInfo = try buildBinary(for: projectFolder, formula: formula, buildType: buildType)
-            let assetURL = try uploadRelease(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version)
+            let assetURL = try uploadRelease(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
             let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
             
             try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
@@ -98,45 +104,10 @@ private extension Nnex.Brew.Publish {
         return try builder.buildProject(name: folder.name, path: folder.path, buildType: buildType, extraBuildArgs: formula.extraBuildArgs)
     }
 
-    /// Uploads a release to GitHub and returns the asset URL.
-    /// - Parameters:
-    ///   - folder: The project folder.
-    ///   - binaryInfo: The binary information including path and hash.
-    ///   - versionInfo: The version information for the release.
-    /// - Returns: The URL of the uploaded asset.
-    /// - Throws: An error if the upload process fails.
-    func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?) throws -> String {
-        let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: folder.path)
-        let versionInfo = try versionInfo ?? getVersionInput(previousVersion: previousVersion)
-        let releaseNotes = try picker.getRequiredInput(prompt: "Enter notes for this new release.")
-        let releaseInfo = ReleaseInfo(binaryPath: binaryInfo.path, projectPath: folder.path, releaseNotes: releaseNotes, previousVersion: previousVersion, versionInfo: versionInfo)
-        let store = ReleaseStore(gitHandler: gitHandler)
-        let (assetURL, versionNumber) = try store.uploadRelease(info: releaseInfo)
-        
-        print("GitHub release \(versionNumber) created and binary uploaded to \(assetURL)")
-        return assetURL
-    }
-
-    /// Gets version input from the user or calculates it based on the previous version.
-    /// - Parameter previousVersion: The previous version string, if available.
-    /// - Returns: A `ReleaseVersionInfo` object representing the new version.
-    /// - Throws: An error if the version input is invalid.
-    func getVersionInput(previousVersion: String?) throws -> ReleaseVersionInfo {
-        var prompt = "\nEnter the version number for this release."
-
-        if let previousVersion {
-        prompt.append("\nPrevious release: \(previousVersion.yellow) (To increment, type either \("major".bold), \("minor".bold), or \("patch".bold))")
-        } else {
-            prompt.append(" (v1.1.0 or 1.1.0)")
-        }
-
-        let input = try picker.getRequiredInput(prompt: prompt)
-
-        if let versionPart = ReleaseVersionInfo.VersionPart(string: input) {
-            return .increment(versionPart)
-        }
-
-        return .version(input)
+    func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?, releaseNotesSource: ReleaseNotesSource) throws -> String {
+        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler)
+            
+        return try handler.uploadRelease(folder: folder, binaryInfo: binaryInfo, versionInfo: versionInfo, releaseNotesSource: releaseNotesSource)
     }
 
     /// Publishes the Homebrew formula to the specified tap.
@@ -173,6 +144,13 @@ private extension Nnex.Brew.Publish {
 
         return try picker.getRequiredInput(prompt: "Enter your commit message.")
     }
+}
+
+
+// MARK: - Dependencies
+struct ReleaseNotesSource {
+    let notes: String?
+    let notesFile: String?
 }
 
 
