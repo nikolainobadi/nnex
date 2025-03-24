@@ -109,12 +109,12 @@ private extension Nnex.Brew.Publish {
     /// - Throws: An error if the upload process fails.
     func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?) throws -> String {
         let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: folder.path)
-        let versionInfo = try getVersionInput(previousVersion: previousVersion)
+        let versionInfo = try versionInfo ?? getVersionInput(previousVersion: previousVersion)
         let releaseNotes = try picker.getRequiredInput(prompt: "Enter notes for this new release.")
         let releaseInfo = ReleaseInfo(binaryPath: binaryInfo.path, projectPath: folder.path, releaseNotes: releaseNotes, previousVersion: previousVersion, versionInfo: versionInfo)
         let store = ReleaseStore(gitHandler: gitHandler)
-
         let (assetURL, versionNumber) = try store.uploadRelease(info: releaseInfo)
+        
         print("GitHub release \(versionNumber) created and binary uploaded to \(assetURL)")
         return assetURL
     }
@@ -127,7 +127,7 @@ private extension Nnex.Brew.Publish {
         var prompt = "\nEnter the version number for this release."
 
         if let previousVersion {
-            prompt.append(" Previous release: \(previousVersion.red) (To increment, simply type major, minor, or patch)")
+        prompt.append("\nPrevious release: \(previousVersion.yellow) (To increment, type either \("major".bold), \("minor".bold), or \("patch".bold))")
         } else {
             prompt.append(" (v1.1.0 or 1.1.0)")
         }
