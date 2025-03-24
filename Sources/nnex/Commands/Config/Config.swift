@@ -28,7 +28,7 @@ extension Nnex.Config {
             abstract: "Sets the path the the folder where new taps will be created"
         )
         
-        @Option(name: .shortAndLong, help: "")
+        @Option(name: .shortAndLong, help: "The path to the folder where new Homebrew Taps should be saved.")
         var path: String?
         
         func run() throws {
