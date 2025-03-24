@@ -44,6 +44,7 @@ extension ReleaseNotesHandler {
 // MARK: - Private Helpers
 private extension ReleaseNotesHandler {
     func createAndOpenNewNoteFile() throws -> File {
+        // TODO: - this isn't fit for unit testing yet, so a refactor may be required
         let desktop = try Folder.home.subfolder(named: "Desktop")
         let releaseNotesFile = try desktop.createFile(named: "\(projectName)-releaseNotes-\(Date().shortFormat).md")
         

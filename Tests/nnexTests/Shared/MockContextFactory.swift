@@ -12,6 +12,7 @@ import NnexSharedTestHelpers
 @testable import nnex
 
 final class MockContextFactory {
+    private let selectedItemIndex: Int
     private let tapListFolderPath: String?
     private let runResults: [String]
     private let inputResponses: [String]
@@ -21,12 +22,13 @@ final class MockContextFactory {
     private var picker: MockPicker?
     private var context: NnexContext?
     
-    init(tapListFolderPath: String? = nil, runResults: [String] = [], inputResponses: [String] = [], permissionResponses: [Bool] = [], gitHandler: MockGitHandler = .init()) {
+    init(tapListFolderPath: String? = nil, runResults: [String] = [], selectedItemIndex: Int = 0, inputResponses: [String] = [], permissionResponses: [Bool] = [], gitHandler: MockGitHandler = .init()) {
         self.tapListFolderPath = tapListFolderPath
         self.runResults = runResults
         self.inputResponses = inputResponses
         self.permissionResponses = permissionResponses
         self.gitHandler = gitHandler
+        self.selectedItemIndex = selectedItemIndex
     }
 }
 
@@ -48,7 +50,7 @@ extension MockContextFactory: ContextFactory {
             return picker
         }
         
-        let newPicker = MockPicker(inputResponses: inputResponses, permissionResponses: permissionResponses)
+        let newPicker = MockPicker(selectedItemIndex: selectedItemIndex, inputResponses: inputResponses, permissionResponses: permissionResponses)
         picker = newPicker
         return newPicker
     }
