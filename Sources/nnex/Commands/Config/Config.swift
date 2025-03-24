@@ -13,7 +13,7 @@ extension Nnex {
         static let configuration = CommandConfiguration(
             abstract: "Manage configuration settings for Nnex.",
             subcommands: [
-                SetTapFolder.self, ShowTapFolder.self, OpenTapFolder.self,
+                SetListPath.self, ShowListPath.self, OpenListFolder.self,
                 SetBuildType.self, ShowBuildType.self
             ]
         )
@@ -23,7 +23,7 @@ extension Nnex {
 
 // MARK: - SetTapFolder
 extension Nnex.Config {
-    struct SetTapFolder: ParsableCommand {
+    struct SetListPath: ParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Sets the path the the folder where new taps will be created")
         
         @Option(name: .shortAndLong, help: "The path to the folder where new Homebrew Taps should be saved.")
@@ -41,7 +41,7 @@ extension Nnex.Config {
 
 // MARK: - ShowTapFolder
 extension Nnex.Config {
-    struct ShowTapFolder: ParsableCommand {
+    struct ShowListPath: ParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Displays the current path to the folder where new taps will be created.")
 
         func run() throws {
@@ -59,7 +59,7 @@ extension Nnex.Config {
 
 // MARK: - OpenTapFolder
 extension Nnex.Config {
-    struct OpenTapFolder: ParsableCommand {
+    struct OpenListFolder: ParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Opens the current tap folder in Finder.")
 
         func run() throws {
