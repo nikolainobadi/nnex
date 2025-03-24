@@ -26,7 +26,7 @@ extension Nnex.Brew {
         var buildType: BuildType?
         
         func run() throws {
-            try Nnex.makeGitHandler().ghVerification()
+            try Nnex.makeGitHandler().checkForGitHubCLI()
             
             let projectFolder = try getProjectFolder(at: path)
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)

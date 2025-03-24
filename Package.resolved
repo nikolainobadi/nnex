@@ -1,5 +1,5 @@
 {
-  "originHash" : "f0df7b69a43296bd3d4678cc82d232f0364c0a1f59017443497780bcd15b9034",
+  "originHash" : "aa79e6b4e82131db33ac2ce4fe4ae0e3bcef70a4261dbf49c49dda6cc45cefca",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -25,7 +25,7 @@
       "location" : "https://github.com/nikolainobadi/NnexKit.git",
       "state" : {
         "branch" : "main",
-        "revision" : "9fa979939316b2e62ff0ceb61b7ace0a7a4e8730"
+        "revision" : "2138288608a8768a7bc52f301de5be6ffaf8acf1"
       }
     },
     {
@@ -43,7 +43,7 @@
       "location" : "https://github.com/nikolainobadi/NnSwiftDataKit.git",
       "state" : {
         "branch" : "main",
-        "revision" : "f8967167825afd9f262732ca3659bf67f3ecc682"
+        "revision" : "dd964918fc6ad29e7811e7145d6ef50342e7d4cb"
       }
     },
     {

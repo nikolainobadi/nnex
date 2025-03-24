@@ -24,7 +24,7 @@ extension Nnex.Brew {
         var visibility: RepoVisibility = .publicRepo
         
         func run() throws {
-            try gitHandler.ghVerification()
+            try gitHandler.checkForGitHubCLI()
             
             let context = try Nnex.makeContext()
             let name = try getTapName(name: name)
