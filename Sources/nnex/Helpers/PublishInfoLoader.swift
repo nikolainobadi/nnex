@@ -96,6 +96,9 @@ private extension PublishInfoLoader {
         )
     }
     
+    /// Retrieves the name of the executable from the package manifest.
+    /// - Returns: The executable name as a string.
+    /// - Throws: An error if the executable name cannot be determined.
     func getExecutableName() throws -> String {
         let content = try projectFolder.file(named: "Package.swift").readAsString()
         let names = try ExecutableDetector.getExecutables(packageManifestContent: content)
@@ -107,6 +110,9 @@ private extension PublishInfoLoader {
         return try picker.requiredSingleSelection(title: "Which executable would you like to build?", items: names)
     }
     
+    /// Retrieves the test command based on user input or configuration.
+    /// - Returns: A `TestCommand` instance if tests are to be run, or `nil` if tests are skipped.
+    /// - Throws: An error if the test command cannot be determined.
     func getTestCommand() throws -> TestCommand? {
         if skipTests {
             return nil
@@ -134,10 +140,6 @@ private extension PublishInfoLoader {
 
 
 // MARK: - Extension Dependenies
-enum BuildError: Error {
-    case missingExecutable
-}
-
 enum FormulaTestType: CaseIterable {
     case custom, packageDefault, noTests
 }
