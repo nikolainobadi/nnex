@@ -8,7 +8,7 @@
 import NnexKit
 
 /// enter your own app group id here
-//let APP_GROUP_ID = "your app group id"
+let APP_GROUP_ID = "R8SJ24LQF3.com.nobadi.nnex"
 
 /// Default implementation of the ContextFactory protocol.
 struct DefaultContextFactory: ContextFactory {
