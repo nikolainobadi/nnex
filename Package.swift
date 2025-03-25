@@ -28,13 +28,6 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             linkerSettings: [
-                /// Linker settings to embed the Info.plist file directly into the binary.
-                /// This is necessary to allow the Swift package to utilize SwiftData,
-                /// as SwiftData requires a bundle identifier to function properly.
-                /// - The `-Xlinker` flag passes the following argument to the linker.
-                /// - The `-sectcreate` flag creates a new section in the binary.
-                /// - `__TEXT` and `__info_plist` specify the segment and section names.
-                /// - `Resources/Info.plist` is the path to the Info.plist file to embed.
                 .unsafeFlags([
                     "-Xlinker", "-sectcreate",
                     "-Xlinker", "__TEXT",

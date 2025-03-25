@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleIdentifier</key>
-	<string>com.nobadi.nnex</string>
+	<string>com.nobadi.nnexTests</string>
 	<key>CFBundleName</key>
 	<string>nnex</string>
 	<key>CFBundleVersion</key>

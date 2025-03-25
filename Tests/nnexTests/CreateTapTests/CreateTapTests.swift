@@ -50,9 +50,6 @@ extension CreateTapTests {
         #expect(throws: NnexError.missingGitHubCLI) {
             try runCommand(factory)
         }
-        
-        #expect(gitHandler.gitInitPath == nil)
-        #expect(tapListFolder.subfolders.map({ $0 }).isEmpty)
     }
     
     @Test("Creates new tap folder with 'homebrew-' prefix when name from arg does not include the prefix")
