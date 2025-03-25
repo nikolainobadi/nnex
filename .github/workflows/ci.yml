@@ -1,9 +1,6 @@
 name: CI
 
 on:
-  # push:
-  #   branches:
-  #     - main
   pull_request:
     branches:
       - main
@@ -21,8 +18,24 @@ jobs:
         with:
           swift-version: '6.0'
 
+      - name: Cache Swift packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            .build
+            .swiftpm
+          key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-swiftpm-
+
       - name: Display Swift Version
         run: swift --version
 
-      - name: Build and Test
+      - name: Build
+        run: swift build
+
+      - name: Verify Embedded Info.plist
+        run: otool -l .build/debug/nnex | grep __info_plist -A 10
+
+      - name: Run Tests
         run: swift test --enable-code-coverage
