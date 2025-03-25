@@ -22,13 +22,14 @@ final class MockContextFactory {
     private var picker: MockPicker?
     private var context: NnexContext?
     
-    init(tapListFolderPath: String? = nil, runResults: [String] = [], selectedItemIndex: Int = 0, inputResponses: [String] = [], permissionResponses: [Bool] = [], gitHandler: MockGitHandler = .init()) {
+    init(tapListFolderPath: String? = nil, runResults: [String] = [], selectedItemIndex: Int = 0, inputResponses: [String] = [], permissionResponses: [Bool] = [], gitHandler: MockGitHandler = .init(), shell: MockShell? = nil) {
         self.tapListFolderPath = tapListFolderPath
         self.runResults = runResults
         self.inputResponses = inputResponses
         self.permissionResponses = permissionResponses
         self.gitHandler = gitHandler
         self.selectedItemIndex = selectedItemIndex
+        self.shell = shell
     }
 }
 

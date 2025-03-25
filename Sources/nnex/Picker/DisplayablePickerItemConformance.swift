@@ -43,3 +43,16 @@ extension NoteContentType: DisplayablePickerItem {
         }
     }
 }
+
+extension FormulaTestType: DisplayablePickerItem {
+    var displayName: String {
+        switch self {
+        case .custom:
+            return "ADD CUSTOM COMMAND"
+        case .packageDefault:
+            return "Default Commmand (swift test)"
+        case .noTests:
+            return "Don't include tests"
+        }
+    }
+}

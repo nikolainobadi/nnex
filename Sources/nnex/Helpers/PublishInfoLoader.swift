@@ -15,6 +15,7 @@ struct PublishInfoLoader {
     private let projectFolder: Folder
     private let gitHandler: GitHandler
     private let context: NnexContext
+    private let skipTests: Bool
     
     /// Initializes a new instance of PublishInfoLoader.
     /// - Parameters:
@@ -23,12 +24,13 @@ struct PublishInfoLoader {
     ///   - projectFolder: The folder containing the project to be published.
     ///   - context: The context for loading saved taps and formulas.
     ///   - gitHandler: The Git handler for managing repository operations.
-    init(shell: Shell, picker: Picker, projectFolder: Folder, context: NnexContext, gitHandler: GitHandler) {
+    init(shell: Shell, picker: Picker, projectFolder: Folder, context: NnexContext, gitHandler: GitHandler, skipTests: Bool) {
         self.shell = shell
         self.picker = picker
         self.projectFolder = projectFolder
         self.context = context
         self.gitHandler = gitHandler
+        self.skipTests = skipTests
     }
 }
 
@@ -49,7 +51,7 @@ extension PublishInfoLoader {
             return (tap, formula)
         }
         
-        try picker.requiredPermission(prompt: "Could not find existing formula for \(projectFolder.name) in \(tap.name). Would you like to create a new one?")
+        try picker.requiredPermission(prompt: "Could not find existing formula for \(projectFolder.name.yellow) in \(tap.name).\nWould you like to create a new one?")
         
         let newFormula = try createNewFormula(for: projectFolder)
         try context.saveNewFormula(newFormula, in: tap)
@@ -75,20 +77,51 @@ private extension PublishInfoLoader {
     /// - Returns: A SwiftDataFormula instance representing the created formula.
     /// - Throws: An error if the creation process fails.
     func createNewFormula(for folder: Folder) throws -> SwiftDataFormula {
+        let name = try getExecutableName()
         let details = try picker.getRequiredInput(prompt: "Enter the description for this formula.")
         let homepage = try gitHandler.getRemoteURL(path: folder.path)
         let license = LicenseDetector.detectLicense(in: folder)
+        let testCommand = try getTestCommand()
         let extraArgs = getExtraArgs()
         
         return .init(
-            name: folder.name,
+            name: name,
             details: details,
             homepage: homepage,
             license: license,
             localProjectPath: folder.path,
             uploadType: .binary,
+            testCommand: testCommand,
             extraBuildArgs: extraArgs
         )
+    }
+    
+    func getExecutableName() throws -> String {
+        let content = try projectFolder.file(named: "Package.swift").readAsString()
+        let names = try ExecutableDetector.getExecutables(packageManifestContent: content)
+        
+        guard names.count > 1 else {
+            return names.first!
+        }
+        
+        return try picker.requiredSingleSelection(title: "Which executable would you like to build?", items: names)
+    }
+    
+    func getTestCommand() throws -> TestCommand? {
+        if skipTests {
+            return nil
+        }
+        
+        switch try picker.requiredSingleSelection(title: "How would you like to handle tests?", items: FormulaTestType.allCases) {
+        case .custom:
+            let command = try picker.getRequiredInput(prompt: "Enter the test command that you would like to use.")
+            
+            return .custom(command)
+        case .packageDefault:
+            return .defaultCommand
+        case .noTests:
+            return nil
+        }
     }
     
     /// Retrieves additional arguments for the formula.
@@ -97,4 +130,14 @@ private extension PublishInfoLoader {
         // TODO: - 
         return []
     }
+}
+
+
+// MARK: - Extension Dependenies
+enum BuildError: Error {
+    case missingExecutable
+}
+
+enum FormulaTestType: CaseIterable {
+    case custom, packageDefault, noTests
 }
