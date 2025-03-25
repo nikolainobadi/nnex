@@ -19,9 +19,6 @@ extension Nnex.Brew {
         @Option(name: .shortAndLong, help: "The version number to publish or version part to increment: major, minor, patch.")
         var version: ReleaseVersionInfo?
         
-        @Option(name: .shortAndLong, help: "The commit message when committing and pushing the tap to GitHub")
-        var message: String?
-        
         @Option(name: .shortAndLong, help: "The build type to set. Options: \(BuildType.allCases.map(\.rawValue).joined(separator: ", "))")
         var buildType: BuildType?
         
@@ -30,6 +27,9 @@ extension Nnex.Brew {
 
         @Option(name: [.customShort("F"), .customLong("notes-file")], help: "Path to a file containing release notes.")
         var notesFile: String?
+        
+        @Option(name: [.customShort("m"), .customLong("commit-message")], help: "The commit message when committing and pushing the tap to GitHub")
+        var message: String?
 
         func run() throws {
             try Nnex.makeGitHandler().checkForGitHubCLI()
