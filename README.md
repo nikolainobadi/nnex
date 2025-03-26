@@ -64,6 +64,8 @@ Brew commands are used to interact with Homebrew and GitHub, while Config comman
 ### Publish
 The `publish` command is the most important command in **Nnex**. It allows you to build a binary, create a new GitHub release, upload the binary, and optionally publish a Homebrew formula. This command streamlines the entire process of distributing your executable.
 
+![Publish Command Demo](Resources/nnex-publish-demo.gif)
+
 #### Basic Usage:
 ```swift
 nnex brew publish
