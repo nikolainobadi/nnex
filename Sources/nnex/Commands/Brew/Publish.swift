@@ -30,13 +30,16 @@ extension Nnex.Brew {
         
         @Option(name: [.customShort("m"), .customLong("commit-message")], help: "The commit message when committing and pushing the tap to GitHub")
         var message: String?
+        
+        @Flag(name: .customLong("skip-tests"), help: "Skips running tests before publishing.")
+        var skipTests = false
 
         func run() throws {
             try Nnex.makeGitHandler().checkForGitHubCLI()
             
-            let projectFolder = try getProjectFolder(at: path)
+            let projectFolder = try Nnex.Brew.getProjectFolder(at: path)
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
-            let binaryInfo = try buildBinary(for: projectFolder, formula: formula, buildType: buildType)
+            let binaryInfo = try buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests)
             let assetURL = try uploadRelease(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
             let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
             
@@ -63,18 +66,6 @@ private extension Nnex.Brew.Publish {
         return Nnex.makeGitHandler()
     }
 
-    /// Retrieves the project folder from the specified path.
-    /// - Parameter path: The file path to the project folder.
-    /// - Returns: The folder at the specified path, or the current folder if no path is provided.
-    /// - Throws: An error if the folder cannot be found or accessed.
-    func getProjectFolder(at path: String?) throws -> Folder {
-        if let path {
-            return try Folder(path: path)
-        }
-
-        return Folder.current
-    }
-
     /// Retrieves the Homebrew tap and formula associated with the project folder.
     /// - Parameters:
     ///   - projectFolder: The project folder.
@@ -84,24 +75,31 @@ private extension Nnex.Brew.Publish {
     func getTapAndFormula(projectFolder: Folder, buildType: BuildType?) throws -> (SwiftDataTap, SwiftDataFormula, BuildType) {
         let context = try Nnex.makeContext()
         let buildType = buildType ?? context.loadDefaultBuildType()
-        let loader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler)
+        let loader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler, skipTests: skipTests)
 
         let (tap, formula) = try loader.loadPublishInfo()
+        
+        if formula.localProjectPath.isEmpty {
+            formula.localProjectPath = projectFolder.path
+            try context.saveChanges()
+        }
 
         return (tap, formula, buildType)
     }
 
     /// Builds the binary for the given project and formula.
     /// - Parameters:
-    ///   - folder: The project folder.
     ///   - formula: The Homebrew formula associated with the project.
     ///   - buildType: The type of build to perform.
+    ///   - skipTesting: Whether or not to skip tests, if the formula contains a `TestCommand`
     /// - Returns: The binary information including path and hash.
     /// - Throws: An error if the build process fails.
-    func buildBinary(for folder: Folder, formula: SwiftDataFormula, buildType: BuildType) throws -> BinaryInfo {
-        let builder = ProjectBuilder(shell: shell)
-
-        return try builder.buildProject(name: folder.name, path: folder.path, buildType: buildType, extraBuildArgs: formula.extraBuildArgs)
+    func buildBinary(formula: SwiftDataFormula, buildType: BuildType, skipTesting: Bool) throws -> BinaryInfo {
+        let testCommand = skipTesting ? nil : formula.testCommand
+        let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
+        let builder = ProjectBuilder(shell: shell, config: config)
+        
+        return try builder.build()
     }
 
     func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?, releaseNotesSource: ReleaseNotesSource) throws -> String {

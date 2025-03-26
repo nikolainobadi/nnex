@@ -60,8 +60,38 @@ extension PublishTests {
         #expect(tapFolder.containsFile(named: formulaFileName) == false)
     }
     
-    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, message, and notes")
-    func publishCommandWithNotes() throws {
+    @Test("Creates formula file when publishing")
+    func publishCommand() throws {
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
+        
+        try createTestTapAndFormula(factory: factory)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
+        
+        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
+        
+        #expect(formulaFileContents.contains(projectName))
+        #expect(formulaFileContents.contains(sha256))
+        #expect(formulaFileContents.contains(assetURL))
+    }
+}
+
+
+// MARK: - Passing Info to Args
+extension PublishTests {
+    @Test("Commits changes when commit message is included in args")
+    func commitsChanges() throws {
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
+        
+        try createTestTapAndFormula(factory: factory)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
+        
+        #expect(gitHandler.message == commitMessage)
+    }
+    
+    @Test("Uploads with inline release notes when included in args")
+    func uploadsDirectReleaseNotes() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
         
@@ -69,18 +99,13 @@ extension PublishTests {
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
         
         let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
-        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
         
-        #expect(formulaFileContents.contains(projectName))
-        #expect(formulaFileContents.contains(sha256))
-        #expect(formulaFileContents.contains(assetURL))
-        #expect(gitHandler.message == commitMessage)
         #expect(releaseNoteInfo.isFromFile == false)
         #expect(releaseNoteInfo.content == releaseNotes)
     }
     
-    @Test("Publishes a binary to Homebrew and verifies the formula file when passing in path, version, message, and notesFile")
-    func publishCommandWithNotesFile() throws {
+    @Test("Uploads release notes from file when included in args")
+    func uploadsReleaseNotesFromFile() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
         let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
@@ -91,36 +116,90 @@ extension PublishTests {
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notesFile: filePath)
         
         let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
-        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
         
-        #expect(formulaFileContents.contains(projectName))
-        #expect(formulaFileContents.contains(sha256))
-        #expect(formulaFileContents.contains(assetURL))
-        #expect(gitHandler.message == commitMessage)
         #expect(releaseNoteInfo.isFromFile)
         #expect(releaseNoteInfo.content == filePath)
     }
     
-    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and release notes are input directly")
-    func publishCommandWithInputsAndDirectReleaseNotes() throws {
+    @Test("Does not include tests when none exist")
+    func doesNotIncludeTests() throws {
+        let shell = MockShell()
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let inputs = [versionNumber, releaseNotes, commitMessage]
-        let factory = MockContextFactory(runResults: [sha256, assetURL], inputResponses: inputs, permissionResponses: [true], gitHandler: gitHandler)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler, shell: shell)
         
         try createTestTapAndFormula(factory: factory)
-        try runCommand(factory)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
         
-        let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
-        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
-        
-        #expect(formulaFileContents.contains(projectName))
-        #expect(formulaFileContents.contains(sha256))
-        #expect(formulaFileContents.contains(assetURL))
-        #expect(gitHandler.message == commitMessage)
-        #expect(releaseNoteInfo.isFromFile == false)
-        #expect(releaseNoteInfo.content == releaseNotes)
+        #expect(!shell.printedCommands.contains(where: { $0.contains("swift test") }))
     }
     
+    @Test("Runs tests when formula includes default test command")
+    func runsTestsWithDefaultCommand() throws {
+        let shell = MockShell()
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler, shell: shell)
+        
+        try createTestTapAndFormula(factory: factory, testCommand: .defaultCommand)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
+        
+        #expect(shell.printedCommands.contains { $0.contains("swift test") })
+    }
+    
+    @Test("Runs tests when formula includes custom test command")
+    func runsTestsWithCustomCommand() throws {
+        let shell = MockShell()
+        let testCommand = "xcodebuild test -scheme testScheme -destination 'platform=macOS'"
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler, shell: shell)
+        
+        try createTestTapAndFormula(factory: factory, testCommand: .custom(testCommand))
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
+        
+        #expect(shell.printedCommands.contains { $0.contains(testCommand) })
+    }
+    
+    @Test("Skips tests when indicated in arg even when formula contains test command", arguments: [TestCommand.defaultCommand, TestCommand.custom("some command"), nil])
+    func skipsTests(testCommand: TestCommand?) throws {
+        let shell = MockShell()
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler, shell: shell)
+        
+        try createTestTapAndFormula(factory: factory, testCommand: testCommand)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, skipTests: true)
+        
+        if let testCommand {
+            switch testCommand {
+            case .custom(let command):
+                #expect(!shell.printedCommands.contains { $0.contains(command) })
+            default:
+                break
+            }
+        }
+        
+        #expect(!shell.printedCommands.contains { $0.contains("swift test") })
+    }
+    
+    @Test("Fails to publish when tests fail")
+    func failsToPublishWhenTestsFail() throws {
+        let shell = MockShell(shouldThrowError: true)
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler, shell: shell)
+        
+        try createTestTapAndFormula(factory: factory, testCommand: .defaultCommand)
+        
+        #expect(throws: (any Error).self) {
+            try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
+        }
+        
+        withKnownIssue("Determining which shell command fails is currently unreliable") {
+            #expect(shell.printedCommands.contains { $0.contains("swift test") })
+        }
+    }
+}
+
+
+// MARK: - Input Provided from User
+extension PublishTests {
     @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and file path for release notes is input.")
     func publishCommandWithInputsAndFilePathReleaseNotes() throws {
         let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
@@ -147,7 +226,7 @@ extension PublishTests {
 
 // MARK: - Run Command
 private extension PublishTests {
-    func runCommand(_ factory: MockContextFactory, version: ReleaseVersionInfo? = nil, message: String? = nil, notes: String? = nil, notesFile: String? = nil) throws {
+    func runCommand(_ factory: MockContextFactory, version: ReleaseVersionInfo? = nil, message: String? = nil, notes: String? = nil, notesFile: String? = nil, skipTests: Bool = false) throws {
         var args = ["brew", "publish", "-p", projectFolder.path]
         
         if let version {
@@ -166,6 +245,10 @@ private extension PublishTests {
             args.append(contentsOf: ["-F", notesFile])
         }
         
+        if skipTests {
+            args.append("--skip-tests")
+        }
+        
         try Nnex.testRun(contextFactory: factory, args: args)
     }
 }
@@ -173,10 +256,10 @@ private extension PublishTests {
 
 // MARK: - Helpers
 private extension PublishTests {
-    func createTestTapAndFormula(factory: MockContextFactory, extraBuildArgs: [String] = []) throws {
+    func createTestTapAndFormula(factory: MockContextFactory, testCommand: TestCommand? = nil, extraBuildArgs: [String] = []) throws {
         let context = try factory.makeContext()
         let tap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let formula = SwiftDataFormula(name: projectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: projectFolder.path, uploadType: .binary, extraBuildArgs: extraBuildArgs)
+        let formula = SwiftDataFormula(name: projectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: projectFolder.path, uploadType: .binary, testCommand: testCommand, extraBuildArgs: extraBuildArgs)
         
         try context.saveNewTap(tap, formulas: [formula])
     }

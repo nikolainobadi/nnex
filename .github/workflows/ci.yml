@@ -34,6 +34,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-swiftpm-
 
+      - name: Cache Ruby gems
+        uses: actions/cache@v3
+        with:
+          path: /usr/local/lib/ruby/gems
+          key: ${{ runner.os }}-ruby-gems
+
+      - name: Install xcpretty
+        run: gem install xcpretty
+
       - name: Display Swift Version
         run: swift --version
 
@@ -41,4 +50,4 @@ jobs:
         run: swift build
 
       - name: Run Tests
-        run: xcodebuild test -scheme nnex -destination 'platform=macOS' -quiet
+        run: xcodebuild test -scheme nnex -destination 'platform=macOS' | xcpretty
