@@ -19,6 +19,11 @@ Instead of manually managing taps and formulae, let **Nnex** do the heavy liftin
 
 **Nnex** requires both **Homebrew** and the **GitHub CLI (gh)** to function properly. Please ensure they are installed and configured on your system before using **nnex** (you'll be prompted to install them if you use **nnex** without them).
 
+**Stability Notice (v0.7.0)**  
+Nnex is functional and ready to use, but its features and API may evolve as it becomes more flexible and robust.  
+Breaking changes are possible before reaching v1.0.0.  
+Your feedback and suggestions are welcome as the project continues to improve!  
+
 ## Table of Contents
 - [Installation](#installation)
 - [Commands](#commands)
@@ -67,9 +72,10 @@ This command runs in the current directory and prompts you for any missing infor
 
 To streamline the command and skip interactive prompts, include version, notes/notes-file, and a commit-message in the command.
 
-```swift
-nnex brew publish --version v1.0.0 --notes-file MyReleaseNotes.md --commit-message "Updated the formula for MyCoolTool"
+```bash
+nnex brew publish --version v1.0.0 --notes-file MyReleaseNotes.md --commit-message "Updated the formula for MyCoolTool" --skip-tests
 ```
+
 If a required option is not specified, `nnex` will prompt you to enter it interactively.
 
 If both `--notes` and `--notes-file` are provided, the command will throw an error since they are mutually exclusive.

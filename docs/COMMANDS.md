@@ -37,7 +37,8 @@ nnex brew publish [OPTIONS]
 | `-b`   | `--build-type <value>`  | The build type to set. Options: universal, release, debug.  Defaults to universal 
 | `-n`   | `--notes <string>`       | Release notes content provided directly.                                         
 | `-F`   | `--notes-file <value>`  | Path to a file containing release notes.                                         
-| `-m`   | `--commit-message <string>` | The commit message when committing and pushing the tap to GitHub.            
+| `-m`   | `--commit-message <string>` | The commit message when committing and pushing the tap to GitHub.  
+|        | `--skip-tests` | Skips asking for a test command for new formulas or skips running tests when a formula contains a test command.           
 
 #### Basic usage:
 ```bash
