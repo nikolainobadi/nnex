@@ -1,3 +1,8 @@
+# Nnex CLI Documentation
+
+**Nnex** is a Swift-based command-line utility designed to streamline the release and distribution of Swift CLI tools using Homebrew. It automates publishing, managing taps, and setting configuration preferences with ease.
+
+---
 # Commands
 
 ## Table of Contents
@@ -30,7 +35,7 @@ nnex brew publish [OPTIONS]
 ```
 
 #### Options:
-| Short | Long         | Description                                                                    
+| Short | Long | Description                                                                    
 |------|--------------|--------------------------------------------------------------------------------
 | `-p`   | `--path <value>`       | Path to the project directory where the release will be built. Defaults to the current directory. 
 | `-v`   | `--version <value>`     | The version number to publish or version part to increment: major, minor, patch. 
@@ -202,8 +207,6 @@ Unregisters an existing Homebrew tap from **nnex**.
 ```bash
 nnex brew untap mytap
 ```
-
-#### Choose from a list interactively
 ```bash
 nnex brew untap
 ```
@@ -288,3 +291,16 @@ Displays the current default binary build type.
 ```bash
 nnex config show-build-type
 ```
+---
+
+## About
+
+Nnex was built to simplify the developer experience for releasing Swift CLI tools via Homebrew, handling everything from versioning to tap management.
+
+## Contributing
+
+Any ideas or improvements to the Nnex CLI are welcome. Feel free to [open an issue](https://github.com/your/repo/issues) or fork the project and submit a pull request.
+
+## License
+
+This project is licensed under the MIT License.

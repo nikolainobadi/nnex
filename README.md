@@ -1,12 +1,12 @@
-# Nnex
+# nnex
 
 ![Build Status](https://github.com/nikolainobadi/nnex/actions/workflows/ci.yml/badge.svg)
 ![Swift Version](https://badgen.net/badge/swift/6.0%2B/purple)
 ![Platform](https://img.shields.io/badge/platform-macOS%2014-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgray)
 
-**Nnex** is a command-line tool that streamlines the distribution of Swift command-line executables via **Homebrew**.
-With a single command, **Nnex** handles it all:
+**nnex** is a command-line tool that streamlines the distribution of Swift command-line executables via **Homebrew**.
+With a single command, **nnex** handles it all:
 
 - ✅ Build optimized universal binaries for ARM and Intel architectures.
 - ✅ Strip symbols to reduce binary size.
@@ -14,13 +14,13 @@ With a single command, **Nnex** handles it all:
 - ✅ Create a GitHub release and attach the binary asset.
 - ✅ Generate and upload a Homebrew formula to your Homebrew tap.
 
-Instead of manually managing taps and formulae, let **Nnex** do the heavy lifting for you.
-**Nnex** also supports importing your own Homebrew taps to leverage existing setups.
+Instead of manually managing taps and formulae, let **nnex** do the heavy lifting for you.
+**nnex** also supports importing your own Homebrew taps to leverage existing setups.
 
-**Nnex** requires both **Homebrew** and the **GitHub CLI (gh)** to function properly. Please ensure they are installed and configured on your system before using **nnex** (you'll be prompted to install them if you use **nnex** without them).
+**nnex** requires both **Homebrew** and the **GitHub CLI (gh)** to function properly. Please ensure they are installed and configured on your system before using **nnex** (you'll be prompted to install them if you use **nnex** without them).
 
 **Stability Notice (v0.7.0)**  
-Nnex is functional and ready to use, but its features and API may evolve as it becomes more flexible and robust.  
+`nnex` is functional and ready to use, but its features and API may evolve as it becomes more flexible and robust.  
 Breaking changes are possible before reaching v1.0.0.  
 Your feedback and suggestions are welcome as the project continues to improve!  
 
@@ -35,7 +35,7 @@ Your feedback and suggestions are welcome as the project continues to improve!
 - [Acknowledgements](#acknowledgements)
 
 ## Installation
-Install **Nnex** with Homebrew
+Install **nnex** with Homebrew
 
 ```bash
 brew tap nikolainobadi/nntools
@@ -55,14 +55,14 @@ swift build -c release
 ```
 
 ## Commands
-**Nnex** utilizes two subcommands, `Brew` and `Config`.
+**nnex** utilizes two subcommands, `Brew` and `Config`.
 
 Brew commands are used to interact with Homebrew and GitHub, while Config commands are used to set preferences.
 
 ## Brew Commands
 
 ### Publish
-The `publish` command is the most important command in **Nnex**. It allows you to build a binary, create a new GitHub release, upload the binary, and optionally publish a Homebrew formula. This command streamlines the entire process of distributing your executable.
+The `publish` command is the most important command in **nnex**. It allows you to build a binary, create a new GitHub release, upload the binary, and optionally publish a Homebrew formula. This command streamlines the entire process of distributing your executable.
 
 ![Publish Command Demo](Resources/nnex-publish-demo.gif)
 
@@ -107,18 +107,23 @@ nnex config set-build-type release
 
 ## Contributing
 
-Any feedback or ideas to enhance Nnex would be well received.  
-Please feel free to [open an issue](https://github.com/nikolainobadi/nnex/issues/new) if you'd like to help improve this Swift package.
+Contributions are welcome! If you'd like to improve a command, add new integrations, or fix bugs:
 
-## License
+1. Fork the repo
+2. Create a new branch
+3. Submit a PR with a clear description
 
-Nnex is available under the MIT license. See the [LICENSE](LICENSE) file for more information.
+Issues and suggestions are also welcome via [GitHub Issues](https://github.com/nikolainobadi/nnex/issues).
 
 ## Acknowledgements
 
 ### Third-Party Libraries
 - [SwiftArgumentParser](https://github.com/apple/swift-argument-parser)
 
-### My Packages
+### My Swift Packages
 - [NnexKit](https://github.com/nikolainobadi/NnexKit)
 - [SwiftPicker](https://github.com/nikolainobadi/SwiftPicker)
+
+## License
+
+`nnex` is available under the MIT license. See the [LICENSE](LICENSE) file for more information.
