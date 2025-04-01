@@ -25,7 +25,7 @@
       "location" : "https://github.com/nikolainobadi/NnexKit.git",
       "state" : {
         "branch" : "main",
-        "revision" : "381c08888562dfd42c02f7796fe8c8abb74b2891"
+        "revision" : "e3278ea4c2edb8575f0a1ed629242bbfbf65f384"
       }
     },
     {
@@ -34,7 +34,7 @@
       "location" : "https://github.com/nikolainobadi/NnGitKit.git",
       "state" : {
         "branch" : "main",
-        "revision" : "e68e0c4c73ce890006ac44c588d0ee9b6bf80f62"
+        "revision" : "fa432ab797d88d78a41542e5e9d7590da8349463"
       }
     },
     {
@@ -43,7 +43,7 @@
       "location" : "https://github.com/nikolainobadi/NnSwiftDataKit.git",
       "state" : {
         "branch" : "main",
-        "revision" : "dd964918fc6ad29e7811e7145d6ef50342e7d4cb"
+        "revision" : "bc2aac114b8c708ef9446f2aa77e4c74014ff4ad"
       }
     },
     {
