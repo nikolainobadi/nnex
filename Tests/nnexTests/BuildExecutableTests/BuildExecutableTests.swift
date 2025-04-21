@@ -5,6 +5,7 @@
 
 import NnexKit
 import Testing
+import Foundation
 import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
@@ -17,7 +18,7 @@ final class BuildTests {
 
     init() throws {
         let tempFolder = Folder.temporary
-        self.projectFolder = try tempFolder.createSubfolder(named: "TestProject")
+        self.projectFolder = try tempFolder.createSubfolder(named: "TestFolder\(UUID().uuidString)")
     }
 
     deinit {
