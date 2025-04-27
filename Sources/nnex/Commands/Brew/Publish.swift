@@ -79,7 +79,7 @@ private extension Nnex.Brew.Publish {
 
         let (tap, formula) = try loader.loadPublishInfo()
         
-        if formula.localProjectPath.isEmpty {
+        if formula.localProjectPath.isEmpty || formula.localProjectPath != projectFolder.path {
             formula.localProjectPath = projectFolder.path
             try context.saveChanges()
         }
