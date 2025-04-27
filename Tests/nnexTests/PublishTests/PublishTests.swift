@@ -90,6 +90,29 @@ extension PublishTests {
         #expect(gitHandler.message == commitMessage)
     }
     
+    @Test("Automatically updates localProjectPath for formula if it doesn't match project folder path")
+    func updatesFormulaLocalPath() throws {
+        let staleLocalPath = "~/Desktop/stale"
+        let factory = MockContextFactory(runResults: [sha256, assetURL])
+        let context = try factory.makeContext()
+        
+        try createTestTapAndFormula(factory: factory, formulaPath: staleLocalPath)
+        
+        let staleFormula = try #require(try context.loadFormulas().first)
+        
+        #expect(staleFormula.localProjectPath == staleLocalPath)
+        
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
+        
+        let allFormulas = try #require(try context.loadFormulas())
+        
+        #expect(allFormulas.count == 1)
+        
+        let updatedFormula = try #require(allFormulas.first)
+        
+        #expect(updatedFormula.localProjectPath == projectFolder.path)
+    }
+    
     @Test("Uploads with inline release notes when included in args")
     func uploadsDirectReleaseNotes() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
@@ -256,10 +279,10 @@ private extension PublishTests {
 
 // MARK: - Helpers
 private extension PublishTests {
-    func createTestTapAndFormula(factory: MockContextFactory, testCommand: TestCommand? = nil, extraBuildArgs: [String] = []) throws {
+    func createTestTapAndFormula(factory: MockContextFactory, formulaPath: String? = nil, testCommand: TestCommand? = nil, extraBuildArgs: [String] = []) throws {
         let context = try factory.makeContext()
         let tap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let formula = SwiftDataFormula(name: projectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: projectFolder.path, uploadType: .binary, testCommand: testCommand, extraBuildArgs: extraBuildArgs)
+        let formula = SwiftDataFormula(name: projectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: formulaPath ?? projectFolder.path, uploadType: .binary, testCommand: testCommand, extraBuildArgs: extraBuildArgs)
         
         try context.saveNewTap(tap, formulas: [formula])
     }
