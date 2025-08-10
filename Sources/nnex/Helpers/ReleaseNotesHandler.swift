@@ -9,13 +9,59 @@ import Files
 import Foundation
 import GitCommandGen
 
+// MARK: - Dependencies
+protocol FileSystemProvider {
+    func createFile(in folderPath: String, named: String) throws -> FileProtocol
+}
+
+protocol FileProtocol {
+    var path: String { get }
+    func readAsString() throws -> String
+}
+
+protocol DateProvider {
+    var currentDate: Date { get }
+}
+
+// MARK: - Default Implementations
+struct DefaultFileSystemProvider: FileSystemProvider {
+    func createFile(in folderPath: String, named: String) throws -> FileProtocol {
+        let folder = try Folder(path: folderPath)
+        let file = try folder.createFile(named: named)
+        file.open()
+        return FileWrapper(file: file)
+    }
+}
+
+struct FileWrapper: FileProtocol {
+    private let file: File
+    
+    init(file: File) {
+        self.file = file
+    }
+    
+    var path: String { file.path }
+    
+    func readAsString() throws -> String {
+        try file.readAsString()
+    }
+}
+
+struct DefaultDateProvider: DateProvider {
+    var currentDate: Date { Date() }
+}
+
 struct ReleaseNotesHandler {
     private let picker: Picker
     private let projectName: String
+    private let fileSystem: FileSystemProvider
+    private let dateProvider: DateProvider
     
-    init(picker: Picker, projectName: String) {
+    init(picker: Picker, projectName: String, fileSystem: FileSystemProvider = DefaultFileSystemProvider(), dateProvider: DateProvider = DefaultDateProvider()) {
         self.picker = picker
         self.projectName = projectName
+        self.fileSystem = fileSystem
+        self.dateProvider = dateProvider
     }
 }
 
@@ -43,16 +89,13 @@ extension ReleaseNotesHandler {
 
 // MARK: - Private Helpers
 private extension ReleaseNotesHandler {
-    func createAndOpenNewNoteFile() throws -> File {
-        // TODO: - this isn't fit for unit testing yet, so a refactor may be required
-        let desktop = try Folder.home.subfolder(named: "Desktop")
-        let releaseNotesFile = try desktop.createFile(named: "\(projectName)-releaseNotes-\(Date().shortFormat).md")
-        
-        releaseNotesFile.open()
-        return releaseNotesFile
+    func createAndOpenNewNoteFile() throws -> FileProtocol {
+        let desktopPath = try Folder.home.subfolder(named: "Desktop").path
+        let fileName = "\(projectName)-releaseNotes-\(dateProvider.currentDate.shortFormat).md"
+        return try fileSystem.createFile(in: desktopPath, named: fileName)
     }
     
-    func decodeNoteFile(_ file: File) throws -> ReleaseNoteInfo {
+    func decodeNoteFile(_ file: FileProtocol) throws -> ReleaseNoteInfo {
         try picker.requiredPermission(prompt: "Did you add your release notes to \(file.path)?")
         
         let notesContent = try file.readAsString()
@@ -63,7 +106,7 @@ private extension ReleaseNotesHandler {
             let notesContent = try file.readAsString()
             
             if notesContent.isEmpty {
-                fatalError("You still didn't add any notes to \(file.path)...I'm done with you")
+                throw ReleaseNotesError.emptyFileAfterRetry(filePath: file.path)
             }
         }
         
@@ -72,6 +115,18 @@ private extension ReleaseNotesHandler {
 }
 
 
+// MARK: - Error Types
+enum ReleaseNotesError: Error, LocalizedError, Equatable {
+    case emptyFileAfterRetry(filePath: String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .emptyFileAfterRetry(let filePath):
+            return "File at '\(filePath)' is still empty after retry. Please add content to the file or choose a different option."
+        }
+    }
+}
+
 // MARK: - Dependencies
 enum NoteContentType: CaseIterable {
     case direct, fromPath, createFile
@@ -79,7 +134,7 @@ enum NoteContentType: CaseIterable {
 
 
 // MARK: - Extension Dependencies
-fileprivate extension Date {
+private extension Date {
     /// Formats the date as "M-d-yy- (e.g., "3-24-25").
     var shortFormat: String {
         let formatter = DateFormatter()
