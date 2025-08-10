@@ -9,7 +9,7 @@ import Files
 import NnexKit
 import Foundation
 
-struct MacOSArchiveBuilder {
+struct DefaultMacOSArchiveBuilder: ArchiveBuilder {
     private let shell: Shell
     
     init(shell: Shell) {
@@ -18,8 +18,8 @@ struct MacOSArchiveBuilder {
 }
 
 
-// MARK: - MacOSArchiveBuilder
-extension MacOSArchiveBuilder: ArchiveBuilder {
+// MARK: - DefaultMacOSArchiveBuilder
+extension DefaultMacOSArchiveBuilder {
     func archive(config: ArchiveConfig) throws -> ArchiveResult {
         print("🏗️  Archiving for macOS (\(config.configuration.rawValue) configuration)")
         
@@ -28,7 +28,7 @@ extension MacOSArchiveBuilder: ArchiveBuilder {
         
         // Generate archive path with timestamp
         let timestamp = DateFormatter.archiveTimestamp.string(from: Date())
-        let projectDetector = ProjectDetector(shell: shell)
+        let projectDetector = DefaultProjectDetector(shell: shell)
         let projectInfo = try projectDetector.detectProject(at: config.projectPath)
         let archivePath = "\(config.archiveOutputPath)/\(projectInfo.name)_\(timestamp).xcarchive"
         
@@ -74,7 +74,7 @@ extension MacOSArchiveBuilder: ArchiveBuilder {
 
 
 // MARK: - Private Methods
-private extension MacOSArchiveBuilder {
+private extension DefaultMacOSArchiveBuilder {
     func createDirectoryIfNeeded(_ path: String) throws {
         try shell.runAndPrint("mkdir -p \"\(path)\"")
     }

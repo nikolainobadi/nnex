@@ -39,10 +39,9 @@ extension Nnex.Archive {
         func run() throws {
             let shell = Nnex.makeShell()
             let picker = Nnex.makePicker()
-            
-            // Detect project
+            let projectDetector = Nnex.makeProjectDetector()
+            let archiveBuilder = Nnex.makeMacOSArchiveBuilder()
             let projectPath = try getProjectPath()
-            let projectDetector = ProjectDetector(shell: shell)
             let projectInfo = try projectDetector.detectProject(at: projectPath)
             
             print("🔍 Detected project: \(projectInfo.name)\(projectInfo.type.path.hasSuffix(".xcworkspace") ? ".xcworkspace" : ".xcodeproj")")
@@ -60,8 +59,7 @@ extension Nnex.Archive {
                 scheme: selectedScheme
             )
             
-            // Create archive builder and execute
-            let archiveBuilder = MacOSArchiveBuilder(shell: shell)
+            // Execute archive
             let _ = try archiveBuilder.archive(config: config)
             
             // Open in Finder if requested
@@ -109,7 +107,7 @@ private extension Nnex.Archive.MacOS {
         // Create archive output directory if it doesn't exist
         try Folder.current.createSubfolderIfNeeded(withName: "build/archives")
         
-        return ArchiveConfig(
+        return .init(
             platform: .macOS,
             projectPath: projectPath,
             scheme: scheme,

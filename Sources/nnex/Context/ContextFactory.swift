@@ -25,4 +25,12 @@ protocol ContextFactory {
     /// - Returns: An NnexContext instance.
     /// - Throws: An error if the context could not be created.
     func makeContext() throws -> NnexContext
+    
+    /// Creates a new project detector instance.
+    /// - Returns: A ProjectDetector instance.
+    func makeProjectDetector() -> ProjectDetector
+    
+    /// Creates a new macOS archive builder instance.
+    /// - Returns: An ArchiveBuilder instance.
+    func makeMacOSArchiveBuilder() -> ArchiveBuilder
 }

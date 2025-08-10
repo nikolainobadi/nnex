@@ -36,4 +36,16 @@ struct DefaultContextFactory: ContextFactory {
     func makeContext() throws -> NnexContext {
         return try .init(appGroupId: APP_GROUP_ID)
     }
+    
+    /// Creates a default project detector instance.
+    /// - Returns: A DefaultProjectDetector instance.
+    func makeProjectDetector() -> ProjectDetector {
+        return DefaultProjectDetector(shell: makeShell())
+    }
+    
+    /// Creates a default macOS archive builder instance.
+    /// - Returns: A DefaultMacOSArchiveBuilder instance.
+    func makeMacOSArchiveBuilder() -> ArchiveBuilder {
+        return DefaultMacOSArchiveBuilder(shell: makeShell())
+    }
 }

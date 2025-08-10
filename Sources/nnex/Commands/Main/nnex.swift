@@ -33,4 +33,12 @@ extension Nnex {
     static func makeGitHandler() -> GitHandler {
         return contextFactory.makeGitHandler()
     }
+    
+    static func makeProjectDetector() -> ProjectDetector {
+        return contextFactory.makeProjectDetector()
+    }
+    
+    static func makeMacOSArchiveBuilder() -> ArchiveBuilder {
+        return contextFactory.makeMacOSArchiveBuilder()
+    }
 }

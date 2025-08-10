@@ -9,7 +9,13 @@ import Files
 import Foundation
 import NnexKit
 
-struct ProjectDetector {
+protocol ProjectDetector {
+    func detectProject(at path: String) throws -> ProjectInfo
+    func detectSchemes(for project: ProjectInfo) throws -> [String]
+    func validatePlatformSupport(_ platform: ArchivePlatform, project: ProjectInfo) throws
+}
+
+struct DefaultProjectDetector: ProjectDetector {
     private let shell: Shell
     
     init(shell: Shell) {
@@ -19,7 +25,7 @@ struct ProjectDetector {
 
 
 // MARK: - Actions
-extension ProjectDetector {
+extension DefaultProjectDetector {
     /// Detects Xcode project or workspace in the specified directory
     func detectProject(at path: String) throws -> ProjectInfo {
         let folder = try Folder(path: path)
@@ -80,7 +86,7 @@ extension ProjectDetector {
 
 
 // MARK: - Private Methods
-private extension ProjectDetector {
+private extension DefaultProjectDetector {
     func detectSupportedPlatforms(projectType: ProjectType) throws -> [ArchivePlatform] {
         // For now, return both platforms - we could enhance this later
         // by actually parsing the project file to detect supported platforms
