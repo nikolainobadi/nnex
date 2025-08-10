@@ -14,8 +14,6 @@ struct ArchiveConfig {
     let scheme: String
     let configuration: BuildConfiguration
     let archiveOutputPath: String
-    let exportOutputPath: String?
-    let exportMethod: ExportMethod?
     let verbose: Bool
     let openInFinder: Bool
 }
@@ -36,25 +34,6 @@ extension BuildConfiguration: CustomStringConvertible {
     var description: String { rawValue }
 }
 
-// MARK: - ExportMethod
-enum ExportMethod: String, CaseIterable {
-    case developerID = "developer-id"
-    case development = "development"
-    case appStore = "app-store"
-}
-
-extension ExportMethod: CustomStringConvertible {
-    var description: String {
-        switch self {
-        case .developerID:
-            return "Developer ID (for notarization)"
-        case .development:
-            return "Development"
-        case .appStore:
-            return "App Store"
-        }
-    }
-}
 
 // MARK: - ArchiveResult
 struct ArchiveResult {
@@ -64,14 +43,7 @@ struct ArchiveResult {
     let buildNumber: String
 }
 
-// MARK: - ExportResult
-struct ExportResult {
-    let exportPath: String
-    let appPath: String
-}
-
 // MARK: - ArchiveBuilder Protocol
 protocol ArchiveBuilder {
     func archive(config: ArchiveConfig) throws -> ArchiveResult
-    func exportApp(from archiveResult: ArchiveResult, config: ArchiveConfig) throws -> ExportResult?
 }

@@ -132,7 +132,6 @@ enum ArchiveError: Error, LocalizedError {
     case noSchemesFound(projectName: String)
     case platformNotSupported(platform: ArchivePlatform, projectName: String, supportedPlatforms: [ArchivePlatform])
     case archiveFailed(reason: String)
-    case exportFailed(reason: String)
     
     var errorDescription: String? {
         switch self {
@@ -144,8 +143,6 @@ enum ArchiveError: Error, LocalizedError {
             return "Platform '\(platform)' is not supported by project '\(projectName)'. Supported platforms: \(supported)"
         case .archiveFailed(let reason):
             return "Archive failed: \(reason)"
-        case .exportFailed(let reason):
-            return "Export failed: \(reason)"
         }
     }
 }

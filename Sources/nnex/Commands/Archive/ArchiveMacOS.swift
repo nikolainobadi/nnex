@@ -29,11 +29,6 @@ extension Nnex.Archive {
         @Option(name: .shortAndLong, help: "Archive output location. Defaults to ./build/archives/")
         var output: String?
         
-        @Option(help: "App export location. If not provided, app will not be exported.")
-        var exportPath: String?
-        
-        @Option(help: "Export method: developer-id, development, or app-store. Defaults to developer-id.")
-        var exportMethod: ExportMethod?
         
         @Flag(help: "Show detailed xcodebuild output.")
         var verbose: Bool = false
@@ -67,17 +62,11 @@ extension Nnex.Archive {
             
             // Create archive builder and execute
             let archiveBuilder = MacOSArchiveBuilder(shell: shell)
-            let archiveResult = try archiveBuilder.archive(config: config)
-            
-            // Export if requested
-            if config.exportOutputPath != nil {
-                let _ = try archiveBuilder.exportApp(from: archiveResult, config: config)
-            }
+            let _ = try archiveBuilder.archive(config: config)
             
             // Open in Finder if requested
             if openFinder {
-                let pathToOpen = config.exportOutputPath ?? config.archiveOutputPath
-                try shell.runAndPrint("open -R \"\(pathToOpen)\"")
+                try shell.runAndPrint("open -R \"\(config.archiveOutputPath)\"")
             }
         }
     }
@@ -116,17 +105,9 @@ private extension Nnex.Archive.MacOS {
     func buildArchiveConfig(projectPath: String, scheme: String) throws -> ArchiveConfig {
         let config = configuration ?? .release
         let archiveOutput = output ?? "./build/archives"
-        let exportOutput = exportPath
-        let method = exportMethod ?? (exportOutput != nil ? .developerID : nil)
         
         // Create archive output directory if it doesn't exist
         try Folder.current.createSubfolderIfNeeded(withName: "build/archives")
-        
-        // Create export output directory if needed
-        if let exportOutput = exportOutput {
-            let exportFolder = try Folder(path: exportOutput.hasPrefix("/") ? exportOutput : Folder.current.path + "/" + exportOutput)
-            _ = exportFolder
-        }
         
         return ArchiveConfig(
             platform: .macOS,
@@ -134,10 +115,6 @@ private extension Nnex.Archive.MacOS {
             scheme: scheme,
             configuration: config,
             archiveOutputPath: archiveOutput.hasPrefix("/") ? archiveOutput : Folder.current.path + "/" + archiveOutput,
-            exportOutputPath: exportOutput.map { path in
-                path.hasPrefix("/") ? path : Folder.current.path + "/" + path
-            },
-            exportMethod: method,
             verbose: verbose,
             openInFinder: openFinder
         )
@@ -151,8 +128,3 @@ extension BuildConfiguration: ExpressibleByArgument {
     }
 }
 
-extension ExportMethod: ExpressibleByArgument {
-    public init?(argument: String) {
-        self.init(rawValue: argument)
-    }
-}

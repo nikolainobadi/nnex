@@ -70,62 +70,6 @@ extension MacOSArchiveBuilder: ArchiveBuilder {
         )
     }
     
-    func exportApp(from archiveResult: ArchiveResult, config: ArchiveConfig) throws -> ExportResult? {
-        guard let exportOutputPath = config.exportOutputPath,
-              let exportMethod = config.exportMethod else {
-            return nil
-        }
-        
-        print("📦 Exporting app (\(exportMethod.description))")
-        
-        // Ensure export directory exists
-        try createDirectoryIfNeeded(exportOutputPath)
-        
-        // Create export options plist
-        let exportOptionsPath = try createExportOptionsPlist(
-            exportMethod: exportMethod,
-            bundleIdentifier: archiveResult.bundleIdentifier
-        )
-        
-        // Build export command
-        let exportCommand = buildExportCommand(
-            archivePath: archiveResult.archivePath,
-            exportPath: exportOutputPath,
-            exportOptionsPath: exportOptionsPath
-        )
-        
-        if config.verbose {
-            print("Executing: \(exportCommand)")
-        }
-        
-        // Execute export command
-        do {
-            let output = try shell.run(exportCommand)
-            if config.verbose {
-                print(output)
-            }
-        } catch {
-            throw ArchiveError.exportFailed(reason: error.localizedDescription)
-        }
-        
-        // Find exported app
-        let exportFolder = try Folder(path: exportOutputPath)
-        guard let appFile = exportFolder.files.first(where: { $0.extension == "app" }) else {
-            throw ArchiveError.exportFailed(reason: "No .app file found in export directory")
-        }
-        
-        print("✅ App exported successfully!")
-        print("   Location: \(appFile.path)")
-        print("   Ready for notarization and distribution")
-        
-        // Clean up temporary export options plist
-        try? shell.runAndPrint("rm \"\(exportOptionsPath)\"")
-        
-        return ExportResult(
-            exportPath: exportOutputPath,
-            appPath: appFile.path
-        )
-    }
 }
 
 
@@ -154,15 +98,6 @@ private extension MacOSArchiveBuilder {
         -archivePath "\(archivePath)" \
         SKIP_INSTALL=NO \
         BUILD_LIBRARY_FOR_DISTRIBUTION=NO
-        """
-    }
-    
-    func buildExportCommand(archivePath: String, exportPath: String, exportOptionsPath: String) -> String {
-        return """
-        xcodebuild -exportArchive \
-        -archivePath "\(archivePath)" \
-        -exportPath "\(exportPath)" \
-        -exportOptionsPlist "\(exportOptionsPath)"
         """
     }
     
@@ -196,34 +131,6 @@ private extension MacOSArchiveBuilder {
         return nil
     }
     
-    func createExportOptionsPlist(exportMethod: ExportMethod, bundleIdentifier: String) throws -> String {
-        let tempDir = NSTemporaryDirectory()
-        let exportOptionsPath = "\(tempDir)ExportOptions-\(UUID().uuidString).plist"
-        
-        let plistContent = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>method</key>
-            <string>\(exportMethod.rawValue)</string>
-            <key>teamID</key>
-            <string></string>
-            <key>uploadBitcode</key>
-            <false/>
-            <key>uploadSymbols</key>
-            <true/>
-            <key>compileBitcode</key>
-            <false/>
-        </dict>
-        </plist>
-        """
-        
-        // Write plist to temporary file
-        try shell.runAndPrint("echo '\(plistContent)' > \"\(exportOptionsPath)\"")
-        
-        return exportOptionsPath
-    }
 }
 
 
