@@ -9,7 +9,13 @@ struct Nnex: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Utility to manage swift command line tools and streamline distrubution with Homebrew.",
         version: "0.8.3",
-        subcommands: [Brew.self, Build.self, Config.self, Archive.self, Export.self]
+        subcommands: [
+            Brew.self,
+            Build.self,
+            Config.self,
+            Archive.self,
+//            Export.self
+        ]
     )
     
     nonisolated(unsafe) static var contextFactory: ContextFactory = DefaultContextFactory()
