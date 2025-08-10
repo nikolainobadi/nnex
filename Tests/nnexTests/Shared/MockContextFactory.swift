@@ -79,6 +79,22 @@ extension MockContextFactory: ContextFactory {
         
         return context
     }
+    
+    func makeProjectDetector() -> ProjectDetector {
+        return DefaultProjectDetector(shell: makeShell())
+    }
+    
+    func makeMacOSArchiveBuilder() -> ArchiveBuilder {
+        return DefaultMacOSArchiveBuilder(shell: makeShell())
+    }
+    
+    func makeNotarizeHandler() -> NotarizeHandler {
+        return DefaultNotarizeHandler(shell: makeShell())
+    }
+    
+    func makeExportHandler() -> ExportHandler {
+        return DefaultExportHandler(shell: makeShell())
+    }
 }
 
 // MARK: - Private

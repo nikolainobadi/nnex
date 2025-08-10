@@ -33,4 +33,12 @@ protocol ContextFactory {
     /// Creates a new macOS archive builder instance.
     /// - Returns: An ArchiveBuilder instance.
     func makeMacOSArchiveBuilder() -> ArchiveBuilder
+    
+    /// Creates a new notarize handler instance.
+    /// - Returns: A NotarizeHandler instance.
+    func makeNotarizeHandler() -> NotarizeHandler
+    
+    /// Creates a new export handler instance.
+    /// - Returns: An ExportHandler instance.
+    func makeExportHandler() -> ExportHandler
 }

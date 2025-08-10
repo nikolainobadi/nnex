@@ -48,4 +48,16 @@ struct DefaultContextFactory: ContextFactory {
     func makeMacOSArchiveBuilder() -> ArchiveBuilder {
         return DefaultMacOSArchiveBuilder(shell: makeShell())
     }
+    
+    /// Creates a default notarize handler instance.
+    /// - Returns: A DefaultNotarizeHandler instance.
+    func makeNotarizeHandler() -> NotarizeHandler {
+        return DefaultNotarizeHandler(shell: makeShell())
+    }
+    
+    /// Creates a default export handler instance.
+    /// - Returns: A DefaultExportHandler instance.
+    func makeExportHandler() -> ExportHandler {
+        return DefaultExportHandler(shell: makeShell())
+    }
 }

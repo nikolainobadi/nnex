@@ -265,7 +265,7 @@ private extension ProjectDetectorTests {
             shouldThrowError: shouldThrowShellError
         )
         
-        let sut = ProjectDetector(shell: shell)
+        let sut = DefaultProjectDetector(shell: shell)
         let tempFolder = try Folder.temporary.createSubfolder(named: "ProjectDetectorTest-\(UUID().uuidString)")
         
         return (sut, tempFolder)
