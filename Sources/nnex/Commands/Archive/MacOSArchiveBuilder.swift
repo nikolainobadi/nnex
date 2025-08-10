@@ -37,7 +37,9 @@ extension DefaultMacOSArchiveBuilder {
             projectType: projectInfo.type,
             scheme: config.scheme,
             configuration: config.configuration,
-            archivePath: archivePath
+            archivePath: archivePath,
+            universalBinary: config.universalBinary,
+            stripBinary: config.stripBinary
         )
         
         if config.verbose {
@@ -79,7 +81,7 @@ private extension DefaultMacOSArchiveBuilder {
         try shell.runAndPrint("mkdir -p \"\(path)\"")
     }
     
-    func buildArchiveCommand(projectType: ProjectType, scheme: String, configuration: BuildConfiguration, archivePath: String) -> String {
+    func buildArchiveCommand(projectType: ProjectType, scheme: String, configuration: BuildConfiguration, archivePath: String, universalBinary: Bool, stripBinary: Bool) -> String {
         let projectFlag: String
         
         switch projectType {
@@ -89,6 +91,17 @@ private extension DefaultMacOSArchiveBuilder {
             projectFlag = "-workspace \"\(path)\""
         }
         
+        // Architecture settings
+        let archSettings = universalBinary ? "ARCHS=\"arm64 x86_64\"" : ""
+        
+        // Stripping settings
+        let stripSettings = stripBinary ? """
+        STRIP_INSTALLED_PRODUCT=YES \
+        STRIP_STYLE=all \
+        COPY_PHASE_STRIP=YES \
+        DEPLOYMENT_POSTPROCESSING=YES
+        """ : ""
+        
         return """
         xcodebuild archive \
         \(projectFlag) \
@@ -97,8 +110,10 @@ private extension DefaultMacOSArchiveBuilder {
         -destination "generic/platform=macOS" \
         -archivePath "\(archivePath)" \
         SKIP_INSTALL=NO \
-        BUILD_LIBRARY_FOR_DISTRIBUTION=NO
-        """
+        BUILD_LIBRARY_FOR_DISTRIBUTION=NO \
+        \(archSettings) \
+        \(stripSettings)
+        """.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     func extractArchiveInfo(archivePath: String) throws -> (bundleIdentifier: String, version: String, buildNumber: String) {

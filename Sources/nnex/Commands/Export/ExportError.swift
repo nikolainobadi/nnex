@@ -11,6 +11,7 @@ enum ExportError: Error, LocalizedError {
     case noArchivesFound
     case invalidArchive(path: String)
     case noAppFoundInArchive(path: String)
+    case notarizationSetupRequired
     case notarizationFailed(reason: String)
     case staplingFailed(reason: String)
     case exportFailed(reason: String)
@@ -23,6 +24,8 @@ enum ExportError: Error, LocalizedError {
             return "Invalid archive at '\(path)'. Make sure the path points to a valid .xcarchive."
         case .noAppFoundInArchive(let path):
             return "No .app bundle found in archive '\(path)'. The archive may be corrupted or incomplete."
+        case .notarizationSetupRequired:
+            return "Notarization setup required. You'll need an App Store Connect API key. Get it from: https://appstoreconnect.apple.com/access/api"
         case .notarizationFailed(let reason):
             return "Notarization failed: \(reason)"
         case .staplingFailed(let reason):

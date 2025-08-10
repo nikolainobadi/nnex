@@ -26,7 +26,7 @@ extension Nnex.Archive {
         @Option(help: "Build configuration: Debug or Release. Defaults to Release.")
         var configuration: BuildConfiguration?
         
-        @Option(name: .shortAndLong, help: "Archive output location. Defaults to ./build/archives/")
+        @Option(name: .shortAndLong, help: "Archive output location. Defaults to ~/Library/Developer/Xcode/Archives/")
         var output: String?
         
         
@@ -35,6 +35,12 @@ extension Nnex.Archive {
         
         @Flag(help: "Open archive location in Finder after completion.")
         var openFinder: Bool = false
+        
+        @Flag(help: "Build for single architecture only (current machine). Defaults to universal binary.")
+        var singleArchitecture: Bool = false
+        
+        @Flag(help: "Skip binary stripping to preserve debug symbols. Defaults to stripped binary.")
+        var noStrip: Bool = false
         
         func run() throws {
             let shell = Nnex.makeShell()
@@ -56,7 +62,8 @@ extension Nnex.Archive {
             // Build configuration
             let config = try buildArchiveConfig(
                 projectPath: projectPath,
-                scheme: selectedScheme
+                scheme: selectedScheme,
+                shell: shell
             )
             
             // Execute archive
@@ -100,12 +107,13 @@ private extension Nnex.Archive.MacOS {
         )
     }
     
-    func buildArchiveConfig(projectPath: String, scheme: String) throws -> ArchiveConfig {
+    func buildArchiveConfig(projectPath: String, scheme: String, shell: Shell) throws -> ArchiveConfig {
         let config = configuration ?? .release
-        let archiveOutput = output ?? "./build/archives"
+        let defaultArchiveLocation = NSString(string: "~/Library/Developer/Xcode/Archives").expandingTildeInPath
+        let archiveOutput = output ?? defaultArchiveLocation
         
         // Create archive output directory if it doesn't exist
-        try Folder.current.createSubfolderIfNeeded(withName: "build/archives")
+        try shell.runAndPrint("mkdir -p \"\(archiveOutput)\"")
         
         return .init(
             platform: .macOS,
@@ -114,7 +122,9 @@ private extension Nnex.Archive.MacOS {
             configuration: config,
             archiveOutputPath: archiveOutput.hasPrefix("/") ? archiveOutput : Folder.current.path + "/" + archiveOutput,
             verbose: verbose,
-            openInFinder: openFinder
+            openInFinder: openFinder,
+            universalBinary: !singleArchitecture,
+            stripBinary: !noStrip
         )
     }
 }

@@ -89,7 +89,7 @@ extension MockContextFactory: ContextFactory {
     }
     
     func makeNotarizeHandler() -> NotarizeHandler {
-        return DefaultNotarizeHandler(shell: makeShell())
+        return DefaultNotarizeHandler(shell: makeShell(), picker: makePicker())
     }
     
     func makeExportHandler() -> ExportHandler {

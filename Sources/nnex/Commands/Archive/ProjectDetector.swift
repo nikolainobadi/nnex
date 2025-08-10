@@ -32,7 +32,7 @@ extension DefaultProjectDetector {
         
         // Look for workspace first, then project
         let workspaceFiles = folder.files.filter { $0.extension == "xcworkspace" }
-        let projectFiles = folder.files.filter { $0.extension == "xcodeproj" }
+        let projectFiles = folder.subfolders.filter { $0.extension == "xcodeproj" }
         
         let projectType: ProjectType
         

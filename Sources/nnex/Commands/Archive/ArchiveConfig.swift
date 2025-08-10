@@ -16,6 +16,8 @@ struct ArchiveConfig {
     let archiveOutputPath: String
     let verbose: Bool
     let openInFinder: Bool
+    let universalBinary: Bool
+    let stripBinary: Bool
 }
 
 // MARK: - ArchivePlatform

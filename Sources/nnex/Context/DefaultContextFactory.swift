@@ -52,7 +52,7 @@ struct DefaultContextFactory: ContextFactory {
     /// Creates a default notarize handler instance.
     /// - Returns: A DefaultNotarizeHandler instance.
     func makeNotarizeHandler() -> NotarizeHandler {
-        return DefaultNotarizeHandler(shell: makeShell())
+        return DefaultNotarizeHandler(shell: makeShell(), picker: makePicker())
     }
     
     /// Creates a default export handler instance.

@@ -47,7 +47,7 @@ extension ProjectDetectorTests {
         
         // Create both workspace and project files
         try tempFolder.createFile(named: "TestApp.xcworkspace")
-        try tempFolder.createFile(named: "TestApp.xcodeproj")
+        try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         
         let result = try sut.detectProject(at: tempFolder.path)
         
@@ -61,7 +61,7 @@ extension ProjectDetectorTests {
     func detectsProjectWhenOnlyXcodeprojExists() throws {
         let (sut, tempFolder) = try makeSUT()
         
-        try tempFolder.createFile(named: "TestApp.xcodeproj")
+        try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         
         let result = try sut.detectProject(at: tempFolder.path)
         
@@ -89,7 +89,7 @@ extension ProjectDetectorTests {
             shellOutputs: [xcodebuildListOutput]
         )
         
-        try tempFolder.createFile(named: "TestApp.xcodeproj")
+        try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
         
         let schemes = try sut.detectSchemes(for: projectInfo)
@@ -113,7 +113,7 @@ extension ProjectDetectorTests {
             shellOutputs: [emptyOutput]
         )
         
-        try tempFolder.createFile(named: "TestApp.xcodeproj")
+        try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
         
         #expect(throws: ArchiveError.self) {
@@ -151,7 +151,7 @@ extension ProjectDetectorTests {
             shellOutputs: [complexOutput]
         )
         
-        try tempFolder.createFile(named: "ComplexApp.xcodeproj")
+        try tempFolder.createSubfolder(named: "ComplexApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
         
         let schemes = try sut.detectSchemes(for: projectInfo)
@@ -166,7 +166,7 @@ extension ProjectDetectorTests {
     func validatesPlatformSupportSuccessfullyForSupportedPlatform() throws {
         let (sut, tempFolder) = try makeSUT()
         
-        try tempFolder.createFile(named: "TestApp.xcodeproj")
+        try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
         
         // Should not throw for supported platforms
@@ -178,7 +178,7 @@ extension ProjectDetectorTests {
     func throwsErrorWhenValidatingUnsupportedPlatform() throws {
         let (sut, tempFolder) = try makeSUT()
         
-        try tempFolder.createFile(named: "TestApp.xcodeproj")
+        try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         var projectInfo = try sut.detectProject(at: tempFolder.path)
         
         projectInfo = ProjectInfo(
@@ -197,7 +197,7 @@ extension ProjectDetectorTests {
     func extractsCorrectProjectNameFromXcodeprojPath() throws {
         let (sut, tempFolder) = try makeSUT()
         
-        try tempFolder.createFile(named: "MyAwesomeApp.xcodeproj")
+        try tempFolder.createSubfolder(named: "MyAwesomeApp.xcodeproj")
         
         let result = try sut.detectProject(at: tempFolder.path)
         
@@ -229,7 +229,7 @@ extension ProjectDetectorTests {
             shellOutputs: [outputWithEmptySchemes]
         )
         
-        try tempFolder.createFile(named: "TestApp.xcodeproj")
+        try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
         
         #expect(throws: ArchiveError.self) {
@@ -243,7 +243,7 @@ extension ProjectDetectorTests {
             shouldThrowShellError: true
         )
         
-        try tempFolder.createFile(named: "TestApp.xcodeproj")
+        try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
         
         #expect(throws: (any Error).self) {
@@ -258,7 +258,7 @@ private extension ProjectDetectorTests {
     func makeSUT(
         shellOutputs: [String] = [],
         shouldThrowShellError: Bool = false
-    ) throws -> (sut: ProjectDetector, tempFolder: Folder) {
+    ) throws -> (sut: DefaultProjectDetector, tempFolder: Folder) {
         
         let shell = MockShell(
             runResults: shellOutputs,

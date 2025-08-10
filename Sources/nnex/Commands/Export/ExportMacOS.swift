@@ -38,6 +38,12 @@ extension Nnex.Export {
         @Flag(help: "Open export location in Finder after completion.")
         var openFinder: Bool = false
         
+        @Flag(help: "Build for single architecture only (current machine). Defaults to universal binary.")
+        var singleArchitecture: Bool = false
+        
+        @Flag(help: "Skip binary stripping to preserve debug symbols. Defaults to stripped binary.")
+        var noStrip: Bool = false
+        
         func run() throws {
             let shell = Nnex.makeShell()
             let picker = Nnex.makePicker()
@@ -112,7 +118,8 @@ private extension Nnex.Export.MacOS {
         // Build archive config
         let config = try buildArchiveConfig(
             projectPath: projectPath,
-            scheme: selectedScheme
+            scheme: selectedScheme,
+            shell: shell
         )
         
         // Create archive
@@ -147,21 +154,24 @@ private extension Nnex.Export.MacOS {
         )
     }
     
-    func buildArchiveConfig(projectPath: String, scheme: String) throws -> ArchiveConfig {
+    func buildArchiveConfig(projectPath: String, scheme: String, shell: Shell) throws -> ArchiveConfig {
         let config = configuration ?? .release
-        let archiveOutput = "./build/archives"
+        let defaultArchiveLocation = NSString(string: "~/Library/Developer/Xcode/Archives").expandingTildeInPath
+        let archiveOutput = defaultArchiveLocation
         
         // Create archive output directory if it doesn't exist
-        try Folder.current.createSubfolderIfNeeded(withName: "build/archives")
+        try shell.runAndPrint("mkdir -p \"\(archiveOutput)\"")
         
         return ArchiveConfig(
             platform: .macOS,
             projectPath: projectPath,
             scheme: scheme,
             configuration: config,
-            archiveOutputPath: archiveOutput.hasPrefix("/") ? archiveOutput : Folder.current.path + "/" + archiveOutput,
+            archiveOutputPath: archiveOutput,
             verbose: verbose,
-            openInFinder: false // Don't open archive location, we're exporting
+            openInFinder: false, // Don't open archive location, we're exporting
+            universalBinary: !singleArchitecture,
+            stripBinary: !noStrip
         )
     }
     
