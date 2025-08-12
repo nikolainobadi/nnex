@@ -72,3 +72,43 @@ The tool supports multiple build configurations:
 - macOS 14+ minimum deployment target
 - Swift 6.0+ required
 - Requires Homebrew and GitHub CLI (`gh`) for full functionality
+
+## Code Style Preferences
+
+### Extension Organization
+- **Private Extensions**: Use `private extension` for helper methods instead of mixing public/private methods in the same extension
+- **Clear Separation**: Add blank lines before MARK comments for visual separation
+- **Structure Pattern**: Main implementation → blank line → `// MARK: - Private Methods` → `private extension`
+
+### Method Formatting
+- **Single-Line Signatures**: Keep method signatures on single lines when they fit reasonably (avoid unnecessary line breaks)
+- **Parameter Lists**: Only break parameter lists across multiple lines when they become too long for readability
+
+### File Organization
+- **MARK Comments**: Use consistent style `// MARK: - Section Name`
+- **Extension Sectioning**: Group related functionality with appropriate MARK comments
+- **Protocol Conformances**: Keep protocol conformances (like `ExpressibleByArgument`) in separate extensions at the end of files
+- **Consistency**: Follow established patterns from existing files like `BuildExecutable.swift`
+
+### Example Structure
+```swift
+extension Nnex.CommandName {
+    // Main command implementation
+    func run() throws {
+        // implementation
+    }
+}
+
+
+// MARK: - Private Methods  
+private extension Nnex.CommandName {
+    func helperMethod() throws -> String {
+        // helper implementation
+    }
+}
+
+// MARK: - ArgumentParser Conformance
+extension SomeEnum: ExpressibleByArgument {
+    // protocol conformance
+}
+```

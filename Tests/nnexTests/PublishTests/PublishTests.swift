@@ -74,6 +74,34 @@ extension PublishTests {
         #expect(formulaFileContents.contains(sha256))
         #expect(formulaFileContents.contains(assetURL))
     }
+    
+    @Test("Creates formula file with sanitized class name when project has dashes")
+    func publishCommandWithDashesInName() throws {
+        let projectWithDashes = "test-project-with-dashes"
+        let expectedClassName = "TestProjectWithDashes"
+        let tempFolder = Folder.temporary
+        let projectFolderWithDashes = try tempFolder.createSubfolder(named: projectWithDashes)
+        let formulaFileNameWithDashes = "\(projectWithDashes).rb"
+        
+        defer {
+            deleteFolderContents(projectFolderWithDashes)
+        }
+        
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = MockContextFactory(runResults: [sha256, assetURL], gitHandler: gitHandler)
+        
+        try createTestTapAndFormula(factory: factory, projectName: projectWithDashes, projectFolder: projectFolderWithDashes)
+        
+        let args = ["brew", "publish", "-p", projectFolderWithDashes.path, "-v", versionNumber, "-m", commitMessage, "-n", releaseNotes]
+        try Nnex.testRun(contextFactory: factory, args: args)
+        
+        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileNameWithDashes).readAsString())
+        
+        #expect(formulaFileContents.contains("class \(expectedClassName)"))
+        #expect(!formulaFileContents.contains("class \(projectWithDashes)"))
+        #expect(formulaFileContents.contains(sha256))
+        #expect(formulaFileContents.contains(assetURL))
+    }
 }
 
 
@@ -279,10 +307,12 @@ private extension PublishTests {
 
 // MARK: - Helpers
 private extension PublishTests {
-    func createTestTapAndFormula(factory: MockContextFactory, formulaPath: String? = nil, testCommand: TestCommand? = nil, extraBuildArgs: [String] = []) throws {
+    func createTestTapAndFormula(factory: MockContextFactory, formulaPath: String? = nil, testCommand: TestCommand? = nil, extraBuildArgs: [String] = [], projectName: String? = nil, projectFolder: Folder? = nil) throws {
         let context = try factory.makeContext()
         let tap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let formula = SwiftDataFormula(name: projectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: formulaPath ?? projectFolder.path, uploadType: .binary, testCommand: testCommand, extraBuildArgs: extraBuildArgs)
+        let effectiveProjectName = projectName ?? self.projectName
+        let effectiveProjectFolder = projectFolder ?? self.projectFolder
+        let formula = SwiftDataFormula(name: effectiveProjectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: formulaPath ?? effectiveProjectFolder.path, uploadType: .binary, testCommand: testCommand, extraBuildArgs: extraBuildArgs)
         
         try context.saveNewTap(tap, formulas: [formula])
     }

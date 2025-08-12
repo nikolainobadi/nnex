@@ -41,7 +41,7 @@ extension Nnex.Brew {
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
             let binaryInfo = try buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests)
             let assetURL = try uploadRelease(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
-            let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
+            let formulaContent = makeFormulaContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
             
             try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
         }
@@ -141,6 +141,37 @@ private extension Nnex.Brew.Publish {
         }
 
         return try picker.getRequiredInput(prompt: "Enter your commit message.")
+    }
+    
+    /// Creates formula content with sanitized name for valid Ruby class naming.
+    /// - Parameters:
+    ///   - formula: The formula containing the metadata.
+    ///   - assetURL: The URL of the binary or tarball asset.
+    ///   - sha256: The SHA256 hash of the asset.
+    /// - Returns: The generated formula file content with a sanitized class name.
+    func makeFormulaContent(formula: SwiftDataFormula, assetURL: String, sha256: String) -> String {
+        let sanitizedClassName = FormulaNameSanitizer.sanitizeFormulaName(formula.name)
+        let originalName = formula.name
+        
+        // We need to generate the formula content manually to use different names
+        // for the class (sanitized) and the binary (original)
+        return """
+        class \(sanitizedClassName) < Formula
+            desc "\(formula.details)"
+            homepage "\(formula.homepage)"
+            url "\(assetURL)"
+            sha256 "\(sha256)"
+            license "\(formula.license)"
+
+            def install
+                bin.install "\(originalName)"
+            end
+
+            test do
+                system "#{bin}/\(originalName)", "--help"
+            end
+        end
+        """
     }
 }
 

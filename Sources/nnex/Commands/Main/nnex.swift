@@ -8,8 +8,14 @@ import ArgumentParser
 struct Nnex: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Utility to manage swift command line tools and streamline distrubution with Homebrew.",
-        version: "0.8.2",
-        subcommands: [Brew.self, Build.self, Config.self]
+        version: "0.8.4",
+        subcommands: [
+            Brew.self,
+            Build.self,
+            Config.self,
+            Archive.self,
+//            Export.self
+        ]
     )
     
     nonisolated(unsafe) static var contextFactory: ContextFactory = DefaultContextFactory()
@@ -32,5 +38,21 @@ extension Nnex {
     
     static func makeGitHandler() -> GitHandler {
         return contextFactory.makeGitHandler()
+    }
+    
+    static func makeProjectDetector() -> ProjectDetector {
+        return contextFactory.makeProjectDetector()
+    }
+    
+    static func makeMacOSArchiveBuilder() -> ArchiveBuilder {
+        return contextFactory.makeMacOSArchiveBuilder()
+    }
+    
+    static func makeNotarizeHandler() -> NotarizeHandler {
+        return contextFactory.makeNotarizeHandler()
+    }
+    
+    static func makeExportHandler() -> ExportHandler {
+        return contextFactory.makeExportHandler()
     }
 }
