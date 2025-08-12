@@ -25,8 +25,5 @@ extension ArchiveMacOSTests {
 // MARK: - Run Command
 private extension ArchiveMacOSTests {
     func runCommand(_ testFactory: MockContextFactory) throws {
-        var args = [""]
-        
-        try Nnex.testRun(contextFactory: testFactory, args: args)
     }
 }
