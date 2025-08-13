@@ -5,15 +5,18 @@
 //  Created by Nikolai Nobadi on 8/12/25.
 //
 
+import Foundation
 import NnexKit
 
 struct ReleaseVersionHandler {
     private let picker: Picker
     private let gitHandler: GitHandler
+    private let shell: Shell
     
-    init(picker: Picker, gitHandler: GitHandler) {
+    init(picker: Picker, gitHandler: GitHandler, shell: Shell = Nnex.makeShell()) {
         self.picker = picker
         self.gitHandler = gitHandler
+        self.shell = shell
     }
 }
 
@@ -29,6 +32,10 @@ extension ReleaseVersionHandler {
     func resolveVersionInfo(versionInfo: ReleaseVersionInfo?, projectPath: String) throws -> (ReleaseVersionInfo, String?) {
         let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: projectPath)
         let resolvedVersionInfo = try versionInfo ?? getVersionInput(previousVersion: previousVersion)
+        
+        // Check if we should update the source code version
+        try handleAutoVersionUpdate(resolvedVersionInfo: resolvedVersionInfo, projectPath: projectPath)
+        
         return (resolvedVersionInfo, previousVersion)
     }
 }
@@ -56,5 +63,82 @@ private extension ReleaseVersionHandler {
         }
 
         return .version(input)
+    }
+    
+    /// Handles automatic version updating in the source code when versions differ.
+    /// - Parameters:
+    ///   - resolvedVersionInfo: The resolved version information for the release.
+    ///   - projectPath: The path to the project folder.
+    /// - Throws: An error if version handling fails.
+    func handleAutoVersionUpdate(resolvedVersionInfo: ReleaseVersionInfo, projectPath: String) throws {
+        let autoVersionHandler = AutoVersionHandler(shell: shell)
+        
+        // Try to detect current version in the executable
+        guard let currentVersion = try autoVersionHandler.detectArgumentParserVersion(projectPath: projectPath) else {
+            // No version found in source code, nothing to update
+            return
+        }
+        
+        // Get the actual version string from the resolved version info
+        let releaseVersionString = try getReleaseVersionString(resolvedVersionInfo: resolvedVersionInfo, projectPath: projectPath)
+        
+        // Check if versions differ
+        guard autoVersionHandler.shouldUpdateVersion(currentVersion: currentVersion, releaseVersion: releaseVersionString) else {
+            // Versions are the same, no update needed
+            return
+        }
+        
+        // Ask user if they want to update the version
+        let prompt = """
+        
+        Current executable version: \(currentVersion.yellow)
+        Release version: \(releaseVersionString.green)
+        
+        Would you like to update the version in the source code?
+        """
+        
+        guard picker.getPermission(prompt: prompt) else {
+            return
+        }
+        
+        // Update the version in source code
+        guard try autoVersionHandler.updateArgumentParserVersion(projectPath: projectPath, newVersion: releaseVersionString) else {
+            print("Failed to update version in source code.")
+            return
+        }
+        
+        // Commit the version update
+        try commitVersionUpdate(version: releaseVersionString, projectPath: projectPath)
+        
+        print("✅ Updated version to \(releaseVersionString.green) and committed changes.")
+    }
+    
+    /// Gets the actual version string from ReleaseVersionInfo.
+    /// - Parameters:
+    ///   - resolvedVersionInfo: The resolved version information.
+    ///   - projectPath: The path to the project folder.
+    /// - Returns: The version string.
+    /// - Throws: An error if version string cannot be determined.
+    func getReleaseVersionString(resolvedVersionInfo: ReleaseVersionInfo, projectPath: String) throws -> String {
+        switch resolvedVersionInfo {
+        case .version(let versionString):
+            return versionString
+        case .increment(let versionPart):
+            guard let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: projectPath) else {
+                throw NnexError.noPreviousVersionToIncrement
+            }
+            return try VersionHandler.incrementVersion(for: versionPart, path: projectPath, previousVersion: previousVersion)
+        }
+    }
+    
+    /// Commits the version update to git.
+    /// - Parameters:
+    ///   - version: The new version string.
+    ///   - projectPath: The path to the project folder.
+    /// - Throws: An error if the commit fails.
+    func commitVersionUpdate(version: String, projectPath: String) throws {
+        let commitMessage = "Update version to \(version)"
+        let command = "cd \"\(projectPath)\" && git add . && git commit -m \"\(commitMessage)\""
+        _ = try shell.run(command)
     }
 }

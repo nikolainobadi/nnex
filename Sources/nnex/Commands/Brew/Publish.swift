@@ -43,7 +43,7 @@ extension Nnex.Brew {
             
             try ensureNoUncommittedChanges(at: projectFolder.path)
             
-            let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
+            let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell)
             let (resolvedVersionInfo, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: version, projectPath: projectFolder.path)
             
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)

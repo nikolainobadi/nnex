@@ -391,7 +391,8 @@ private extension ReleaseVersionHandlerTests {
             shouldThrowError: shouldThrowPickerError
         )
         
-        let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
+        let shell = MockShell()
+        let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell)
         
         return (sut, gitHandler, picker)
     }
