@@ -16,6 +16,10 @@ final class MockPicker {
     private var inputResponses: [String]
     private var permissionResponses: [Bool]
     
+    // Track prompts for testing
+    private(set) var lastPrompt: String?
+    private(set) var allPrompts: [String] = []
+    
     init(selectedItemIndex: Int = 0, selectedItemIndices: [Int] = [], inputResponses: [String] = [], permissionResponses: [Bool] = [], shouldThrowError: Bool = false) {
         // Use selectedItemIndices if provided, otherwise use repeated selectedItemIndex
         self.selectedItemIndices = selectedItemIndices.isEmpty ? [selectedItemIndex] : selectedItemIndices
@@ -29,16 +33,25 @@ final class MockPicker {
 // MARK: - Picker
 extension MockPicker: Picker {
     func requiredPermission(prompt: String) throws {
+        lastPrompt = prompt
+        allPrompts.append(prompt)
+        
         if shouldThrowError {
             throw NSError(domain: "MockPicker", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
         }
     }
 
     func getPermission(prompt: String) -> Bool {
+        lastPrompt = prompt
+        allPrompts.append(prompt)
+        
         return permissionResponses.isEmpty ? false : permissionResponses.removeFirst()
     }
 
     func getRequiredInput(prompt: String) throws -> String {
+        lastPrompt = prompt
+        allPrompts.append(prompt)
+        
         if shouldThrowError {
             throw NSError(domain: "MockPicker", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
         }
@@ -46,6 +59,9 @@ extension MockPicker: Picker {
     }
 
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
+        lastPrompt = title
+        allPrompts.append(title)
+        
         if shouldThrowError {
             throw NSError(domain: "MockPicker", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
         }

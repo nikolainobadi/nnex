@@ -40,10 +40,15 @@ extension Nnex.Brew {
             try gitHandler.checkForGitHubCLI()
             
             let projectFolder = try Nnex.Brew.getProjectFolder(at: path)
+            
             try ensureNoUncommittedChanges(at: projectFolder.path)
+            
+            let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
+            let (resolvedVersionInfo, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: version, projectPath: projectFolder.path)
+            
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
             let binaryInfo = try buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests)
-            let assetURL = try uploadRelease(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
+            let assetURL = try uploadRelease(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
             let formulaContent = makeFormulaContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
             
             try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
@@ -124,10 +129,10 @@ private extension Nnex.Brew.Publish {
         return try builder.build()
     }
 
-    func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo?, releaseNotesSource: ReleaseNotesSource) throws -> String {
+    func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> String {
         let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler)
             
-        return try handler.uploadRelease(folder: folder, binaryInfo: binaryInfo, versionInfo: versionInfo, releaseNotesSource: releaseNotesSource)
+        return try handler.uploadRelease(folder: folder, binaryInfo: binaryInfo, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
 
     /// Publishes the Homebrew formula to the specified tap.
@@ -140,7 +145,6 @@ private extension Nnex.Brew.Publish {
     func publishFormula(_ content: String, formulaName: String, message: String?, tap: SwiftDataTap) throws {
         let publisher = FormulaPublisher(gitHandler: gitHandler)
         let commitMessage = try getMessage(message: message)
-
         let formulaPath = try publisher.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tap.localPath)
 
         print("\nSuccessfully created formula at \(formulaPath.yellow)")
