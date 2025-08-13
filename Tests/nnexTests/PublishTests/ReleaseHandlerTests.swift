@@ -41,6 +41,7 @@ extension ReleaseHandlerTests {
             folder: folder,
             binaryInfo: makeBinaryInfo(),
             versionInfo: versionInfo,
+            previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
         )
         
@@ -50,20 +51,24 @@ extension ReleaseHandlerTests {
         #expect(gitHandler.releaseNoteInfo?.isFromFile == false)
     }
     
-    @Test("Uploads release with version increment when no version provided")
-    func uploadsReleaseWithVersionIncrementWhenNoVersionProvided() throws {
+    @Test("Resolves version with increment when no version provided")
+    func resolvesVersionWithIncrementWhenNoVersionProvided() throws {
         let releaseNotesSource = ReleaseNotesSource(notes: testReleaseNotes, notesFile: nil)
         
-        let (sut, folder, gitHandler, _) = try makeSUT(
+        let (sut, folder, gitHandler, picker) = try makeSUT(
             assetURL: testAssetURL,
             previousVersion: testPreviousVersion,
             inputResponses: ["minor"]
         )
         
+        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
+        let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
+        
         let result = try sut.uploadRelease(
             folder: folder,
             binaryInfo: makeBinaryInfo(),
-            versionInfo: nil,
+            versionInfo: resolvedVersion,
+            previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
         )
         
@@ -71,20 +76,24 @@ extension ReleaseHandlerTests {
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
     }
     
-    @Test("Uploads release with new version number when no previous version exists")
-    func uploadsReleaseWithNewVersionNumberWhenNoPreviousVersionExists() throws {
+    @Test("Resolves version with new number when no previous version exists")
+    func resolvesVersionWithNewNumberWhenNoPreviousVersionExists() throws {
         let releaseNotesSource = ReleaseNotesSource(notes: testReleaseNotes, notesFile: nil)
         
-        let (sut, folder, gitHandler, _) = try makeSUT(
+        let (sut, folder, gitHandler, picker) = try makeSUT(
             assetURL: testAssetURL,
             previousVersion: nil,
             inputResponses: [testVersionNumber]
         )
         
+        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
+        let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
+        
         let result = try sut.uploadRelease(
             folder: folder,
             binaryInfo: makeBinaryInfo(),
-            versionInfo: nil,
+            versionInfo: resolvedVersion,
+            previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
         )
         
@@ -106,6 +115,7 @@ extension ReleaseHandlerTests {
             folder: folder,
             binaryInfo: makeBinaryInfo(),
             versionInfo: versionInfo,
+            previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
         )
         
@@ -128,6 +138,7 @@ extension ReleaseHandlerTests {
             folder: folder,
             binaryInfo: makeBinaryInfo(),
             versionInfo: versionInfo,
+            previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
         )
         
@@ -152,6 +163,7 @@ extension ReleaseHandlerTests {
             folder: folder,
             binaryInfo: makeBinaryInfo(),
             versionInfo: versionInfo,
+            previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
         )
         
@@ -164,16 +176,20 @@ extension ReleaseHandlerTests {
     func handlesVersionInputWithIncrementKeyword() throws {
         let releaseNotesSource = ReleaseNotesSource(notes: testReleaseNotes, notesFile: nil)
         
-        let (sut, folder, _, _) = try makeSUT(
+        let (sut, folder, gitHandler, picker) = try makeSUT(
             assetURL: testAssetURL,
             previousVersion: testPreviousVersion,
             inputResponses: ["patch"]
         )
         
+        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
+        let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
+        
         let result = try sut.uploadRelease(
             folder: folder,
             binaryInfo: makeBinaryInfo(),
-            versionInfo: nil,
+            versionInfo: resolvedVersion,
+            previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
         )
         
@@ -184,16 +200,20 @@ extension ReleaseHandlerTests {
     func handlesVersionInputWithSpecificVersionNumber() throws {
         let releaseNotesSource = ReleaseNotesSource(notes: testReleaseNotes, notesFile: nil)
         
-        let (sut, folder, gitHandler, _) = try makeSUT(
+        let (sut, folder, gitHandler, picker) = try makeSUT(
             assetURL: testAssetURL,
             previousVersion: testPreviousVersion,
             inputResponses: ["2.1.0"]
         )
         
+        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
+        let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
+        
         let result = try sut.uploadRelease(
             folder: folder,
             binaryInfo: makeBinaryInfo(),
-            versionInfo: nil,
+            versionInfo: resolvedVersion,
+            previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
         )
         
@@ -205,16 +225,20 @@ extension ReleaseHandlerTests {
     func showsPreviousVersionInPromptWhenAvailable() throws {
         let releaseNotesSource = ReleaseNotesSource(notes: testReleaseNotes, notesFile: nil)
         
-        let (sut, folder, gitHandler, _) = try makeSUT(
+        let (sut, folder, gitHandler, picker) = try makeSUT(
             assetURL: testAssetURL,
             previousVersion: testPreviousVersion,
             inputResponses: ["1.5.0"]
         )
         
+        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
+        let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
+        
         let result = try sut.uploadRelease(
             folder: folder,
             binaryInfo: makeBinaryInfo(),
-            versionInfo: nil,
+            versionInfo: resolvedVersion,
+            previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
         )
         
@@ -226,16 +250,20 @@ extension ReleaseHandlerTests {
     func showsDefaultVersionFormatWhenNoPreviousVersion() throws {
         let releaseNotesSource = ReleaseNotesSource(notes: testReleaseNotes, notesFile: nil)
         
-        let (sut, folder, gitHandler, _) = try makeSUT(
+        let (sut, folder, gitHandler, picker) = try makeSUT(
             assetURL: testAssetURL,
             previousVersion: nil,
             inputResponses: ["1.0.0"]
         )
         
+        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
+        let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
+        
         let result = try sut.uploadRelease(
             folder: folder,
             binaryInfo: makeBinaryInfo(),
-            versionInfo: nil,
+            versionInfo: resolvedVersion,
+            previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
         )
         
@@ -259,6 +287,7 @@ extension ReleaseHandlerTests {
                 folder: folder,
                 binaryInfo: makeBinaryInfo(),
                 versionInfo: versionInfo,
+                previousVersion: testPreviousVersion,
                 releaseNotesSource: releaseNotesSource
             )
         }
@@ -266,21 +295,16 @@ extension ReleaseHandlerTests {
     
     @Test("Throws error when picker input fails")
     func throwsErrorWhenPickerInputFails() throws {
-        let releaseNotesSource = ReleaseNotesSource(notes: testReleaseNotes, notesFile: nil)
-        
-        let (sut, folder, _, _) = try makeSUT(
+        let (_, folder, gitHandler, picker) = try makeSUT(
             assetURL: testAssetURL,
             previousVersion: testPreviousVersion,
             shouldThrowPickerError: true
         )
         
+        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
+        
         #expect(throws: (any Error).self) {
-            try sut.uploadRelease(
-                folder: folder,
-                binaryInfo: makeBinaryInfo(),
-                versionInfo: nil,
-                releaseNotesSource: releaseNotesSource
-            )
+            try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
         }
     }
 }

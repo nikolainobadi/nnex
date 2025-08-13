@@ -21,7 +21,7 @@ final class PublishInfoLoaderTests {
     init() throws {
         let tempFolder = Folder.temporary
         self.projectFolder = try tempFolder.createSubfolder(named: projectName)
-        self.tapFolder = try tempFolder.createSubfolder(named: "homebrew-\(tapName)")
+        self.tapFolder = try tempFolder.createSubfolder(named: "homebrew-\(tapName)-publishInfoLoader")
     }
     
     deinit {
