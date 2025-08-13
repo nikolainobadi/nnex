@@ -7,6 +7,7 @@
 
 import Files
 import NnexKit
+import Foundation
 import ArgumentParser
 
 extension Nnex.Brew {
@@ -35,9 +36,11 @@ extension Nnex.Brew {
         var skipTests = false
 
         func run() throws {
-            try Nnex.makeGitHandler().checkForGitHubCLI()
+            let gitHandler = Nnex.makeGitHandler()
+            try gitHandler.checkForGitHubCLI()
             
             let projectFolder = try Nnex.Brew.getProjectFolder(at: path)
+            try ensureNoUncommittedChanges(at: projectFolder.path)
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
             let binaryInfo = try buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests)
             let assetURL = try uploadRelease(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: version, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
@@ -54,6 +57,25 @@ private extension Nnex.Brew.Publish {
     /// Creates a shell instance for running commands.
     var shell: Shell {
         return Nnex.makeShell()
+    }
+    
+    /// Ensures there are no uncommitted changes in the repository at the specified path.
+    /// - Parameter path: The path to the repository to check.
+    /// - Throws: An error if there are uncommitted changes.
+    /// - Note: This method should be moved to GitHandler in NnexKit when possible.
+    func ensureNoUncommittedChanges(at path: String) throws {
+        let result = try shell.run("cd \"\(path)\" && git status --porcelain")
+        
+        if !result.isEmpty {
+            print("""
+            There are uncommitted changes in the repository at \(path.yellow):
+            
+            \(result)
+            
+            Please commit or stash your changes before publishing.
+            """)
+            throw PublishError.uncommittedChanges
+        }
     }
 
     /// Creates a picker instance for user interactions.
@@ -180,6 +202,19 @@ private extension Nnex.Brew.Publish {
 struct ReleaseNotesSource {
     let notes: String?
     let notesFile: String?
+}
+
+
+// MARK: - Error Types
+enum PublishError: Error, LocalizedError {
+    case uncommittedChanges
+    
+    var errorDescription: String? {
+        switch self {
+        case .uncommittedChanges:
+            return "Repository has uncommitted changes"
+        }
+    }
 }
 
 
