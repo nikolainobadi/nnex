@@ -35,30 +35,32 @@ swift build -c release
 ### Core Structure
 
 - **Main Entry Point**: `Sources/nnex/Commands/Main/nnex.swift` - The main `@main` struct using Swift ArgumentParser
-- **Command Architecture**: Three main command groups:
+- **Command Architecture**: Four main command groups:
   - `Brew` - Homebrew and GitHub distribution commands (publish, import-tap, create-tap, etc.)
   - `Build` - Local binary building functionality
   - `Config` - Configuration management
+  - `Archive` - Archiving and packaging functionality
 
 ### Key Architectural Patterns
 
 - **Dependency Injection**: Uses `ContextFactory` protocol for creating dependencies (Shell, Picker, GitHandler, NnexContext)
 - **Command Pattern**: Each command is a separate `ParsableCommand` struct under the main command namespaces
-- **External Dependencies**: Leverages `NnexKit` (custom package) for core business logic, `SwiftPicker` for interactive selections, and `ArgumentParser` for CLI parsing
+- **Internal Libraries**: Contains `NnexKit` as an internal library providing core business logic
+- **External Dependencies**: Uses `SwiftPicker` for interactive selections and `ArgumentParser` for CLI parsing
 
 ### Critical Dependencies
 
-The project depends heavily on:
-- **NnexKit**: Main business logic package containing core functionality
-- **SwiftPicker**: Interactive command-line selection interfaces  
-- **ArgumentParser**: CLI parsing and command structure
+The project depends on:
+- **NnexKit**: Internal library (`Sources/NnexKit/`) containing core functionality
+- **SwiftPicker**: Interactive command-line selection interfaces (external package)
+- **ArgumentParser**: CLI parsing and command structure (external package)
 
 ### Test Architecture
 
 Tests are organized by command functionality:
 - Mock factories and shared test utilities in `Tests/nnexTests/Shared/`
 - Command-specific test suites matching the source structure
-- Uses `NnexSharedTestHelpers` from NnexKit for shared testing utilities
+- Uses `NnexSharedTestHelpers` from the internal NnexKit library for shared testing utilities
 
 ### Build Types
 

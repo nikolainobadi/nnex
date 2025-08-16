@@ -6,7 +6,7 @@
 //
 
 import Testing
-@testable import nnex
+@testable import NnexKit
 
 struct FormulaNameSanitizerTests {
     @Test("Converts simple dash-separated name to PascalCase")

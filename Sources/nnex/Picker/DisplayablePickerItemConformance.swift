@@ -8,19 +8,19 @@
 import NnexKit
 import SwiftPicker
 
-extension SwiftDataTap: @retroactive DisplayablePickerItem {
+extension SwiftDataTap: DisplayablePickerItem {
     public var displayName: String {
         return name
     }
 }
 
-extension SwiftDataFormula: @retroactive DisplayablePickerItem {
+extension SwiftDataFormula:  DisplayablePickerItem {
     public var displayName: String {
         return name
     }
 }
 
-extension BuildType: @retroactive DisplayablePickerItem {
+extension BuildType: DisplayablePickerItem {
     public var displayName: String {
         switch self {
         case .universal:

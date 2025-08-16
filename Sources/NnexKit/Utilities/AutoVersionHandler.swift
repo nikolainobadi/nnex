@@ -7,19 +7,18 @@
 
 import Files
 import Foundation
-import NnexKit
 
-struct AutoVersionHandler {
+public struct AutoVersionHandler {
     private let shell: Shell
     
-    init(shell: Shell) {
+    public init(shell: Shell) {
         self.shell = shell
     }
 }
 
 
 // MARK: - Public Methods
-extension AutoVersionHandler {
+public extension AutoVersionHandler {
     /// Detects the current version in the @main ParsableCommand configuration.
     /// - Parameter projectPath: The path to the project directory.
     /// - Returns: The current version string if found, nil otherwise.

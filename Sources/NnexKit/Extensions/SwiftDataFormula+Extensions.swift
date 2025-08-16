@@ -5,9 +5,7 @@
 //  Created by Nikolai Nobadi on 3/25/25.
 //
 
-import NnexKit
-
-extension SwiftDataFormula {
+public extension SwiftDataFormula {
     /// Initializes a SwiftDataFormula instance from a BrewFormula.
     /// - Parameter brewFormula: The BrewFormula to convert.
     convenience init(from brewFormula: BrewFormula) {

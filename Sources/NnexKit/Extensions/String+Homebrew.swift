@@ -1,12 +1,12 @@
 //
-//  String+Extensions.swift
+//  String+Homebrew.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
 /// Adds convenience properties for working with Homebrew tap names.
-extension String {
+public extension String {
     /// Returns a string formatted as a Homebrew tap name.
     var homebrewTapName: String {
         return "homebrew-\(self)"
