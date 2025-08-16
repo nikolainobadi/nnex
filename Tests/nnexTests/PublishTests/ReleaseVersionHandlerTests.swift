@@ -12,8 +12,7 @@ import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
 
-@MainActor
-final class ReleaseVersionHandlerTests {
+struct ReleaseVersionHandlerTests {
     private let testProjectPath = "/path/to/project"
     private let testPreviousVersion = "v1.0.0"
     private let testVersionNumber = "2.0.0"
