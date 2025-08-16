@@ -8,7 +8,7 @@
 import SwiftPicker
 
 /// A protocol defining methods for user interaction and input retrieval.
-protocol Picker {
+protocol NnexPicker {
     /// Requests permission from the user with a given prompt.
     /// - Parameter prompt: The message to display when asking for permission.
     /// - Returns: A boolean value indicating whether the permission was granted.

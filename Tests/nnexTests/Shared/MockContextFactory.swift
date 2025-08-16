@@ -48,7 +48,7 @@ extension MockContextFactory: ContextFactory {
         return newShell
     }
     
-    func makePicker() -> Picker {
+    func makePicker() -> NnexPicker {
         if let picker {
             return picker
         }

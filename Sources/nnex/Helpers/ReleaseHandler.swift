@@ -11,10 +11,10 @@ import Foundation
 import GitCommandGen
 
 struct ReleaseHandler {
-    private let picker: Picker
+    private let picker: NnexPicker
     private let gitHandler: GitHandler
     
-    init(picker: Picker, gitHandler: GitHandler) {
+    init(picker: NnexPicker, gitHandler: GitHandler) {
         self.picker = picker
         self.gitHandler = gitHandler
     }

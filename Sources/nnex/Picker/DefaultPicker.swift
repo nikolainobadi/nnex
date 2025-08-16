@@ -10,12 +10,12 @@ import SwiftPicker
 
 /// A default implementation of the `Picker` protocol that utilizes `SwiftPicker`.
 struct DefaultPicker {
-    private let picker = SwiftPicker()
+    private let picker = InteractivePicker()
 }
 
 
-// MARK: - Picker
-extension DefaultPicker: Picker {
+// MARK: - NnexPicker
+extension DefaultPicker: NnexPicker {
     /// Requests the user to grant permission for a specific action.
     /// - Parameter prompt: The message to display when asking for permission.
     /// - Throws: An error if the permission request fails.
@@ -35,7 +35,7 @@ extension DefaultPicker: Picker {
     /// - Returns: The user's input as a string.
     /// - Throws: An error if the input could not be obtained.
     func getRequiredInput(prompt: String) throws -> String {
-        return try picker.getRequiredInput(prompt)
+        return try picker.getRequiredInput(prompt: prompt)
     }
     
     /// Presents a single selection picker to the user and returns the chosen item.

@@ -46,7 +46,7 @@ extension Nnex.Brew {
 // MARK: - Private Methods
 fileprivate extension Nnex.Brew.CreateTap {
     /// Returns a Picker instance for user input.
-    var picker: Picker {
+    var picker: NnexPicker {
         return Nnex.makePicker()
     }
 

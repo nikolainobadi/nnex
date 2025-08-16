@@ -84,7 +84,7 @@ private extension Nnex.Brew.Publish {
     }
 
     /// Creates a picker instance for user interactions.
-    var picker: Picker {
+    var picker: NnexPicker {
         return Nnex.makePicker()
     }
 

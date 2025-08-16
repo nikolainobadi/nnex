@@ -9,11 +9,11 @@ import Foundation
 import NnexKit
 
 struct ReleaseVersionHandler {
-    private let picker: Picker
+    private let picker: NnexPicker
     private let gitHandler: GitHandler
     private let shell: Shell
     
-    init(picker: Picker, gitHandler: GitHandler, shell: Shell = Nnex.makeShell()) {
+    init(picker: NnexPicker, gitHandler: GitHandler, shell: Shell = Nnex.makeShell()) {
         self.picker = picker
         self.gitHandler = gitHandler
         self.shell = shell

@@ -136,7 +136,7 @@ extension Nnex.Build {
         }
     }
     
-    func selectOutputLocation(buildType: BuildType, picker: Picker) throws -> BuildOutputLocation {
+    func selectOutputLocation(buildType: BuildType, picker: NnexPicker) throws -> BuildOutputLocation {
         let options: [BuildOutputLocation] = [
             .currentDirectory(buildType),
             .desktop,
@@ -153,7 +153,7 @@ extension Nnex.Build {
         return selection
     }
     
-    func handleCustomLocationInput(picker: Picker) throws -> BuildOutputLocation {
+    func handleCustomLocationInput(picker: NnexPicker) throws -> BuildOutputLocation {
         let parentPath = try picker.getRequiredInput(prompt: "Enter the path to the parent directory where you want to place the binary:")
         
         // Validate the parent path exists

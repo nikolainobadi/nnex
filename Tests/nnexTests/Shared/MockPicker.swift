@@ -30,8 +30,8 @@ final class MockPicker {
 }
 
 
-// MARK: - Picker
-extension MockPicker: Picker {
+// MARK: - NnexPicker
+extension MockPicker: NnexPicker {
     func requiredPermission(prompt: String) throws {
         lastPrompt = prompt
         allPrompts.append(prompt)
