@@ -35,10 +35,11 @@ swift build -c release
 ### Core Structure
 
 - **Main Entry Point**: `Sources/nnex/Commands/Main/nnex.swift` - The main `@main` struct using Swift ArgumentParser
-- **Command Architecture**: Three main command groups:
+- **Command Architecture**: Four main command groups:
   - `Brew` - Homebrew and GitHub distribution commands (publish, import-tap, create-tap, etc.)
   - `Build` - Local binary building functionality
   - `Config` - Configuration management
+  - `Archive` - Archiving and packaging functionality
 
 ### Key Architectural Patterns
 
