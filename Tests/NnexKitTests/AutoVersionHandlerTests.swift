@@ -41,7 +41,7 @@ extension AutoVersionHandlerTests {
     
     @Test("Returns nil when no @main ParsableCommand exists")
     func returnsNilWhenNoMainCommand() throws {
-        try createNonMainCommandFile(version: "1.0.0")
+        try createNonMainCommandFiles(version: "1.0.0")
         
         let sut = makeSUT()
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectFolder.path)
@@ -72,7 +72,7 @@ extension AutoVersionHandlerTests {
     @Test("Ignores non-main ParsableCommand files")
     func ignoresNonMainParsableCommands() throws {
         try createMainCommandFile(version: "1.0.0")
-        try createNonMainCommandFile(version: "2.0.0")
+        try createNonMainCommandFiles(version: "2.0.0")
         
         let sut = makeSUT()
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectFolder.path)
@@ -126,7 +126,7 @@ extension AutoVersionHandlerTests {
     
     @Test("Returns false when no main command file exists")
     func returnsFalseWhenNoMainCommandExists() throws {
-        try createNonMainCommandFile(version: "1.0.0")
+        try createNonMainCommandFiles(version: "1.0.0")
         
         let sut = makeSUT()
         let success = try sut.updateArgumentParserVersion(projectPath: projectFolder.path, newVersion: "2.0.0")
@@ -253,7 +253,7 @@ private extension AutoVersionHandlerTests {
         return content
     }
     
-    func createNonMainCommandFile(version: String) throws {
+    func createNonMainCommandFiles(version: String) throws {
         let sourcesFolder = try projectFolder.createSubfolder(named: "Sources")
         let content = """
         import ArgumentParser
@@ -271,6 +271,15 @@ private extension AutoVersionHandlerTests {
         """
         
         try sourcesFolder.createFile(named: "SubCommand.swift", contents: content.data(using: .utf8)!)
+        
+        let otherContent = """
+        import ArgumentParser
+        
+        /// Finds the main command file containing @main ParsableCommand.
+        
+        """
+        
+        try sourcesFolder.createFile(named: "Random.swift", contents: otherContent.data(using: .utf8)!)
     }
     
     func createMainCommandFileWithoutVersion() throws {
