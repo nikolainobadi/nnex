@@ -16,7 +16,7 @@ final class PublishInfoLoaderTests {
     private let tapFolder: Folder
     private let projectFolder: Folder
     private let tapName = "testTap"
-    private let projectName = "testProject"
+    private let projectName = "testProject-publishInfoLoader"
     
     init() throws {
         let tempFolder = Folder.temporary
