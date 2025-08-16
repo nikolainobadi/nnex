@@ -10,11 +10,23 @@ import Foundation
 import NnexKit
 import NnexSharedTestHelpers
 @testable import nnex
+@preconcurrency import Files
 
-struct ReleaseVersionHandlerTests {
+@MainActor
+final class ReleaseVersionHandlerTests {
+    private let projectFolder: Folder
     private let testProjectPath = "/path/to/project"
     private let testPreviousVersion = "v1.0.0"
     private let testVersionNumber = "2.0.0"
+    
+    init() throws {
+        let tempFolder = Folder.temporary
+        self.projectFolder = try tempFolder.createSubfolder(named: "ReleaseVersionHandler-\(UUID().uuidString)")
+    }
+    
+    deinit {
+        deleteFolderContents(projectFolder)
+    }
 }
 
 
@@ -148,6 +160,19 @@ extension ReleaseVersionHandlerTests {
         
         #expect(previousVersion == nil)
         #expect(picker.lastPrompt?.contains("v1.1.0 or 1.1.0") == true)
+    }
+    
+    @Test("Updates source code version if it exists")
+    func updatesExistingVersionInSource() throws {
+        let newVersion = "2.0.0"
+        let previousVersionNumber = "1.0.0"
+        let mockFilePath = try createMockCommandFile(previousVersion: previousVersionNumber)
+        let sut = makeSUT(permissionResponses: [true]).sut
+        let _ = try sut.resolveVersionInfo(versionInfo: .version(newVersion), projectPath: projectFolder.path)
+        let updatedFile = try File(path: mockFilePath)
+        let contents = try updatedFile.readAsString()
+        
+        #expect(contents.contains("2.0.0"), "File should contain version 2.0.0")
     }
 }
 
@@ -368,7 +393,8 @@ private extension ReleaseVersionHandlerTests {
         previousVersion: String? = nil,
         shouldThrowGitError: Bool = false,
         shouldThrowPickerError: Bool = false,
-        inputResponses: [String] = []
+        inputResponses: [String] = [],
+        permissionResponses: [Bool] = []
     ) -> (sut: ReleaseVersionHandler, gitHandler: MockGitHandler, picker: MockPicker) {
         
         let gitHandler: MockGitHandler
@@ -388,6 +414,7 @@ private extension ReleaseVersionHandlerTests {
         
         let picker = MockPicker(
             inputResponses: inputResponses,
+            permissionResponses: permissionResponses,
             shouldThrowError: shouldThrowPickerError
         )
         
@@ -395,5 +422,24 @@ private extension ReleaseVersionHandlerTests {
         let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell)
         
         return (sut, gitHandler, picker)
+    }
+    
+    func createMockCommandFile(previousVersion: String) throws -> String {
+        let fileContents = """
+        import ArgumentParser
+
+        @main
+        struct MockCommand: ParsableCommand {
+            static let configuration = CommandConfiguration(
+                abstract: "",
+                version: "\(previousVersion)",
+            )
+        }
+        """
+
+        let file = try projectFolder.createSubfolderIfNeeded(withName: "Sources").createFile(named: "MockCommand.swift")
+        try file.write(fileContents)
+
+        return file.path
     }
 }
