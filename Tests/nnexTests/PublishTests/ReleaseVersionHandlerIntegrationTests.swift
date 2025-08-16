@@ -34,7 +34,7 @@ final class ReleaseVersionHandlerIntegrationTests {
 extension ReleaseVersionHandlerIntegrationTests {
     @Test("Updates source code version if it exists")
     func updatesExistingVersionInSource() throws {
-        let sut = makeSUT(permissionResponses: [true]).sut
+        let (sut, _) = makeSUT(permissionResponses: [true])
         let _ = try sut.resolveVersionInfo(versionInfo: .version(newVersion), projectPath: projectFolder.path)
         let updatedFile = try File(path: mainCommandFilePath)
         let contents = try updatedFile.readAsString()
@@ -44,10 +44,12 @@ extension ReleaseVersionHandlerIntegrationTests {
     
     @Test("Commits changes to source code when updating version number in executable file")
     func commitsNewVersionInSource() throws {
-        let (sut, shell) = makeSUT(permissionResponses: [true])
+        let (sut, gitHandler) = makeSUT(permissionResponses: [true])
         let _ = try sut.resolveVersionInfo(versionInfo: .version(newVersion), projectPath: projectFolder.path)
+        let message = try #require(gitHandler.message)
+        let expectedMessage = "Update version to \(newVersion)"
         
-        #expect(!shell.printedCommands.isEmpty)
+        #expect(message == expectedMessage)
     }
 }
 
@@ -59,13 +61,13 @@ private extension ReleaseVersionHandlerIntegrationTests {
         permissionResponses: [Bool] = [],
         shouldThrowGitError: Bool = false,
         shouldThrowPickerError: Bool = false
-    ) -> (sut: ReleaseVersionHandler, shell: MockShell) {
+    ) -> (sut: ReleaseVersionHandler, gitHandler: MockGitHandler) {
         let shell = MockShell()
         let picker = MockPicker(permissionResponses: permissionResponses, shouldThrowError: shouldThrowPickerError)
         let gitHandler = makeGitHandler(previousVersion: previousVersion, throwError: shouldThrowGitError)
         let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell)
         
-        return (sut, shell)
+        return (sut, gitHandler)
     }
     
     func makeGitHandler(previousVersion: String?, throwError: Bool) -> MockGitHandler {
@@ -73,9 +75,7 @@ private extension ReleaseVersionHandlerIntegrationTests {
             return .init(previousVersion: previousVersion, throwError: throwError)
         }
         
-        // When no previous version exists, MockGitHandler should throw
-        // so that try? converts it to nil
-        return .init(previousVersion: "", throwError: true)
+        return .init(previousVersion: "", throwError: throwError)
     }
 }
 

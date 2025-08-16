@@ -9,14 +9,14 @@ import Foundation
 import NnexKit
 
 struct ReleaseVersionHandler {
+    private let shell: Shell
     private let picker: NnexPicker
     private let gitHandler: GitHandler
-    private let shell: Shell
     
     init(picker: NnexPicker, gitHandler: GitHandler, shell: Shell = Nnex.makeShell()) {
+        self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
-        self.shell = shell
     }
 }
 
@@ -138,7 +138,6 @@ private extension ReleaseVersionHandler {
     /// - Throws: An error if the commit fails.
     func commitVersionUpdate(version: String, projectPath: String) throws {
         let commitMessage = "Update version to \(version)"
-        let command = "cd \"\(projectPath)\" && git add . && git commit -m \"\(commitMessage)\""
-        _ = try shell.run(command)
+        try gitHandler.commitAndPush(message: commitMessage, path: projectPath)
     }
 }
