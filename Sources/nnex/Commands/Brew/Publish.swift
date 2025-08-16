@@ -223,5 +223,5 @@ enum PublishError: Error, LocalizedError {
 
 
 // MARK: - Extension Dependencies
-extension ReleaseVersionInfo: @retroactive ExpressibleByArgument { }
-extension ReleaseVersionInfo.VersionPart: @retroactive ExpressibleByArgument { }
+extension ReleaseVersionInfo: ExpressibleByArgument { }
+extension ReleaseVersionInfo.VersionPart: ExpressibleByArgument { }

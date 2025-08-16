@@ -1,5 +1,5 @@
 {
-  "originHash" : "f0df7b69a43296bd3d4678cc82d232f0364c0a1f59017443497780bcd15b9034",
+  "originHash" : "81e2daa18266013eba6d54b0ddfa4d0849f7cfe72beffe69e30b663b75ad4134",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -17,15 +17,6 @@
       "state" : {
         "revision" : "d273b5b7025d386feef79ef6bad7de762e106eaf",
         "version" : "4.2.0"
-      }
-    },
-    {
-      "identity" : "nnexkit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/nikolainobadi/NnexKit.git",
-      "state" : {
-        "branch" : "main",
-        "revision" : "e3278ea4c2edb8575f0a1ed629242bbfbf65f384"
       }
     },
     {
