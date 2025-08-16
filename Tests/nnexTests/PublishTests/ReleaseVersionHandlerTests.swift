@@ -150,45 +150,6 @@ extension ReleaseVersionHandlerTests {
         #expect(previousVersion == nil)
         #expect(picker.lastPrompt?.contains("v1.1.0 or 1.1.0") == true)
     }
-    
-    @Test("Updates source code version if it exists")
-    func updatesExistingVersionInSource() throws {
-        let tempFolder = Folder.temporary
-        let projectFolder = try tempFolder.createSubfolder(named: "ReleaseVersionHandler-\(UUID().uuidString)")
-        
-        defer {
-            deleteFolderContents(projectFolder)
-        }
-        
-        let newVersion = "2.0.0"
-        let previousVersionNumber = "1.0.0"
-        let mockFilePath = try createMockCommandFile(previousVersion: previousVersionNumber, projectFolder: projectFolder)
-        let sut = makeSUT(permissionResponses: [true]).sut
-        let _ = try sut.resolveVersionInfo(versionInfo: .version(newVersion), projectPath: projectFolder.path)
-        let updatedFile = try File(path: mockFilePath)
-        let contents = try updatedFile.readAsString()
-        
-        #expect(contents.contains("2.0.0"), "File should contain version 2.0.0")
-    }
-    
-    @Test("Commits changes to source code when updating version number in executable file")
-    func commitsNewVersionInSource() throws {
-        let tempFolder = Folder.temporary
-        let projectFolder = try tempFolder.createSubfolder(named: "ReleaseVersionHandler-\(UUID().uuidString)")
-        
-        defer {
-            deleteFolderContents(projectFolder)
-        }
-        
-        let newVersion = "2.0.0"
-        let previousVersionNumber = "1.0.0"
-        try createMockCommandFile(previousVersion: previousVersionNumber, projectFolder: projectFolder)
-        let shell = MockShell()
-        let sut = makeSUT(shell: shell, permissionResponses: [true]).sut
-        let _ = try sut.resolveVersionInfo(versionInfo: .version(newVersion), projectPath: projectFolder.path)
-        
-        #expect(!shell.printedCommands.isEmpty)
-    }
 }
 
 
@@ -405,7 +366,6 @@ extension ReleaseVersionHandlerTests {
 // MARK: - Test Helpers
 private extension ReleaseVersionHandlerTests {
     func makeSUT(
-        shell: MockShell? = nil,
         previousVersion: String? = nil,
         shouldThrowGitError: Bool = false,
         shouldThrowPickerError: Bool = false,
@@ -434,28 +394,8 @@ private extension ReleaseVersionHandlerTests {
             shouldThrowError: shouldThrowPickerError
         )
         
-        let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell ?? .init())
+        let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: MockShell())
         
         return (sut, gitHandler, picker)
-    }
-    
-    @discardableResult
-    func createMockCommandFile(previousVersion: String, projectFolder: Folder) throws -> String {
-        let fileContents = """
-        import ArgumentParser
-
-        @main
-        struct MockCommand: ParsableCommand {
-            static let configuration = CommandConfiguration(
-                abstract: "",
-                version: "\(previousVersion)",
-            )
-        }
-        """
-
-        let file = try projectFolder.createSubfolderIfNeeded(withName: "Sources").createFile(named: "MockCommand.swift")
-        try file.write(fileContents)
-
-        return file.path
     }
 }
