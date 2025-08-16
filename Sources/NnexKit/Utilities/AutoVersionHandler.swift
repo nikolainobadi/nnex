@@ -98,7 +98,7 @@ private extension AutoVersionHandler {
     /// - Parameter content: The file content to search.
     /// - Returns: The version string if found.
     func extractVersionFromContent(_ content: String) -> String? {
-        // Look for version: "x.x.x" pattern in CommandConfiguration
+        // Look for version: "v0.8.6" pattern in CommandConfiguration
         let pattern = #"version:\s*"([^"]+)""#
         
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
