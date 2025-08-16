@@ -121,9 +121,6 @@ Issues and suggestions are also welcome via [GitHub Issues](https://github.com/n
 
 ### Third-Party Libraries
 - [SwiftArgumentParser](https://github.com/apple/swift-argument-parser)
-
-### My Swift Packages
-- [NnexKit](https://github.com/nikolainobadi/NnexKit)
 - [SwiftPicker](https://github.com/nikolainobadi/SwiftPicker)
 
 ## License
