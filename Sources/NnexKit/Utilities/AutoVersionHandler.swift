@@ -76,17 +76,19 @@ private extension AutoVersionHandler {
     /// - Returns: The file path if found, nil otherwise.
     func findMainCommandFile(projectPath: String) throws -> String? {
         let sourcesPath = "\(projectPath)/Sources"
-        
-        guard let sourcesFolder = try? Folder(path: sourcesPath) else {
-            return nil
-        }
-        
-        // Search for Swift files containing both @main and ParsableCommand
+        guard let sourcesFolder = try? Folder(path: sourcesPath) else { return nil }
+
+        let pattern = try NSRegularExpression(
+            pattern: #"@main\s+(struct|class|enum)\s+\w+\s*:\s*[^{}]*\bParsableCommand\b"#,
+            options: [.dotMatchesLineSeparators]
+        )
+
         for file in sourcesFolder.files.recursive {
             guard file.extension == "swift" else { continue }
-            
-            let content = try file.readAsString()
-            if content.contains("@main") && content.contains("ParsableCommand") {
+            let raw = try file.readAsString()
+            let code = strippedCode(raw)
+            let range = NSRange(code.startIndex..<code.endIndex, in: code)
+            if pattern.firstMatch(in: code, options: [], range: range) != nil {
                 return file.path
             }
         }
@@ -145,5 +147,52 @@ private extension AutoVersionHandler {
     /// - Returns: Normalized version string.
     func normalizeVersion(_ version: String) -> String {
         return version.hasPrefix("v") ? String(version.dropFirst()) : version
+    }
+    
+    func strippedCode(_ s: String) -> String {
+        var out = ""
+        var i = s.startIndex
+        var inSL = false, inML = false, inStr = false, inRawStr = false
+        while i < s.endIndex {
+            let c = s[i]
+            let nxt = s.index(after: i)
+            if inStr {
+                if c == "\"" && !inRawStr { inStr = false }
+                i = nxt
+                continue
+            }
+            if inRawStr {
+                if c == "\"" { inRawStr = false }
+                i = nxt
+                continue
+            }
+            if inSL {
+                if c == "\n" { inSL = false; out.append(c) }
+                i = nxt
+                continue
+            }
+            if inML {
+                if c == "*" && nxt < s.endIndex && s[nxt] == "/" { inML = false; i = s.index(after: nxt) ; continue }
+                i = nxt
+                continue
+            }
+            if c == "\"" {
+                inStr = true
+                i = nxt
+                continue
+            }
+            if c == "#" && nxt < s.endIndex && s[nxt] == "\"" {
+                inRawStr = true
+                i = s.index(after: nxt)
+                continue
+            }
+            if c == "/" && nxt < s.endIndex {
+                if s[nxt] == "/" { inSL = true; i = s.index(after: nxt); continue }
+                if s[nxt] == "*" { inML = true; i = s.index(after: nxt); continue }
+            }
+            out.append(c)
+            i = nxt
+        }
+        return out
     }
 }
