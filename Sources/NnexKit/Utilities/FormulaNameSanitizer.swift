@@ -8,14 +8,14 @@
 import Foundation
 
 /// Utility for sanitizing formula names to ensure they are valid Ruby class names.
-enum FormulaNameSanitizer {
+public enum FormulaNameSanitizer {
     /// Converts a dash-separated name to PascalCase for valid Ruby class names.
     /// Examples:
     /// - "my-tool" -> "MyTool"
     /// - "awesome-cli-tool" -> "AwesomeCliTool"
     /// - "tool" -> "Tool"
     /// - "my--tool" -> "MyTool" (handles multiple dashes)
-    static func sanitizeFormulaName(_ name: String) -> String {
+    public static func sanitizeFormulaName(_ name: String) -> String {
         // Split by dash and filter out empty components (handles multiple consecutive dashes)
         let components = name.split(separator: "-").map(String.init).filter { !$0.isEmpty }
         
