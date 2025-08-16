@@ -10,6 +10,7 @@ import Foundation
 import NnexKit
 import NnexSharedTestHelpers
 @testable import nnex
+@preconcurrency import Files
 
 struct ReleaseVersionHandlerTests {
     private let testProjectPath = "/path/to/project"
@@ -368,7 +369,8 @@ private extension ReleaseVersionHandlerTests {
         previousVersion: String? = nil,
         shouldThrowGitError: Bool = false,
         shouldThrowPickerError: Bool = false,
-        inputResponses: [String] = []
+        inputResponses: [String] = [],
+        permissionResponses: [Bool] = []
     ) -> (sut: ReleaseVersionHandler, gitHandler: MockGitHandler, picker: MockPicker) {
         
         let gitHandler: MockGitHandler
@@ -388,11 +390,11 @@ private extension ReleaseVersionHandlerTests {
         
         let picker = MockPicker(
             inputResponses: inputResponses,
+            permissionResponses: permissionResponses,
             shouldThrowError: shouldThrowPickerError
         )
         
-        let shell = MockShell()
-        let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell)
+        let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: MockShell())
         
         return (sut, gitHandler, picker)
     }
