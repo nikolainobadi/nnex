@@ -106,10 +106,10 @@ private extension ReleaseVersionHandler {
             print("Failed to update version in source code.")
             return
         }
-//        
-//        // Commit the version update
-//        try commitVersionUpdate(version: releaseVersionString, projectPath: projectPath)
-//        
+        
+        // Commit the version update
+        try commitVersionUpdate(version: releaseVersionString, projectPath: projectPath)
+        
         print("✅ Updated version to \(releaseVersionString.green) and committed changes.")
     }
     
