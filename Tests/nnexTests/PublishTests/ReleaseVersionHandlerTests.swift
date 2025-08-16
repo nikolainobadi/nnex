@@ -14,19 +14,9 @@ import NnexSharedTestHelpers
 
 @MainActor
 final class ReleaseVersionHandlerTests {
-    private let projectFolder: Folder
     private let testProjectPath = "/path/to/project"
     private let testPreviousVersion = "v1.0.0"
     private let testVersionNumber = "2.0.0"
-    
-    init() throws {
-        let tempFolder = Folder.temporary
-        self.projectFolder = try tempFolder.createSubfolder(named: "ReleaseVersionHandler-\(UUID().uuidString)")
-    }
-    
-    deinit {
-        deleteFolderContents(projectFolder)
-    }
 }
 
 
@@ -164,9 +154,16 @@ extension ReleaseVersionHandlerTests {
     
     @Test("Updates source code version if it exists")
     func updatesExistingVersionInSource() throws {
+        let tempFolder = Folder.temporary
+        let projectFolder = try tempFolder.createSubfolder(named: "ReleaseVersionHandler-\(UUID().uuidString)")
+        
+        defer {
+            deleteFolderContents(projectFolder)
+        }
+        
         let newVersion = "2.0.0"
         let previousVersionNumber = "1.0.0"
-        let mockFilePath = try createMockCommandFile(previousVersion: previousVersionNumber)
+        let mockFilePath = try createMockCommandFile(previousVersion: previousVersionNumber, projectFolder: projectFolder)
         let sut = makeSUT(permissionResponses: [true]).sut
         let _ = try sut.resolveVersionInfo(versionInfo: .version(newVersion), projectPath: projectFolder.path)
         let updatedFile = try File(path: mockFilePath)
@@ -424,7 +421,7 @@ private extension ReleaseVersionHandlerTests {
         return (sut, gitHandler, picker)
     }
     
-    func createMockCommandFile(previousVersion: String) throws -> String {
+    func createMockCommandFile(previousVersion: String, projectFolder: Folder) throws -> String {
         let fileContents = """
         import ArgumentParser
 
