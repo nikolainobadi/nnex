@@ -20,7 +20,7 @@ struct DefaultContextFactory: ContextFactory {
 
     /// Creates a default picker instance.
     /// - Returns: A DefaultPicker instance.
-    func makePicker() -> any Picker {
+    func makePicker() -> any NnexPicker {
         return DefaultPicker()
     }
 

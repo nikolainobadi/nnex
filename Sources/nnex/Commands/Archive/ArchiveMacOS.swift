@@ -88,7 +88,7 @@ private extension Nnex.Archive.MacOS {
         return Folder.current.path
     }
     
-    func getScheme(projectInfo: ProjectInfo, projectDetector: ProjectDetector, picker: Picker) throws -> String {
+    func getScheme(projectInfo: ProjectInfo, projectDetector: ProjectDetector, picker: NnexPicker) throws -> String {
         if let scheme = scheme {
             return scheme
         }

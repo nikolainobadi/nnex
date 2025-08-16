@@ -92,7 +92,7 @@ extension Nnex.Export {
 private extension Nnex.Export.MacOS {
     func getOrCreateArchive(
         shell: Shell,
-        picker: Picker,
+        picker: NnexPicker,
         projectDetector: ProjectDetector,
         archiveBuilder: ArchiveBuilder
     ) throws -> String {
@@ -135,7 +135,7 @@ private extension Nnex.Export.MacOS {
         return Folder.current.path
     }
     
-    func getScheme(projectInfo: ProjectInfo, projectDetector: ProjectDetector, picker: Picker) throws -> String {
+    func getScheme(projectInfo: ProjectInfo, projectDetector: ProjectDetector, picker: NnexPicker) throws -> String {
         if let scheme = scheme {
             return scheme
         }

@@ -1,5 +1,5 @@
 {
-  "originHash" : "81e2daa18266013eba6d54b0ddfa4d0849f7cfe72beffe69e30b663b75ad4134",
+  "originHash" : "cd5c2be2c591690b9c78a254bc7c1339c16ae1312c4688d69d84692dca8a7b6a",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/NnGitKit.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "fa432ab797d88d78a41542e5e9d7590da8349463"
+        "revision" : "8311eaa6da2b62672935ec386d67f32d8bf9d1a6",
+        "version" : "0.6.1"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/NnSwiftDataKit.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "bc2aac114b8c708ef9446f2aa77e4c74014ff4ad"
+        "revision" : "bc2aac114b8c708ef9446f2aa77e4c74014ff4ad",
+        "version" : "0.5.0"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/SwiftPicker.git",
       "state" : {
-        "revision" : "55dd99122cda2eb593e1a3ad42b02ea9db22381b",
-        "version" : "0.8.0"
+        "revision" : "4071f15d77b87c32a33b7ae7ac5dc789a59169c3",
+        "version" : "1.0.0"
       }
     },
     {

@@ -28,7 +28,7 @@ extension Nnex {
         return contextFactory.makeShell()
     }
     
-    static func makePicker() -> Picker {
+    static func makePicker() -> NnexPicker {
         return contextFactory.makePicker()
     }
     

@@ -17,9 +17,9 @@ protocol NotarizeHandler {
 
 struct DefaultNotarizeHandler: NotarizeHandler {
     private let shell: Shell
-    private let picker: Picker
+    private let picker: NnexPicker
     
-    init(shell: Shell, picker: Picker) {
+    init(shell: Shell, picker: NnexPicker) {
         self.shell = shell
         self.picker = picker
     }

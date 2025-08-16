@@ -14,8 +14,8 @@ protocol ContextFactory {
     func makeShell() -> Shell
 
     /// Creates a new picker instance.
-    /// - Returns: A Picker instance.
-    func makePicker() -> Picker
+    /// - Returns: A NnexPicker instance.
+    func makePicker() -> NnexPicker
 
     /// Creates a new Git handler instance.
     /// - Returns: A GitHandler instance.

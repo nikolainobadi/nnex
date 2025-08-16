@@ -30,7 +30,7 @@ extension GitHandlerTests {
         #expect(shell.printedCommands[0] == makeGitCommand(.localGitCheck, path: defaultPath))
         #expect(shell.printedCommands[1] == makeGitCommand(.gitInit, path: defaultPath))
         #expect(shell.printedCommands[2] == makeGitCommand(.addAll, path: defaultPath))
-        #expect(shell.printedCommands[3] == makeGitCommand(.commit("Initial Commit"), path: defaultPath))
+        #expect(shell.printedCommands[3] == makeGitCommand(.commit(message: "Initial Commit"), path: defaultPath))
     }
     
     @Test("Successfully gets the remote URL")
@@ -120,7 +120,7 @@ extension GitHandlerTests {
 
         #expect(shell.printedCommands.count == 3)
         #expect(shell.printedCommands[0] == makeGitCommand(.addAll, path: defaultPath))
-        #expect(shell.printedCommands[1] == makeGitCommand(.commit(commitMessage), path: defaultPath))
+        #expect(shell.printedCommands[1] == makeGitCommand(.commit(message: commitMessage), path: defaultPath))
         #expect(shell.printedCommands[2] == makeGitCommand(.push, path: defaultPath))
     }
 }

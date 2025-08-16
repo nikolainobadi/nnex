@@ -29,7 +29,7 @@ extension DefaultGitHandler: GitHandler {
     ///   - path: The file path of the repository.
     public func commitAndPush(message: String, path: String) throws {
         try shell.runAndPrint(makeGitCommand(.addAll, path: path))
-        try shell.runAndPrint(makeGitCommand(.commit(message), path: path))
+        try shell.runAndPrint(makeGitCommand(.commit(message: message), path: path))
         try shell.runAndPrint(makeGitCommand(.push, path: path))
     }
 

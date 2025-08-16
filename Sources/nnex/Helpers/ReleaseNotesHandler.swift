@@ -52,12 +52,12 @@ struct DefaultDateProvider: DateProvider {
 }
 
 struct ReleaseNotesHandler {
-    private let picker: Picker
+    private let picker: NnexPicker
     private let projectName: String
     private let fileSystem: FileSystemProvider
     private let dateProvider: DateProvider
     
-    init(picker: Picker, projectName: String, fileSystem: FileSystemProvider = DefaultFileSystemProvider(), dateProvider: DateProvider = DefaultDateProvider()) {
+    init(picker: NnexPicker, projectName: String, fileSystem: FileSystemProvider = DefaultFileSystemProvider(), dateProvider: DateProvider = DefaultDateProvider()) {
         self.picker = picker
         self.projectName = projectName
         self.fileSystem = fileSystem
