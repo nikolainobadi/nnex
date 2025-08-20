@@ -96,6 +96,10 @@ extension MockContextFactory: ContextFactory {
     func makeExportHandler() -> ExportHandler {
         return DefaultExportHandler(shell: makeShell())
     }
+    
+    func makeTrashHandler() -> TrashHandler {
+        return MockTrashHandler()
+    }
 }
 
 // MARK: - Private

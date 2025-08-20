@@ -131,7 +131,7 @@ private extension Nnex.Brew.Publish {
     }
 
     func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> String {
-        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler)
+        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: Nnex.makeTrashHandler())
             
         return try handler.uploadRelease(folder: folder, binaryInfo: binaryInfo, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }

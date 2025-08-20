@@ -56,4 +56,8 @@ extension Nnex {
     static func makeExportHandler() -> ExportHandler {
         return contextFactory.makeExportHandler()
     }
+    
+    static func makeTrashHandler() -> TrashHandler {
+        return contextFactory.makeTrashHandler()
+    }
 }

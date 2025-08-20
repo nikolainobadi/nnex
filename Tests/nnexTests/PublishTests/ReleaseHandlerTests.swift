@@ -333,7 +333,7 @@ private extension ReleaseHandlerTests {
             shouldThrowError: shouldThrowPickerError
         )
         
-        let sut = ReleaseHandler(picker: picker, gitHandler: gitHandler)
+        let sut = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: MockTrashHandler())
         let tempFolder = try Folder.temporary.createSubfolder(named: "ReleaseHandlerTest-\(UUID().uuidString)")
         let folder = try tempFolder.createSubfolder(named: testProjectName)
         

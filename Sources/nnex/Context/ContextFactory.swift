@@ -42,4 +42,8 @@ protocol ContextFactory {
     /// Creates a new export handler instance.
     /// - Returns: An ExportHandler instance.
     func makeExportHandler() -> ExportHandler
+    
+    /// Creates a new trash handler instance.
+    /// - Returns: A TrashHandler instance.
+    func makeTrashHandler() -> TrashHandler
 }

@@ -61,4 +61,10 @@ struct DefaultContextFactory: ContextFactory {
     func makeExportHandler() -> ExportHandler {
         return DefaultExportHandler(shell: makeShell())
     }
+    
+    /// Creates a default trash handler instance.
+    /// - Returns: A DefaultTrashHandler instance.
+    func makeTrashHandler() -> TrashHandler {
+        return DefaultTrashHandler()
+    }
 }
