@@ -7,6 +7,7 @@
 
 import Files
 import NnexKit
+import NnShellKit
 import ArgumentParser
 import Foundation
 import SwiftPicker
@@ -71,7 +72,7 @@ extension Nnex.Archive {
             
             // Open in Finder if requested
             if openFinder {
-                try shell.runAndPrint("open -R \"\(config.archiveOutputPath)\"")
+                _ = try shell.bash("open -R \"\(config.archiveOutputPath)\"")
             }
         }
     }
@@ -107,13 +108,13 @@ private extension Nnex.Archive.MacOS {
         )
     }
     
-    func buildArchiveConfig(projectPath: String, scheme: String, shell: Shell) throws -> ArchiveConfig {
+    func buildArchiveConfig(projectPath: String, scheme: String, shell: any Shell) throws -> ArchiveConfig {
         let config = configuration ?? .release
         let defaultArchiveLocation = NSString(string: "~/Library/Developer/Xcode/Archives").expandingTildeInPath
         let archiveOutput = output ?? defaultArchiveLocation
         
         // Create archive output directory if it doesn't exist
-        try shell.runAndPrint("mkdir -p \"\(archiveOutput)\"")
+        _ = try shell.bash("mkdir -p \"\(archiveOutput)\"")
         
         return .init(
             platform: .macOS,

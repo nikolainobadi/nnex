@@ -8,7 +8,7 @@
 import Testing
 import Foundation
 import NnexKit
-import NnexSharedTestHelpers
+import NnShellKit
 @testable import nnex
 @preconcurrency import Files
 
@@ -261,7 +261,7 @@ private extension ProjectDetectorTests {
     ) throws -> (sut: DefaultProjectDetector, tempFolder: Folder) {
         
         let shell = MockShell(
-            runResults: shellOutputs,
+            results: shellOutputs,
             shouldThrowError: shouldThrowShellError
         )
         

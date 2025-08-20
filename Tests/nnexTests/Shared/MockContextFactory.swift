@@ -6,6 +6,7 @@
 //
 
 import NnexKit
+import NnShellKit
 import SwiftData
 import Foundation
 import NnexSharedTestHelpers
@@ -38,12 +39,12 @@ final class MockContextFactory {
 
 // MARK: - Factory
 extension MockContextFactory: ContextFactory {
-    func makeShell() -> Shell {
+    func makeShell() -> any Shell {
         if let shell {
             return shell
         }
         
-        let newShell = MockShell(runResults: runResults)
+        let newShell = MockShell(results: runResults)
         shell = newShell
         return newShell
     }

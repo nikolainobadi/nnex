@@ -6,6 +6,7 @@
 //
 
 import NnexKit
+import NnShellKit
 
 /// enter your own app group id here
 let APP_GROUP_ID = "R8SJ24LQF3.com.nobadi.nnex"
@@ -13,9 +14,9 @@ let APP_GROUP_ID = "R8SJ24LQF3.com.nobadi.nnex"
 /// Default implementation of the ContextFactory protocol.
 struct DefaultContextFactory: ContextFactory {
     /// Creates a default shell instance.
-    /// - Returns: A DefaultShell instance.
+    /// - Returns: A NnShell instance.
     func makeShell() -> any Shell {
-        return DefaultShell()
+        return NnShell()
     }
 
     /// Creates a default picker instance.

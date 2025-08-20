@@ -7,6 +7,7 @@
 
 import Files
 import NnexKit
+import NnShellKit
 import Foundation
 import SwiftPicker
 
@@ -16,10 +17,10 @@ protocol NotarizeHandler {
 }
 
 struct DefaultNotarizeHandler: NotarizeHandler {
-    private let shell: Shell
+    private let shell: any Shell
     private let picker: NnexPicker
     
-    init(shell: Shell, picker: NnexPicker) {
+    init(shell: any Shell, picker: NnexPicker) {
         self.shell = shell
         self.picker = picker
     }
@@ -34,7 +35,7 @@ extension DefaultNotarizeHandler {
         let checkCommand = "spctl -a -vv \"\(appPath)\""
         
         do {
-            let output = try shell.run(checkCommand)
+            let output = try shell.bash(checkCommand)
             // If spctl succeeds and mentions notarization, it's notarized
             return output.contains("notarized") || output.contains("accepted")
         } catch {
@@ -91,7 +92,7 @@ private extension DefaultNotarizeHandler {
         
         let submissionId: String
         do {
-            let submitOutput = try shell.run(submitCommand)
+            let submitOutput = try shell.bash(submitCommand)
             if verbose {
                 print(submitOutput)
             }
@@ -139,7 +140,7 @@ private extension DefaultNotarizeHandler {
             let statusCommand = "xcrun notarytool info \"\(submissionId)\" --keychain-profile \"notarytool-profile\" --output-format json"
             
             do {
-                let statusOutput = try shell.run(statusCommand)
+                let statusOutput = try shell.bash(statusCommand)
                 if verbose {
                     print("Status check \(attempt): \(statusOutput)")
                 }
@@ -182,7 +183,7 @@ private extension DefaultNotarizeHandler {
         }
         
         do {
-            let output = try shell.run(stapleCommand)
+            let output = try shell.bash(stapleCommand)
             if verbose {
                 print(output)
             }
@@ -197,7 +198,7 @@ private extension DefaultNotarizeHandler {
         let checkProfileCommand = "xcrun notarytool list --keychain-profile \"notarytool-profile\""
         
         do {
-            let _ = try shell.run(checkProfileCommand)
+            let _ = try shell.bash(checkProfileCommand)
         } catch {
             // Profile doesn't exist - prompt user to set it up
             try setupNotarizationCredentials()
@@ -230,7 +231,7 @@ private extension DefaultNotarizeHandler {
         let storeCredentialsCommand = "xcrun notarytool store-credentials notarytool-profile --key \"\(keyPath)\" --key-id \"\(keyId)\" --issuer \"\(issuerId)\""
         
         do {
-            let output = try shell.run(storeCredentialsCommand)
+            let output = try shell.bash(storeCredentialsCommand)
             print("✅ Notarization credentials stored successfully")
             if output.contains("success") || output.contains("stored") || output.contains("saved") {
                 print("✅ Ready for notarization")

@@ -7,13 +7,14 @@
 
 import Foundation
 import NnexKit
+import NnShellKit
 
 struct ReleaseVersionHandler {
-    private let shell: Shell
+    private let shell: any Shell
     private let picker: NnexPicker
     private let gitHandler: GitHandler
     
-    init(picker: NnexPicker, gitHandler: GitHandler, shell: Shell = Nnex.makeShell()) {
+    init(picker: NnexPicker, gitHandler: GitHandler, shell: any Shell = Nnex.makeShell()) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler

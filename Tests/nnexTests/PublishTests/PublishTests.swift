@@ -7,6 +7,7 @@
 
 import NnexKit
 import Testing
+import NnShellKit
 import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
@@ -63,7 +64,10 @@ extension PublishTests {
     @Test("Creates formula file when publishing")
     func publishCommand() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler)
+        let factory = MockContextFactory(
+            runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL),
+            gitHandler: gitHandler
+        )
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -88,7 +92,7 @@ extension PublishTests {
         }
         
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler)
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory, projectName: projectWithDashes, projectFolder: projectFolderWithDashes)
         
@@ -181,19 +185,19 @@ extension PublishTests {
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
         
-        #expect(!shell.printedCommands.contains(where: { $0.contains("swift test") }))
+        #expect(!shell.executedCommands.contains(where: { $0.contains("swift test") }))
     }
     
     @Test("Runs tests when formula includes default test command")
     func runsTestsWithDefaultCommand() throws {
         let shell = MockShell()
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler, shell: shell)
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL, includeTestCommand: true), gitHandler: gitHandler, shell: shell)
         
         try createTestTapAndFormula(factory: factory, testCommand: .defaultCommand)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
         
-        #expect(shell.printedCommands.contains { $0.contains("swift test") })
+        #expect(shell.executedCommands.contains { $0.contains("swift test") })
     }
     
     @Test("Runs tests when formula includes custom test command")
@@ -201,12 +205,12 @@ extension PublishTests {
         let shell = MockShell()
         let testCommand = "xcodebuild test -scheme testScheme -destination 'platform=macOS'"
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler, shell: shell)
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL, includeTestCommand: true), gitHandler: gitHandler, shell: shell)
         
         try createTestTapAndFormula(factory: factory, testCommand: .custom(testCommand))
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
         
-        #expect(shell.printedCommands.contains { $0.contains(testCommand) })
+        #expect(shell.executedCommands.contains { $0.contains(testCommand) })
     }
     
     @Test("Skips tests when indicated in arg even when formula contains test command", arguments: [TestCommand.defaultCommand, TestCommand.custom("some command"), nil])
@@ -221,13 +225,13 @@ extension PublishTests {
         if let testCommand {
             switch testCommand {
             case .custom(let command):
-                #expect(!shell.printedCommands.contains { $0.contains(command) })
+                #expect(!shell.executedCommands.contains { $0.contains(command) })
             default:
                 break
             }
         }
         
-        #expect(!shell.printedCommands.contains { $0.contains("swift test") })
+        #expect(!shell.executedCommands.contains { $0.contains("swift test") })
     }
     
     @Test("Fails to publish when tests fail")
@@ -243,7 +247,7 @@ extension PublishTests {
         }
         
         withKnownIssue("Determining which shell command fails is currently unreliable") {
-            #expect(shell.printedCommands.contains { $0.contains("swift test") })
+            #expect(shell.executedCommands.contains { $0.contains("swift test") })
         }
     }
 }
@@ -257,7 +261,7 @@ extension PublishTests {
         let filePath = releaseNoteFile.path
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let inputs = [versionNumber, filePath, commitMessage]
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [true], gitHandler: gitHandler)
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [true], gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory)
@@ -315,6 +319,32 @@ private extension PublishTests {
         let formula = SwiftDataFormula(name: effectiveProjectName, details: "details", homepage: "homepage", license: "MIT", localProjectPath: formulaPath ?? effectiveProjectFolder.path, uploadType: .binary, testCommand: testCommand, extraBuildArgs: extraBuildArgs)
         
         try context.saveNewTap(tap, formulas: [formula])
+    }
+    
+    /// Creates mock results for publish workflows that expect SHA256 and asset URL
+    /// - Parameters:
+    ///   - sha256: The SHA256 value to return for shasum command
+    ///   - assetURL: The asset URL to return for GitHub release command
+    ///   - includeTestCommand: Whether to include an extra result for test command execution
+    /// - Returns: Array of mock results positioned correctly for publish workflow
+    func makePublishMockResults(sha256: String, assetURL: String, includeTestCommand: Bool = false) -> [String] {
+        var results = [
+            "",       // 1. Clean project
+            "",       // 2. Build arm64
+            "",       // 3. Build x86_64  
+            "",       // 4. Create universal binary folder
+            "",       // 5. Combine architectures (lipo)
+            "",       // 6. Strip symbols
+            "",       // 7. Create GitHub release
+            sha256,   // 8. Calculate SHA256 (shasum)
+            assetURL  // 9. Get latest release asset URL
+        ]
+        
+        if includeTestCommand {
+            results.append("") // 10. Test command execution
+        }
+        
+        return results
     }
 }
 

@@ -1,5 +1,5 @@
 {
-  "originHash" : "cd5c2be2c591690b9c78a254bc7c1339c16ae1312c4688d69d84692dca8a7b6a",
+  "originHash" : "35009dbc1a0f069aa8fde684c4961869a80b9a0507c36856849fe8bc8c22a262",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/JohnSundell/Files",
       "state" : {
-        "revision" : "d273b5b7025d386feef79ef6bad7de762e106eaf",
-        "version" : "4.2.0"
+        "revision" : "e85f2b4a8dfa0f242889f45236f3867d16e40480",
+        "version" : "4.3.0"
       }
     },
     {
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "8311eaa6da2b62672935ec386d67f32d8bf9d1a6",
         "version" : "0.6.1"
+      }
+    },
+    {
+      "identity" : "nnshellkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nikolainobadi/NnShellKit.git",
+      "state" : {
+        "revision" : "8348d74b829a5815dc9890413606c98951e6d759",
+        "version" : "1.0.0"
       }
     },
     {
@@ -42,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-argument-parser.git",
       "state" : {
-        "revision" : "41982a3656a71c768319979febd796c6fd111d5c",
-        "version" : "1.5.0"
+        "revision" : "309a47b2b1d9b5e991f36961c983ecec72275be3",
+        "version" : "1.6.1"
       }
     },
     {
@@ -53,15 +62,6 @@
       "state" : {
         "revision" : "4071f15d77b87c32a33b7ae7ac5dc789a59169c3",
         "version" : "1.0.0"
-      }
-    },
-    {
-      "identity" : "swiftshell",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kareman/SwiftShell",
-      "state" : {
-        "revision" : "99680b2efc7c7dbcace1da0b3979d266f02e213c",
-        "version" : "5.1.0"
       }
     }
   ],

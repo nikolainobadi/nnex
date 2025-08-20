@@ -7,12 +7,13 @@
 
 import Files
 import NnexKit
+import NnShellKit
 import Foundation
 
 struct DefaultMacOSArchiveBuilder: ArchiveBuilder {
-    private let shell: Shell
+    private let shell: any Shell
     
-    init(shell: Shell) {
+    init(shell: any Shell) {
         self.shell = shell
     }
 }
@@ -48,7 +49,7 @@ extension DefaultMacOSArchiveBuilder {
         
         // Execute archive command
         do {
-            let output = try shell.run(archiveCommand)
+            let output = try shell.bash(archiveCommand)
             if config.verbose {
                 print(output)
             }
@@ -78,7 +79,7 @@ extension DefaultMacOSArchiveBuilder {
 // MARK: - Private Methods
 private extension DefaultMacOSArchiveBuilder {
     func createDirectoryIfNeeded(_ path: String) throws {
-        try shell.runAndPrint("mkdir -p \"\(path)\"")
+        _ = try shell.bash("mkdir -p \"\(path)\"")
     }
     
     func buildArchiveCommand(projectType: ProjectType, scheme: String, configuration: BuildConfiguration, archivePath: String, universalBinary: Bool, stripBinary: Bool) -> String {
@@ -121,7 +122,7 @@ private extension DefaultMacOSArchiveBuilder {
         let infoPlistPath = "\(archivePath)/Info.plist"
         let plistCommand = "/usr/bin/plutil -convert xml1 -o - \"\(infoPlistPath)\""
         
-        let output = try shell.run(plistCommand)
+        let output = try shell.bash(plistCommand)
         
         // Parse basic info from plist (simplified parsing)
         let bundleId = extractPlistValue(from: output, key: "CFBundleIdentifier") ?? "Unknown"

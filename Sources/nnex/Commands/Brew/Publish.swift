@@ -7,6 +7,7 @@
 
 import Files
 import NnexKit
+import NnShellKit
 import Foundation
 import ArgumentParser
 
@@ -60,7 +61,7 @@ extension Nnex.Brew {
 // MARK: - Private Helpers
 private extension Nnex.Brew.Publish {
     /// Creates a shell instance for running commands.
-    var shell: Shell {
+    var shell: any Shell {
         return Nnex.makeShell()
     }
     
@@ -69,7 +70,7 @@ private extension Nnex.Brew.Publish {
     /// - Throws: An error if there are uncommitted changes.
     /// - Note: This method should be moved to GitHandler in NnexKit when possible.
     func ensureNoUncommittedChanges(at path: String) throws {
-        let result = try shell.run("cd \"\(path)\" && git status --porcelain")
+        let result = try shell.bash("cd \"\(path)\" && git status --porcelain")
         
         if !result.isEmpty {
             print("""
