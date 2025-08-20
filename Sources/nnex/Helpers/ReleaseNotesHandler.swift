@@ -72,9 +72,10 @@ private extension ReleaseNotesHandler {
     }
 }
 
+
 // MARK: - Dependencies
-protocol FileSystemProvider {
-    func createFile(in folderPath: String, named: String) throws -> FileProtocol
+protocol DateProvider {
+    var currentDate: Date { get }
 }
 
 protocol FileProtocol {
@@ -82,29 +83,16 @@ protocol FileProtocol {
     func readAsString() throws -> String
 }
 
-protocol DateProvider {
-    var currentDate: Date { get }
+protocol FileSystemProvider {
+    func createFile(in folderPath: String, named: String) throws -> FileProtocol
 }
 
-
-// MARK: - Error Types
-enum ReleaseNotesError: Error, LocalizedError, Equatable {
-    case emptyFileAfterRetry(filePath: String)
-    
-    var errorDescription: String? {
-        switch self {
-        case .emptyFileAfterRetry(let filePath):
-            return "File at '\(filePath)' is still empty after retry. Please add content to the file or choose a different option."
-        }
-    }
-}
-
-// MARK: - Dependencies
 extension ReleaseNotesHandler {
     enum NoteContentType: CaseIterable {
         case direct, fromPath, createFile
     }
 }
+
 
 // MARK: - Extension Dependencies
 private extension Date {
