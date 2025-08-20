@@ -9,48 +9,6 @@ import Files
 import Foundation
 import GitCommandGen
 
-// MARK: - Dependencies
-protocol FileSystemProvider {
-    func createFile(in folderPath: String, named: String) throws -> FileProtocol
-}
-
-protocol FileProtocol {
-    var path: String { get }
-    func readAsString() throws -> String
-}
-
-protocol DateProvider {
-    var currentDate: Date { get }
-}
-
-// MARK: - Default Implementations
-struct DefaultFileSystemProvider: FileSystemProvider {
-    func createFile(in folderPath: String, named: String) throws -> FileProtocol {
-        let folder = try Folder(path: folderPath)
-        let file = try folder.createFile(named: named)
-        file.open()
-        return FileWrapper(file: file)
-    }
-}
-
-struct FileWrapper: FileProtocol {
-    private let file: File
-    
-    init(file: File) {
-        self.file = file
-    }
-    
-    var path: String { file.path }
-    
-    func readAsString() throws -> String {
-        try file.readAsString()
-    }
-}
-
-struct DefaultDateProvider: DateProvider {
-    var currentDate: Date { Date() }
-}
-
 struct ReleaseNotesHandler {
     private let picker: NnexPicker
     private let projectName: String
@@ -114,6 +72,20 @@ private extension ReleaseNotesHandler {
     }
 }
 
+// MARK: - Dependencies
+protocol FileSystemProvider {
+    func createFile(in folderPath: String, named: String) throws -> FileProtocol
+}
+
+protocol FileProtocol {
+    var path: String { get }
+    func readAsString() throws -> String
+}
+
+protocol DateProvider {
+    var currentDate: Date { get }
+}
+
 
 // MARK: - Error Types
 enum ReleaseNotesError: Error, LocalizedError, Equatable {
@@ -128,10 +100,11 @@ enum ReleaseNotesError: Error, LocalizedError, Equatable {
 }
 
 // MARK: - Dependencies
-enum NoteContentType: CaseIterable {
-    case direct, fromPath, createFile
+extension ReleaseNotesHandler {
+    enum NoteContentType: CaseIterable {
+        case direct, fromPath, createFile
+    }
 }
-
 
 // MARK: - Extension Dependencies
 private extension Date {
