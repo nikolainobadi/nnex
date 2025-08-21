@@ -7,16 +7,17 @@
 
 import Files
 import NnexKit
-import Foundation
 import GitCommandGen
 
 struct ReleaseHandler {
     private let picker: NnexPicker
     private let gitHandler: GitHandler
+    private let trashHandler: TrashHandler
     
-    init(picker: NnexPicker, gitHandler: GitHandler) {
+    init(picker: NnexPicker, gitHandler: GitHandler, trashHandler: TrashHandler) {
         self.picker = picker
         self.gitHandler = gitHandler
+        self.trashHandler = trashHandler
     }
 }
 
@@ -28,6 +29,10 @@ extension ReleaseHandler {
         let releaseInfo = ReleaseInfo(binaryPath: binaryInfo.path, projectPath: folder.path, releaseNoteInfo: releaseNoteInfo, previousVersion: previousVersion, versionInfo: versionInfo)
         let store = ReleaseStore(gitHandler: gitHandler)
         let (assetURL, versionNumber) = try store.uploadRelease(info: releaseInfo)
+        
+        if releaseNoteInfo.isFromFile, picker.getPermission(prompt: "Would you like to move your release notes file to the trash?") {
+            try trashHandler.moveToTrash(at: releaseNoteInfo.content)
+        }
         
         print("GitHub release \(versionNumber) created and binary uploaded to \(assetURL)")
         return assetURL
@@ -48,4 +53,10 @@ private extension ReleaseHandler {
         
         return try ReleaseNotesHandler(picker: picker, projectName: projectName).getReleaseNoteInfo()
     }
+}
+
+
+// MARK: - Dependencies
+protocol TrashHandler {
+    func moveToTrash(at path: String) throws
 }

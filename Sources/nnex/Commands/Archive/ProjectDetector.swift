@@ -8,6 +8,7 @@
 import Files
 import Foundation
 import NnexKit
+import NnShellKit
 
 protocol ProjectDetector {
     func detectProject(at path: String) throws -> ProjectInfo
@@ -16,9 +17,9 @@ protocol ProjectDetector {
 }
 
 struct DefaultProjectDetector: ProjectDetector {
-    private let shell: Shell
+    private let shell: any Shell
     
-    init(shell: Shell) {
+    init(shell: any Shell) {
         self.shell = shell
     }
 }
@@ -60,7 +61,7 @@ extension DefaultProjectDetector {
         let projectPath = project.type.path
         let listCommand = "xcodebuild -list -project \"\(projectPath)\""
         
-        let output = try shell.run(listCommand)
+        let output = try shell.bash(listCommand)
         
         // Parse schemes from xcodebuild -list output
         let schemes = parseSchemes(from: output)

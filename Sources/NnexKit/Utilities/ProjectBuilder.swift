@@ -5,9 +5,11 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
+import NnShellKit
+
 /// Responsible for building projects and creating binary files.
 public struct ProjectBuilder {
-    private let shell: Shell
+    private let shell: any Shell
     private let config: BuildConfig
     private let progressDelegate: BuildProgressDelegate?
 
@@ -16,7 +18,7 @@ public struct ProjectBuilder {
     ///   - shell: The shell used to execute build commands.
     ///   - config: The configuration containing build settings.
     ///   - progressDelegate: An optional delegate to handle progress updates.
-    public init(shell: Shell, config: BuildConfig, progressDelegate: BuildProgressDelegate? = nil) {
+    public init(shell: any Shell, config: BuildConfig, progressDelegate: BuildProgressDelegate? = nil) {
         self.shell = shell
         self.config = config
         self.progressDelegate = progressDelegate
@@ -69,7 +71,10 @@ private extension ProjectBuilder {
     func cleanProject() throws {
         log("🧹 Cleaning the project...")
         let cleanCommand = "swift package clean --package-path \(config.projectPath)"
-        try shell.runAndPrint(cleanCommand)
+        let output = try shell.bash(cleanCommand)
+        if !output.isEmpty {
+            print(output)
+        }
         log("✅ Project cleaned.")
     }
 
@@ -86,7 +91,10 @@ private extension ProjectBuilder {
             }
             
             log("🧪 Running tests: \(testCommand)")
-            try shell.runAndPrint(testCommand)
+            let output = try shell.bash(testCommand)
+            if !output.isEmpty {
+                print(output)
+            }
             log("✅ Tests completed successfully.")
         }
     }
@@ -99,7 +107,10 @@ private extension ProjectBuilder {
         let buildCommand = """
         swift build -c release --arch \(arch.name) -Xswiftc -Osize -Xswiftc -wmo -Xlinker -dead_strip_dylibs --package-path \(config.projectPath) \(config.extraBuildArgs.joined(separator: " "))
         """
-        try shell.runAndPrint(buildCommand)
+        let output = try shell.bash(buildCommand)
+        if !output.isEmpty {
+            print(output)
+        }
     }
 
     /// Retrieves the SHA256 hash of a binary file.
@@ -107,7 +118,7 @@ private extension ProjectBuilder {
     /// - Returns: The SHA256 hash as a string.
     /// - Throws: An error if the hash calculation fails.
     func getSha256(binaryPath: String) throws -> String {
-        guard let sha256 = try? shell.run("shasum -a 256 \(binaryPath)").components(separatedBy: " ").first else {
+        guard let sha256 = try? shell.bash("shasum -a 256 \(binaryPath)").components(separatedBy: " ").first else {
             throw NnexError.missingSha256
         }
         return sha256
@@ -121,7 +132,7 @@ private extension ProjectBuilder {
         let universalBinaryPath = "\(buildPath)/\(config.projectName)"
 
         log("📂 Creating universal binary folder at: \(buildPath)")
-        try shell.runAndPrint("mkdir -p \(buildPath)")
+        _ = try shell.bash("mkdir -p \(buildPath)")
 
         log("🔗 Combining architectures into universal binary...")
         let lipoCommand = """
@@ -129,10 +140,10 @@ private extension ProjectBuilder {
         \(config.projectPath).build/arm64-apple-macosx/release/\(config.projectName) \
         \(config.projectPath).build/x86_64-apple-macosx/release/\(config.projectName)
         """
-        try shell.runAndPrint(lipoCommand)
+        _ = try shell.bash(lipoCommand)
 
         log("🗑 Stripping unneeded symbols...")
-        try shell.runAndPrint("strip -u -r \(universalBinaryPath)")
+        _ = try shell.bash("strip -u -r \(universalBinaryPath)")
 
         log("✅ Universal binary created at: \(universalBinaryPath)")
         return universalBinaryPath

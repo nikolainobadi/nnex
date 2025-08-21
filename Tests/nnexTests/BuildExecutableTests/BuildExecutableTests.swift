@@ -6,6 +6,7 @@
 import NnexKit
 import Testing
 import Foundation
+import NnShellKit
 import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
@@ -30,7 +31,7 @@ final class BuildTests {
 extension BuildTests {
     @Test("Builds project and outputs binary path")
     func successfulBuildOutputsPath() throws {
-        let shell = MockShell(runResults: [])
+        let shell = MockShell(results: [])
         let factory = MockContextFactory(runResults: [], shell: shell)
         
         try createPackageManifest(name: executableName)
@@ -42,14 +43,14 @@ extension BuildTests {
 
     @Test("Opens binary in Finder when openInFinder flag is set")
     func openBinaryInFinder() throws {
-        let shell = MockShell(runResults: [])
+        let shell = MockShell(results: [])
         let factory = MockContextFactory(runResults: [], shell: shell)
         
         try createPackageManifest(name: executableName)
         
         _ = try runCommand(factory, openInFinder: true)
 
-        #expect(shell.printedCommands.contains { $0.contains("open -R") })
+        #expect(shell.executedCommands.contains { $0.contains("open -R") })
     }
     
     @Test("Fails when Package.swift is missing")
@@ -63,7 +64,7 @@ extension BuildTests {
     
     @Test("Clean flag defaults to true and sets skipClean to false")
     func cleanFlagDefaultsToTrue() throws {
-        let shell = MockShell(runResults: [])
+        let shell = MockShell(results: [])
         let factory = MockContextFactory(runResults: [], selectedItemIndices: [0], shell: shell) // Select current directory
         
         try createPackageManifest(name: executableName)
@@ -76,7 +77,7 @@ extension BuildTests {
     
     @Test("No-clean flag sets skipClean to true")
     func noCleanFlagSetsSkipCleanToTrue() throws {
-        let shell = MockShell(runResults: [])
+        let shell = MockShell(results: [])
         let factory = MockContextFactory(runResults: [], selectedItemIndices: [0], shell: shell) // Select current directory
         
         try createPackageManifest(name: executableName)
@@ -88,7 +89,7 @@ extension BuildTests {
     
     @Test("Builds to current directory when selected")
     func buildsToCurrentDirectoryWhenSelected() throws {
-        let shell = MockShell(runResults: [])
+        let shell = MockShell(results: [])
         let factory = MockContextFactory(runResults: [], selectedItemIndices: [0], shell: shell) // Select current directory (index 0)
         
         try createPackageManifest(name: executableName)
@@ -97,12 +98,12 @@ extension BuildTests {
         
         #expect(output.contains("New binary was built at"))
         // Should not contain any cp commands since it stays in current location
-        #expect(!shell.printedCommands.contains { $0.contains("cp") })
+        #expect(!shell.executedCommands.contains { $0.contains("cp") })
     }
     
     @Test("Builds to desktop when selected")
     func buildsToDesktopWhenSelected() throws {
-        let shell = MockShell(runResults: [])
+        let shell = MockShell(results: [])
         let factory = MockContextFactory(runResults: [], selectedItemIndices: [1], shell: shell) // Select desktop (index 1)
         
         try createPackageManifest(name: executableName)
@@ -111,12 +112,12 @@ extension BuildTests {
         
         #expect(output.contains("New binary was built at"))
         // Should contain cp command to copy to desktop
-        #expect(shell.printedCommands.contains { $0.contains("cp") && $0.contains("Desktop") })
+        #expect(shell.executedCommands.contains { $0.contains("cp") && $0.contains("Desktop") })
     }
     
     @Test("Prompts for custom location and confirms path")
     func promptsForCustomLocationAndConfirmsPath() throws {
-        let shell = MockShell(runResults: [])
+        let shell = MockShell(results: [])
         let customPath = "/tmp"
         let factory = MockContextFactory(
             runResults: [],
@@ -132,12 +133,12 @@ extension BuildTests {
         
         #expect(output.contains("New binary was built at"))
         // Should contain cp command to copy to custom location
-        #expect(shell.printedCommands.contains { $0.contains("cp") && $0.contains(customPath) })
+        #expect(shell.executedCommands.contains { $0.contains("cp") && $0.contains(customPath) })
     }
     
     @Test("Handles custom location input cancellation gracefully")
     func handlesCustomLocationInputCancellationGracefully() throws {
-        let shell = MockShell(runResults: [])
+        let shell = MockShell(results: [])
         let customPath = "/tmp"
         let factory = MockContextFactory(
             runResults: [],
@@ -156,7 +157,7 @@ extension BuildTests {
     
     @Test("Copies binary to selected output location")
     func copiesBinaryToSelectedOutputLocation() throws {
-        let shell = MockShell(runResults: [])
+        let shell = MockShell(results: [])
         let factory = MockContextFactory(runResults: [], selectedItemIndices: [1], shell: shell) // Select desktop
         
         try createPackageManifest(name: executableName)
@@ -164,12 +165,12 @@ extension BuildTests {
         _ = try runCommand(factory)
         
         // Verify cp command was executed
-        #expect(shell.printedCommands.contains { $0.contains("cp") })
+        #expect(shell.executedCommands.contains { $0.contains("cp") })
     }
     
     @Test("Shows final binary location in output message", .disabled()) // TODO: -
     func showsFinalBinaryLocationInOutputMessage() throws {
-        let shell = MockShell(runResults: [])
+        let shell = MockShell(results: [])
         let factory = MockContextFactory(runResults: [], selectedItemIndices: [0], shell: shell) // Select current directory
         
         try createPackageManifest(name: executableName)

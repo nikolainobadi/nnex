@@ -31,7 +31,7 @@ extension BuildType: DisplayablePickerItem {
     }
 }
 
-extension NoteContentType: DisplayablePickerItem {
+extension ReleaseNotesHandler.NoteContentType: DisplayablePickerItem {
     var displayName: String {
         switch self {
         case .direct:

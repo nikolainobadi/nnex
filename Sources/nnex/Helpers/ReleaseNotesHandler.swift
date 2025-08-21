@@ -9,48 +9,6 @@ import Files
 import Foundation
 import GitCommandGen
 
-// MARK: - Dependencies
-protocol FileSystemProvider {
-    func createFile(in folderPath: String, named: String) throws -> FileProtocol
-}
-
-protocol FileProtocol {
-    var path: String { get }
-    func readAsString() throws -> String
-}
-
-protocol DateProvider {
-    var currentDate: Date { get }
-}
-
-// MARK: - Default Implementations
-struct DefaultFileSystemProvider: FileSystemProvider {
-    func createFile(in folderPath: String, named: String) throws -> FileProtocol {
-        let folder = try Folder(path: folderPath)
-        let file = try folder.createFile(named: named)
-        file.open()
-        return FileWrapper(file: file)
-    }
-}
-
-struct FileWrapper: FileProtocol {
-    private let file: File
-    
-    init(file: File) {
-        self.file = file
-    }
-    
-    var path: String { file.path }
-    
-    func readAsString() throws -> String {
-        try file.readAsString()
-    }
-}
-
-struct DefaultDateProvider: DateProvider {
-    var currentDate: Date { Date() }
-}
-
 struct ReleaseNotesHandler {
     private let picker: NnexPicker
     private let projectName: String
@@ -115,21 +73,24 @@ private extension ReleaseNotesHandler {
 }
 
 
-// MARK: - Error Types
-enum ReleaseNotesError: Error, LocalizedError, Equatable {
-    case emptyFileAfterRetry(filePath: String)
-    
-    var errorDescription: String? {
-        switch self {
-        case .emptyFileAfterRetry(let filePath):
-            return "File at '\(filePath)' is still empty after retry. Please add content to the file or choose a different option."
-        }
-    }
+// MARK: - Dependencies
+protocol DateProvider {
+    var currentDate: Date { get }
 }
 
-// MARK: - Dependencies
-enum NoteContentType: CaseIterable {
-    case direct, fromPath, createFile
+protocol FileProtocol {
+    var path: String { get }
+    func readAsString() throws -> String
+}
+
+protocol FileSystemProvider {
+    func createFile(in folderPath: String, named: String) throws -> FileProtocol
+}
+
+extension ReleaseNotesHandler {
+    enum NoteContentType: CaseIterable {
+        case direct, fromPath, createFile
+    }
 }
 
 

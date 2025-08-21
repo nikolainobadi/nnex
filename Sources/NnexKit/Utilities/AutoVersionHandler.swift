@@ -7,11 +7,12 @@
 
 import Files
 import Foundation
+import NnShellKit
 
 public struct AutoVersionHandler {
-    private let shell: Shell
+    private let shell: any Shell
     
-    public init(shell: Shell) {
+    public init(shell: any Shell) {
         self.shell = shell
     }
 }

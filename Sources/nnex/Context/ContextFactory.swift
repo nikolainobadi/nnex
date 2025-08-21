@@ -6,12 +6,13 @@
 //
 
 import NnexKit
+import NnShellKit
 
 /// Factory for creating context-related objects.
 protocol ContextFactory {
     /// Creates a new shell instance.
     /// - Returns: A Shell instance.
-    func makeShell() -> Shell
+    func makeShell() -> any Shell
 
     /// Creates a new picker instance.
     /// - Returns: A NnexPicker instance.
@@ -41,4 +42,8 @@ protocol ContextFactory {
     /// Creates a new export handler instance.
     /// - Returns: An ExportHandler instance.
     func makeExportHandler() -> ExportHandler
+    
+    /// Creates a new trash handler instance.
+    /// - Returns: A TrashHandler instance.
+    func makeTrashHandler() -> TrashHandler
 }

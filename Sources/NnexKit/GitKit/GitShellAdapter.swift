@@ -6,14 +6,15 @@
 //
 
 import GitShellKit
+import NnShellKit
 
 /// Adapter for executing Git shell commands.
 struct GitShellAdapter {
-    private let shell: Shell
+    private let shell: any Shell
 
     /// Initializes a new instance of GitShellAdapter with the specified shell.
     /// - Parameter shell: The shell used to execute commands.
-    init(shell: Shell) {
+    init(shell: any Shell) {
         self.shell = shell
     }
 }
@@ -25,6 +26,6 @@ extension GitShellAdapter: GitShell {
     /// - Parameter command: The shell command to execute.
     /// - Returns: The output of the executed command.
     func runWithOutput(_ command: String) throws -> String {
-        return try shell.run(command)
+        return try shell.bash(command)
     }
 }

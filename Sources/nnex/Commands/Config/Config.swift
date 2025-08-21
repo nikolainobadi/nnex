@@ -6,6 +6,7 @@
 //
 
 import NnexKit
+import NnShellKit
 import ArgumentParser
 
 extension Nnex {
@@ -70,7 +71,7 @@ extension Nnex.Config {
                 return
             }
 
-            try Nnex.makeShell().runAndPrint("open \(path)")
+            _ = try Nnex.makeShell().bash("open \(path)")
         }
     }
 }

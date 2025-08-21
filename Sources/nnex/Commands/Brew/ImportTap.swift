@@ -7,6 +7,7 @@
 
 import Files
 import NnexKit
+import NnShellKit
 import Foundation
 import ArgumentParser
 
@@ -74,14 +75,14 @@ private extension Nnex.Brew.ImportTap {
     /// - Throws: An error if the command execution fails.
     func makeBrewOutput(filePath: String) throws -> String {
         let shell = Nnex.makeShell()
-        let brewCheck = try shell.run("which brew")
+        let brewCheck = try shell.bash("which brew")
         
         if brewCheck.contains("not found") {
             print("⚠️⚠️⚠️\nHomebrew has NOT been installed. You may want to install it soon...".red.bold)
             return ""
         }
         
-        return try shell.run("brew info --json=v2 \(filePath)")
+        return try shell.bash("brew info --json=v2 \(filePath)")
     }
     
     /// Extracts a specific field from the given text using a regular expression pattern.

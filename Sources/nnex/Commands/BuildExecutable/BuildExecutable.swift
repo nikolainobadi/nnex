@@ -7,6 +7,7 @@
 
 import Files
 import NnexKit
+import NnShellKit
 import ArgumentParser
 import Foundation
 import SwiftPicker
@@ -70,7 +71,7 @@ extension Nnex {
             print("New binary was built at \(finalPath)")
             
             if openInFinder {
-                try shell.runAndPrint("open -R \(finalPath)")
+                _ = try shell.bash("open -R \(finalPath)")
             }
         }
     }
@@ -170,7 +171,7 @@ extension Nnex.Build {
         return .custom(parentFolder.path)
     }
     
-    func copyBinaryToLocation(binaryInfo: BinaryInfo, outputLocation: BuildOutputLocation, executableName: String, shell: Shell) throws -> String {
+    func copyBinaryToLocation(binaryInfo: BinaryInfo, outputLocation: BuildOutputLocation, executableName: String, shell: any Shell) throws -> String {
         switch outputLocation {
         case .currentDirectory:
             // Binary is already in the correct location
@@ -179,12 +180,12 @@ extension Nnex.Build {
         case .desktop:
             let desktop = try Folder.home.subfolder(named: "Desktop")
             let destinationPath = desktop.path + "/" + executableName
-            try shell.runAndPrint("cp \"\(binaryInfo.path)\" \"\(destinationPath)\"")
+            _ = try shell.bash("cp \"\(binaryInfo.path)\" \"\(destinationPath)\"")
             return destinationPath
             
         case .custom(let parentPath):
             let destinationPath = parentPath + "/" + executableName
-            try shell.runAndPrint("cp \"\(binaryInfo.path)\" \"\(destinationPath)\"")
+            _ = try shell.bash("cp \"\(binaryInfo.path)\" \"\(destinationPath)\"")
             return destinationPath
         }
     }

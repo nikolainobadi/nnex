@@ -6,6 +6,7 @@
 //
 
 import NnexKit
+import NnShellKit
 import SwiftData
 import Foundation
 import NnexSharedTestHelpers
@@ -22,8 +23,19 @@ final class MockContextFactory {
     private var shell: MockShell?
     private var picker: MockPicker?
     private var context: NnexContext?
+    private var trashHandler: MockTrashHandler?
     
-    init(tapListFolderPath: String? = nil, runResults: [String] = [], selectedItemIndex: Int = 0, selectedItemIndices: [Int] = [], inputResponses: [String] = [], permissionResponses: [Bool] = [], gitHandler: MockGitHandler = .init(), shell: MockShell? = nil) {
+    init(
+        tapListFolderPath: String? = nil,
+        runResults: [String] = [],
+        selectedItemIndex: Int = 0,
+        selectedItemIndices: [Int] = [],
+        inputResponses: [String] = [],
+        permissionResponses: [Bool] = [],
+        gitHandler: MockGitHandler = .init(),
+        shell: MockShell? = nil,
+        trashHandler: MockTrashHandler? = nil
+    ) {
         self.tapListFolderPath = tapListFolderPath
         self.runResults = runResults
         self.inputResponses = inputResponses
@@ -32,18 +44,19 @@ final class MockContextFactory {
         self.selectedItemIndex = selectedItemIndex
         self.selectedItemIndices = selectedItemIndices
         self.shell = shell
+        self.trashHandler = trashHandler
     }
 }
 
 
 // MARK: - Factory
 extension MockContextFactory: ContextFactory {
-    func makeShell() -> Shell {
+    func makeShell() -> any Shell {
         if let shell {
             return shell
         }
         
-        let newShell = MockShell(runResults: runResults)
+        let newShell = MockShell(results: runResults)
         shell = newShell
         return newShell
     }
@@ -94,6 +107,16 @@ extension MockContextFactory: ContextFactory {
     
     func makeExportHandler() -> ExportHandler {
         return DefaultExportHandler(shell: makeShell())
+    }
+    
+    func makeTrashHandler() -> TrashHandler {
+        if let trashHandler {
+            return trashHandler
+        }
+        
+        let newTrashHandler = MockTrashHandler()
+        trashHandler = newTrashHandler
+        return newTrashHandler
     }
 }
 

@@ -6,15 +6,16 @@
 //
 
 import GitShellKit
+import NnShellKit
 
 /// Default implementation of the GitHandler protocol, providing Git-related operations.
 public struct DefaultGitHandler {
-    private let shell: Shell
+    private let shell: any Shell
     private let gitShell: GitShell
 
     /// Initializes a new instance of DefaultGitHandler with the specified shell.
     /// - Parameter shell: The shell used to execute commands.
-    public init(shell: Shell) {
+    public init(shell: any Shell) {
         self.shell = shell
         self.gitShell = GitShellAdapter(shell: shell)
     }
@@ -28,9 +29,9 @@ extension DefaultGitHandler: GitHandler {
     ///   - message: The commit message describing the changes.
     ///   - path: The file path of the repository.
     public func commitAndPush(message: String, path: String) throws {
-        try shell.runAndPrint(makeGitCommand(.addAll, path: path))
-        try shell.runAndPrint(makeGitCommand(.commit(message: message), path: path))
-        try shell.runAndPrint(makeGitCommand(.push, path: path))
+        _ = try shell.bash(makeGitCommand(.addAll, path: path))
+        _ = try shell.bash(makeGitCommand(.commit(message: message), path: path))
+        _ = try shell.bash(makeGitCommand(.push, path: path))
     }
 
     /// Retrieves the remote URL of the repository located at the given path.
@@ -44,7 +45,7 @@ extension DefaultGitHandler: GitHandler {
     /// - Parameter path: The file path of the repository.
     /// - Returns: A string representing the previous release version.
     public func getPreviousReleaseVersion(path: String) throws -> String {
-        return try shell.run(makeGitHubCommand(.getPreviousReleaseVersion, path: path))
+        return try shell.bash(makeGitHubCommand(.getPreviousReleaseVersion, path: path))
     }
 
     /// Initializes a new Git repository at the given path.
@@ -74,13 +75,13 @@ extension DefaultGitHandler: GitHandler {
     /// - Returns: A string representing the release URL.
     public func createNewRelease(version: String, binaryPath: String, releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> String {
         let command = makeGitHubCommand(.createNewReleaseWithBinary(version: version, binaryPath: binaryPath, releaseNoteInfo: releaseNoteInfo), path: path)
-        try shell.runAndPrint(command)
-        return try shell.run(makeGitHubCommand(.getLatestReleaseAssetURL, path: path))
+        _ = try shell.bash(command)
+        return try shell.bash(makeGitHubCommand(.getLatestReleaseAssetURL, path: path))
     }
 
     /// Verifies if the GitHub CLI (gh) is installed and provides installation instructions if not.
     public func ghVerification() throws {
-        if try shell.run("which gh").contains("not found") {
+        if try shell.bash("which gh").contains("not found") {
             throw NnexError.missingGitHubCLI
         }
     }

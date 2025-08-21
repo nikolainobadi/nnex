@@ -7,7 +7,7 @@
 
 import Testing
 import GitShellKit
-import NnexSharedTestHelpers
+import NnShellKit
 @testable import NnexKit
 
 struct GitHandlerTests {
@@ -26,11 +26,11 @@ extension GitHandlerTests {
         
         try sut.gitInit(path: defaultPath)
         
-        #expect(shell.printedCommands.count == 4)
-        #expect(shell.printedCommands[0] == makeGitCommand(.localGitCheck, path: defaultPath))
-        #expect(shell.printedCommands[1] == makeGitCommand(.gitInit, path: defaultPath))
-        #expect(shell.printedCommands[2] == makeGitCommand(.addAll, path: defaultPath))
-        #expect(shell.printedCommands[3] == makeGitCommand(.commit(message: "Initial Commit"), path: defaultPath))
+        #expect(shell.executedCommands.count == 4)
+        #expect(shell.executedCommands[0] == makeGitCommand(.localGitCheck, path: defaultPath))
+        #expect(shell.executedCommands[1] == makeGitCommand(.gitInit, path: defaultPath))
+        #expect(shell.executedCommands[2] == makeGitCommand(.addAll, path: defaultPath))
+        #expect(shell.executedCommands[3] == makeGitCommand(.commit(message: "Initial Commit"), path: defaultPath))
     }
     
     @Test("Successfully gets the remote URL")
@@ -40,8 +40,8 @@ extension GitHandlerTests {
         let result = try sut.getRemoteURL(path: defaultPath)
         
         #expect(result == defaultURL)
-        #expect(shell.printedCommands.count == 1)
-        #expect(shell.printedCommands[0] == makeGitCommand(.getRemoteURL, path: defaultPath))
+        #expect(shell.executedCommands.count == 1)
+        #expect(shell.executedCommands[0] == makeGitCommand(.getRemoteURL, path: defaultPath))
     }
     
     @Test("Successfully retrieves the previous release version")
@@ -51,8 +51,8 @@ extension GitHandlerTests {
         let result = try sut.getPreviousReleaseVersion(path: defaultPath)
         
         #expect(result == previousVersion)
-        #expect(shell.printedCommands.count == 1)
-        #expect(shell.printedCommands[0] == makeGitHubCommand(.getPreviousReleaseVersion, path: defaultPath))
+        #expect(shell.executedCommands.count == 1)
+        #expect(shell.executedCommands[0] == makeGitHubCommand(.getPreviousReleaseVersion, path: defaultPath))
     }
     
     @Test("Successfully creates a new GitHub release and retrieves the latest asset URL")
@@ -60,14 +60,14 @@ extension GitHandlerTests {
         let version = "v2.0.0"
         let binaryPath = "/path/to/binary"
         let releaseNoteInfo = ReleaseNoteInfo(content: "Release notes for v2.0.0", isFromFile: false)
-        let (sut, shell) = makeSUT(runResults: [releaseAssetURL])
+        let (sut, shell) = makeSUT(runResults: ["", releaseAssetURL]) // First result for create release, second for get asset URL
         
         let result = try sut.createNewRelease(version: version, binaryPath: binaryPath, releaseNoteInfo: releaseNoteInfo, path: defaultPath)
         
         #expect(result == releaseAssetURL)
-        #expect(shell.printedCommands.count == 2)
-        #expect(shell.printedCommands[0] == makeGitHubCommand(.createNewReleaseWithBinary(version: version, binaryPath: binaryPath, releaseNoteInfo: releaseNoteInfo), path: defaultPath))
-        #expect(shell.printedCommands[1] == makeGitHubCommand(.getLatestReleaseAssetURL, path: defaultPath))
+        #expect(shell.executedCommands.count == 2)
+        #expect(shell.executedCommands[0] == makeGitHubCommand(.createNewReleaseWithBinary(version: version, binaryPath: binaryPath, releaseNoteInfo: releaseNoteInfo), path: defaultPath))
+        #expect(shell.executedCommands[1] == makeGitHubCommand(.getLatestReleaseAssetURL, path: defaultPath))
     }
     
     @Test("Throws error if initializing Git repository fails")
@@ -103,12 +103,12 @@ extension GitHandlerTests {
         let result = try sut.remoteRepoInit(tapName: "TestTap", path: defaultPath, projectDetails: "A test tap", visibility: visibility)
         
         #expect(result == defaultURL)
-        #expect(shell.printedCommands.count == 5)
-        #expect(shell.printedCommands[0] == makeGitCommand(.localGitCheck, path: defaultPath))
-        #expect(shell.printedCommands[1] == makeGitCommand(.checkForRemote, path: defaultPath))
-        #expect(shell.printedCommands[2] == makeGitCommand(.getCurrentBranchName, path: defaultPath))
-        #expect(shell.printedCommands[3] == makeGitHubCommand(.createRemoteRepo(name: "TestTap", visibility: visibility.rawValue, details: "A test tap"), path: defaultPath))
-        #expect(shell.printedCommands[4] == makeGitCommand(.getRemoteURL, path: defaultPath))
+        #expect(shell.executedCommands.count == 5)
+        #expect(shell.executedCommands[0] == makeGitCommand(.localGitCheck, path: defaultPath))
+        #expect(shell.executedCommands[1] == makeGitCommand(.checkForRemote, path: defaultPath))
+        #expect(shell.executedCommands[2] == makeGitCommand(.getCurrentBranchName, path: defaultPath))
+        #expect(shell.executedCommands[3] == makeGitHubCommand(.createRemoteRepo(name: "TestTap", visibility: visibility.rawValue, details: "A test tap"), path: defaultPath))
+        #expect(shell.executedCommands[4] == makeGitCommand(.getRemoteURL, path: defaultPath))
     }
     
     @Test("Successfully commits and pushes changes")
@@ -118,10 +118,10 @@ extension GitHandlerTests {
 
         try sut.commitAndPush(message: commitMessage, path: defaultPath)
 
-        #expect(shell.printedCommands.count == 3)
-        #expect(shell.printedCommands[0] == makeGitCommand(.addAll, path: defaultPath))
-        #expect(shell.printedCommands[1] == makeGitCommand(.commit(message: commitMessage), path: defaultPath))
-        #expect(shell.printedCommands[2] == makeGitCommand(.push, path: defaultPath))
+        #expect(shell.executedCommands.count == 3)
+        #expect(shell.executedCommands[0] == makeGitCommand(.addAll, path: defaultPath))
+        #expect(shell.executedCommands[1] == makeGitCommand(.commit(message: commitMessage), path: defaultPath))
+        #expect(shell.executedCommands[2] == makeGitCommand(.push, path: defaultPath))
     }
 }
 
@@ -129,7 +129,7 @@ extension GitHandlerTests {
 // MARK: - SUT
 private extension GitHandlerTests {
     func makeSUT(runResults: [String] = [], throwError: Bool = false) -> (sut: DefaultGitHandler, shell: MockShell) {
-        let shell = MockShell(runResults: runResults, shouldThrowError: throwError)
+        let shell = MockShell(results: runResults, shouldThrowError: throwError)
         let sut = DefaultGitHandler(shell: shell)
         
         return (sut, shell)

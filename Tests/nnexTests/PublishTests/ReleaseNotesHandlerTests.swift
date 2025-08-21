@@ -130,7 +130,7 @@ extension ReleaseNotesHandlerTests {
 // MARK: - SUT
 private extension ReleaseNotesHandlerTests {
     func makeSUT(
-        selectedOption: NoteContentType = .direct,
+        selectedOption: ReleaseNotesHandler.NoteContentType = .direct,
         inputResponses: [String] = [],
         permissionResponses: [Bool] = [],
         fileContent: String = "",
@@ -160,7 +160,7 @@ private extension ReleaseNotesHandlerTests {
 
 
 // MARK: - Extensions Dependencies
-private extension NoteContentType {
+private extension ReleaseNotesHandler.NoteContentType {
     var index: Int {
         switch self {
         case .direct:

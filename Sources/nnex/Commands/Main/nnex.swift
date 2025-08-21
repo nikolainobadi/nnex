@@ -2,6 +2,7 @@
 // https://docs.swift.org/swift-book
 
 import NnexKit
+import NnShellKit
 import ArgumentParser
 
 @main
@@ -24,7 +25,7 @@ struct Nnex: ParsableCommand {
 
 // MARK: - Factory Methods
 extension Nnex {
-    static func makeShell() -> Shell {
+    static func makeShell() -> any Shell {
         return contextFactory.makeShell()
     }
     
@@ -54,5 +55,9 @@ extension Nnex {
     
     static func makeExportHandler() -> ExportHandler {
         return contextFactory.makeExportHandler()
+    }
+    
+    static func makeTrashHandler() -> TrashHandler {
+        return contextFactory.makeTrashHandler()
     }
 }
