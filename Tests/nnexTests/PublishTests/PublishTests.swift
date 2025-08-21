@@ -255,14 +255,14 @@ extension PublishTests {
 
 // MARK: - Input Provided from User
 extension PublishTests {
-    // TODO: - need to update test to work with new 'delete releaseNotes' feature
     @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and file path for release notes is input.")
     func publishCommandWithInputsAndFilePathReleaseNotes() throws {
         let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
         let filePath = releaseNoteFile.path
         let gitHandler = MockGitHandler(assetURL: assetURL)
+        let trashHandler = MockTrashHandler()
         let inputs = [versionNumber, filePath, commitMessage]
-        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [true, true], gitHandler: gitHandler)
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [true, true], gitHandler: gitHandler, trashHandler: trashHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory)
@@ -276,6 +276,22 @@ extension PublishTests {
         #expect(gitHandler.message == commitMessage)
         #expect(releaseNoteInfo.isFromFile)
         #expect(releaseNoteInfo.content == filePath)
+        #expect(trashHandler.lastMovedPath == filePath)
+    }
+    
+    @Test("Does not delete release notes file when user declines deletion prompt")
+    func doesNotDeleteReleaseNotesWhenUserDeclines() throws {
+        let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
+        let filePath = releaseNoteFile.path
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let trashHandler = MockTrashHandler()
+        let inputs = [versionNumber, filePath, commitMessage]
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [false, true], gitHandler: gitHandler, trashHandler: trashHandler)
+        
+        try createTestTapAndFormula(factory: factory)
+        try runCommand(factory)
+        
+        #expect(trashHandler.lastMovedPath == nil)
     }
 }
 
