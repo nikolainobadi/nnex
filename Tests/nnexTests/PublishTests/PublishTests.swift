@@ -256,13 +256,13 @@ extension PublishTests {
 // MARK: - Input Provided from User
 extension PublishTests {
     // TODO: - need to update test to work with new 'delete releaseNotes' feature
-    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and file path for release notes is input.", .disabled())
+    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and file path for release notes is input.")
     func publishCommandWithInputsAndFilePathReleaseNotes() throws {
         let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
         let filePath = releaseNoteFile.path
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let inputs = [versionNumber, filePath, commitMessage]
-        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [true], gitHandler: gitHandler)
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [true, true], gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory)
