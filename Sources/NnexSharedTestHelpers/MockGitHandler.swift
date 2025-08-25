@@ -69,11 +69,17 @@ extension MockGitHandler: GitHandler {
         return remoteURL
     }
     
-    public func createNewRelease(version: String, binaryPath: String, releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> String {
+    public func createNewRelease(version: String, binaryPath: String, additionalBinaryPaths: [String], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String] {
         if throwError { throw NSError(domain: "Test", code: 0) }
         self.releaseVersion = version
         self.releaseNoteInfo = releaseNoteInfo
-        return assetURL
+        
+        // Return primary asset URL + additional URLs for each additional binary
+        var urls = [assetURL]
+        for (index, _) in additionalBinaryPaths.enumerated() {
+            urls.append("\(assetURL)-additional-\(index + 1)")
+        }
+        return urls
     }
 }
 

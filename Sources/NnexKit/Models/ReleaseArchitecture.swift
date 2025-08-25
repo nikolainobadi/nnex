@@ -14,7 +14,7 @@ public enum ReleaseArchitecture {
     case intel
 
     /// Returns the architecture name as a string.
-    var name: String {
+    public var name: String {
         switch self {
         case .arm:
             return "arm64"

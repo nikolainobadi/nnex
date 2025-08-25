@@ -13,6 +13,8 @@ import NnexSharedTestHelpers
 struct ReleaseStoreTests {
     private let version = "1.0.0"
     private let assetURL = "https://github.com/test/binary1"
+    private let additionalAssetPath1 = "path/to/binary2"
+    private let additionalAssetPath2 = "path/to/binary3"
 }
 
 
@@ -31,7 +33,35 @@ extension ReleaseStoreTests {
         let (sut, gitHandler) = makeSUT()
         let result = try sut.uploadRelease(info: info)
         
-        #expect(result.assertURL == assetURL)
+        #expect(result.assetURLs.count == 1)
+        #expect(result.assetURLs.first == assetURL)
+        #expect(result.versionNumber == version)
+        #expect(gitHandler.releaseVersion == version)
+    }
+    
+    @Test("Uploads a release with additional assets and returns all URLs")
+    func uploadReleaseWithAdditionalAssets() throws {
+        let info = makeReleaseInfo(versionInfo: .version(version))
+        let additionalPaths = [additionalAssetPath1, additionalAssetPath2]
+        let (sut, gitHandler) = makeSUT()
+        let result = try sut.uploadRelease(info: info, additionalAssetPaths: additionalPaths)
+        
+        #expect(result.assetURLs.count == 3) // Primary + 2 additional
+        #expect(result.assetURLs.first == assetURL) // Primary asset URL
+        #expect(result.assetURLs[1] == "\(assetURL)-additional-1") // First additional
+        #expect(result.assetURLs[2] == "\(assetURL)-additional-2") // Second additional
+        #expect(result.versionNumber == version)
+        #expect(gitHandler.releaseVersion == version)
+    }
+    
+    @Test("Uploads release with empty additional assets array")
+    func uploadReleaseWithEmptyAdditionalAssets() throws {
+        let info = makeReleaseInfo(versionInfo: .version(version))
+        let (sut, gitHandler) = makeSUT()
+        let result = try sut.uploadRelease(info: info, additionalAssetPaths: [])
+        
+        #expect(result.assetURLs.count == 1) // Only primary
+        #expect(result.assetURLs.first == assetURL)
         #expect(result.versionNumber == version)
         #expect(gitHandler.releaseVersion == version)
     }
@@ -54,7 +84,8 @@ extension ReleaseStoreTests {
         let (sut, gitHandler) = makeSUT()
         let result = try sut.uploadRelease(info: info)
         
-        #expect(result.assertURL == assetURL)
+        #expect(result.assetURLs.count == 1)
+        #expect(result.assetURLs.first == assetURL)
         #expect(result.versionNumber == expectedRelease)
         #expect(gitHandler.releaseVersion == expectedRelease)
     }

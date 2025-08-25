@@ -31,20 +31,26 @@ final class BuildTests {
 extension BuildTests {
     @Test("Builds project and outputs binary path")
     func successfulBuildOutputsPath() throws {
-        let shell = MockShell(results: [])
-        let factory = MockContextFactory(runResults: [], shell: shell)
+        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
+        let factory = MockContextFactory(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"], shell: shell)
         
         try createPackageManifest(name: executableName)
         
         let output = try runCommand(factory)
 
-        #expect(output.contains("New binary was built at"))
+        #expect(output.contains("Universal binary built:"))
     }
 
     @Test("Opens binary in Finder when openInFinder flag is set")
     func openBinaryInFinder() throws {
-        let shell = MockShell(results: [])
-        let factory = MockContextFactory(runResults: [], shell: shell)
+        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
+        let factory = MockContextFactory(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"], shell: shell)
         
         try createPackageManifest(name: executableName)
         
@@ -64,88 +70,105 @@ extension BuildTests {
     
     @Test("Clean flag defaults to true and sets skipClean to false")
     func cleanFlagDefaultsToTrue() throws {
-        let shell = MockShell(results: [])
-        let factory = MockContextFactory(runResults: [], selectedItemIndices: [0], shell: shell) // Select current directory
+        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
+        let factory = MockContextFactory(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"], selectedItemIndices: [0], shell: shell) // Select current directory
         
         try createPackageManifest(name: executableName)
         
         let output = try runCommand(factory)
         
         // Verify build was called (clean flag default is true, so skipClean should be false)
-        #expect(output.contains("New binary was built at"))
+        #expect(output.contains("Universal binary built:"))
     }
     
     @Test("No-clean flag sets skipClean to true")
     func noCleanFlagSetsSkipCleanToTrue() throws {
-        let shell = MockShell(results: [])
-        let factory = MockContextFactory(runResults: [], selectedItemIndices: [0], shell: shell) // Select current directory
+        // No-clean build results: build arm64, build x86_64, shasum arm, shasum intel (no clean command)
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let shell = MockShell(results: ["", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
+        let factory = MockContextFactory(runResults: ["", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"], selectedItemIndices: [0], shell: shell) // Select current directory
         
         try createPackageManifest(name: executableName)
         
         let output = try runCommand(factory, clean: false)
         
-        #expect(output.contains("New binary was built at"))
+        #expect(output.contains("Universal binary built:"))
     }
     
     @Test("Builds to current directory when selected")
     func buildsToCurrentDirectoryWhenSelected() throws {
-        let shell = MockShell(results: [])
-        let factory = MockContextFactory(runResults: [], selectedItemIndices: [0], shell: shell) // Select current directory (index 0)
+        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
+        let factory = MockContextFactory(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"], selectedItemIndices: [0], shell: shell) // Select current directory (index 0)
         
         try createPackageManifest(name: executableName)
         
         let output = try runCommand(factory)
         
-        #expect(output.contains("New binary was built at"))
+        #expect(output.contains("Universal binary built:"))
         // Should not contain any cp commands since it stays in current location
         #expect(!shell.executedCommands.contains { $0.contains("cp") })
     }
     
     @Test("Builds to desktop when selected")
     func buildsToDesktopWhenSelected() throws {
-        let shell = MockShell(results: [])
-        let factory = MockContextFactory(runResults: [], selectedItemIndices: [1], shell: shell) // Select desktop (index 1)
+        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
+        let factory = MockContextFactory(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"], selectedItemIndices: [1], shell: shell) // Select desktop (index 1)
         
         try createPackageManifest(name: executableName)
         
         let output = try runCommand(factory)
         
-        #expect(output.contains("New binary was built at"))
+        #expect(output.contains("Universal binary built:"))
         // Should contain cp command to copy to desktop
         #expect(shell.executedCommands.contains { $0.contains("cp") && $0.contains("Desktop") })
     }
     
     @Test("Prompts for custom location and confirms path")
     func promptsForCustomLocationAndConfirmsPath() throws {
-        let shell = MockShell(results: [])
+        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
         let customPath = "/tmp"
         let factory = MockContextFactory(
-            runResults: [],
+            runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"],
             selectedItemIndices: [2], // Select custom (index 2)
             inputResponses: [customPath],
             permissionResponses: [true], // Confirm the path
-            shell: shell
+            shell: MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
         )
         
         try createPackageManifest(name: executableName)
         
         let output = try runCommand(factory)
         
-        #expect(output.contains("New binary was built at"))
+        #expect(output.contains("Universal binary built:"))
         // Should contain cp command to copy to custom location
+        let shell = factory.makeShell() as! MockShell
         #expect(shell.executedCommands.contains { $0.contains("cp") && $0.contains(customPath) })
     }
     
     @Test("Handles custom location input cancellation gracefully")
     func handlesCustomLocationInputCancellationGracefully() throws {
-        let shell = MockShell(results: [])
+        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
         let customPath = "/tmp"
         let factory = MockContextFactory(
-            runResults: [],
+            runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"],
             selectedItemIndices: [2], // Select custom (index 2)
             inputResponses: [customPath],
             permissionResponses: [false], // Cancel the confirmation
-            shell: shell
+            shell: MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
         )
         
         try createPackageManifest(name: executableName)
@@ -157,8 +180,11 @@ extension BuildTests {
     
     @Test("Copies binary to selected output location")
     func copiesBinaryToSelectedOutputLocation() throws {
-        let shell = MockShell(results: [])
-        let factory = MockContextFactory(runResults: [], selectedItemIndices: [1], shell: shell) // Select desktop
+        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
+        let factory = MockContextFactory(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"], selectedItemIndices: [1], shell: shell) // Select desktop
         
         try createPackageManifest(name: executableName)
         
@@ -168,17 +194,21 @@ extension BuildTests {
         #expect(shell.executedCommands.contains { $0.contains("cp") })
     }
     
-    @Test("Shows final binary location in output message", .disabled()) // TODO: -
+    @Test("Shows final binary location in output message")
     func showsFinalBinaryLocationInOutputMessage() throws {
-        let shell = MockShell(results: [])
-        let factory = MockContextFactory(runResults: [], selectedItemIndices: [0], shell: shell) // Select current directory
+        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
+        let factory = MockContextFactory(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"], selectedItemIndices: [0], shell: shell) // Select current directory
         
         try createPackageManifest(name: executableName)
         
         let output = try runCommand(factory)
         
-        #expect(output.contains("New binary was built at"))
-        #expect(output.contains(binaryPath)) // Should show the actual binary path
+        #expect(output.contains("Universal binary built:"))
+        #expect(output.contains("arm64")) // Should show architecture info
+        #expect(output.contains("x86_64")) // Should show architecture info
     }
 }
 

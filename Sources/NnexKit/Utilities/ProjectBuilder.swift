@@ -1,23 +1,10 @@
-//
-//  ProjectBuilder.swift
-//  nnex
-//
-//  Created by Nikolai Nobadi on 3/19/25.
-//
-
 import NnShellKit
 
-/// Responsible for building projects and creating binary files.
 public struct ProjectBuilder {
     private let shell: any Shell
     private let config: BuildConfig
     private let progressDelegate: BuildProgressDelegate?
 
-    /// Initializes a new instance of ProjectBuilder.
-    /// - Parameters:
-    ///   - shell: The shell used to execute build commands.
-    ///   - config: The configuration containing build settings.
-    ///   - progressDelegate: An optional delegate to handle progress updates.
     public init(shell: any Shell, config: BuildConfig, progressDelegate: BuildProgressDelegate? = nil) {
         self.shell = shell
         self.config = config
@@ -28,10 +15,7 @@ public struct ProjectBuilder {
 
 // MARK: - Build
 public extension ProjectBuilder {
-    /// Builds a project based on the configuration.
-    /// - Returns: A BinaryInfo object containing the binary path and SHA256 hash.
-    /// - Throws: An error if the build process fails.
-    func build() throws -> BinaryInfo {
+    func build() throws -> BinaryOutput {
         if !config.skipClean {
             try cleanProject()
         }
@@ -40,24 +24,34 @@ public extension ProjectBuilder {
             try build(for: arch)
         }
 
-        let binaryPath: String
-        if config.buildType == .universal {
-            binaryPath = try buildUniversalBinary()
-        } else {
-            binaryPath = "\(config.projectPath).build/\(config.buildType.archs.first!.name)-apple-macosx/release/\(config.projectName)"
-        }
+        switch config.buildType {
+        case .arm64, .x86_64:
+            let arch = config.buildType.archs.first!
+            let path = binaryPath(for: arch)
+            let sha256 = try getSha256(binaryPath: path)
+            
+            try runTests()
+            
+            return .single(.init(path: path, sha256: sha256))
 
-        let sha256 = try getSha256(binaryPath: binaryPath)
-        try runTests() // Run tests after building
-        return .init(path: binaryPath, sha256: sha256)
+        case .universal:
+            var results: [ReleaseArchitecture: BinaryInfo] = [:]
+            for arch in config.buildType.archs {
+                let path = binaryPath(for: arch)
+                let sha256 = try getSha256(binaryPath: path)
+                results[arch] = .init(path: path, sha256: sha256)
+            }
+            
+            try runTests()
+            
+            return .multiple(results)
+        }
     }
 }
 
 
 // MARK: - Private Methods
 private extension ProjectBuilder {
-    /// Logs a progress message using the delegate or falls back to printing.
-    /// - Parameter message: The message to log.
     func log(_ message: String) {
         if let progressDelegate = progressDelegate {
             progressDelegate.didUpdateProgress(message)
@@ -66,20 +60,13 @@ private extension ProjectBuilder {
         }
     }
 
-    /// Cleans the project before building.
-    /// - Throws: An error if the clean process fails.
     func cleanProject() throws {
         log("🧹 Cleaning the project...")
-        let cleanCommand = "swift package clean --package-path \(config.projectPath)"
-        let output = try shell.bash(cleanCommand)
-        if !output.isEmpty {
-            print(output)
-        }
+        let output = try shell.bash("swift package clean --package-path \(config.projectPath)")
+        if !output.isEmpty { print(output) }
         log("✅ Project cleaned.")
     }
 
-    /// Runs tests based on the configured test command.
-    /// - Throws: An error if the test process fails.
     func runTests() throws {
         if let testCommandEnum = config.testCommand {
             let testCommand: String
@@ -89,84 +76,50 @@ private extension ProjectBuilder {
             case .custom(let command):
                 testCommand = command
             }
-            
             log("🧪 Running tests: \(testCommand)")
             let output = try shell.bash(testCommand)
-            if !output.isEmpty {
-                print(output)
-            }
+            if !output.isEmpty { print(output) }
             log("✅ Tests completed successfully.")
         }
     }
 
-    /// Builds the project for the specified architecture.
-    /// - Parameter arch: The target architecture for the build.
-    /// - Throws: An error if the build process fails.
     func build(for arch: ReleaseArchitecture) throws {
         log("🔨 Building for \(arch.name)...")
-        let buildCommand = """
-        swift build -c release --arch \(arch.name) -Xswiftc -Osize -Xswiftc -wmo -Xlinker -dead_strip_dylibs --package-path \(config.projectPath) \(config.extraBuildArgs.joined(separator: " "))
-        """
-        let output = try shell.bash(buildCommand)
-        if !output.isEmpty {
-            print(output)
-        }
+        let extra = config.extraBuildArgs.joined(separator: " ")
+        let cmd = "swift build -c release --arch \(arch.name) -Xswiftc -Osize -Xswiftc -wmo -Xlinker -dead_strip_dylibs --package-path \(config.projectPath) \(extra)"
+        let output = try shell.bash(cmd)
+        if !output.isEmpty { print(output) }
     }
 
-    /// Retrieves the SHA256 hash of a binary file.
-    /// - Parameter binaryPath: The file path to the binary.
-    /// - Returns: The SHA256 hash as a string.
-    /// - Throws: An error if the hash calculation fails.
+    func binaryPath(for arch: ReleaseArchitecture) -> String {
+        "\(config.projectPath).build/\(arch.name)-apple-macosx/release/\(config.projectName)"
+    }
+
     func getSha256(binaryPath: String) throws -> String {
-        guard let sha256 = try? shell.bash("shasum -a 256 \(binaryPath)").components(separatedBy: " ").first else {
-            throw NnexError.missingSha256
-        }
-        return sha256
-    }
-
-    /// Builds a universal binary by combining architectures.
-    /// - Returns: The file path of the created universal binary.
-    /// - Throws: An error if the binary creation fails.
-    func buildUniversalBinary() throws -> String {
-        let buildPath = "\(config.projectPath).build/universal"
-        let universalBinaryPath = "\(buildPath)/\(config.projectName)"
-
-        log("📂 Creating universal binary folder at: \(buildPath)")
-        _ = try shell.bash("mkdir -p \(buildPath)")
-
-        log("🔗 Combining architectures into universal binary...")
-        let lipoCommand = """
-        lipo -create -output \(universalBinaryPath) \
-        \(config.projectPath).build/arm64-apple-macosx/release/\(config.projectName) \
-        \(config.projectPath).build/x86_64-apple-macosx/release/\(config.projectName)
-        """
-        _ = try shell.bash(lipoCommand)
-
-        log("🗑 Stripping unneeded symbols...")
-        _ = try shell.bash("strip -u -r \(universalBinaryPath)")
-
-        log("✅ Universal binary created at: \(universalBinaryPath)")
-        return universalBinaryPath
+        guard
+            let raw = try? shell.bash("shasum -a 256 \(binaryPath)"),
+            let sha = raw.components(separatedBy: " ").first,
+            !sha.isEmpty
+        else { throw NnexError.missingSha256 }
+        return sha
     }
 }
 
-// MARK: - Dependencies
+public enum BinaryOutput {
+    case single(BinaryInfo)
+    case multiple([ReleaseArchitecture: BinaryInfo])
+}
+
 public protocol BuildProgressDelegate: AnyObject {
     func didUpdateProgress(_ message: String)
 }
 
-
-// MARK: - Extension Dependencies
-fileprivate extension BuildType {
-    /// Returns the list of architectures associated with the build type.
+private extension BuildType {
     var archs: [ReleaseArchitecture] {
         switch self {
-        case .arm64:
-            return [.arm]
-        case .x86_64:
-            return [.intel]
-        case .universal:
-            return [.arm, .intel]
+        case .arm64: return [.arm]
+        case .x86_64: return [.intel]
+        case .universal: return [.arm, .intel]
         }
     }
 }

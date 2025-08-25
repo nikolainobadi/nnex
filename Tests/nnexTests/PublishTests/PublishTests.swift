@@ -18,7 +18,8 @@ final class PublishTests {
     private let projectFolder: Folder
     private let tapName = "testTap"
     private let assetURL = "assetURL"
-    private let sha256 = "abc123def456"
+    private let sha256 = "abc123def456"  // Just the hash value
+    private let sha256Output = "abc123def456  /path/to/file"  // Shasum command output format
     private let versionNumber = "v1.0.0"
     private let projectName = "testProject"
     private let releaseNotes = "release notes"
@@ -46,7 +47,7 @@ extension PublishTests {
     @Test("Cannot publish if 'gh' is not installed")
     func publishFailsWithNoGHCLI() throws {
         let gitHandler = MockGitHandler(ghIsInstalled: false)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler)
+        let factory = MockContextFactory(runResults: ["", "", "", sha256Output, sha256Output], gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory)
         
@@ -64,17 +65,18 @@ extension PublishTests {
     @Test("Creates formula file when publishing")
     func publishCommand() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
+        let extraResults = Array(repeating: sha256Output, count: 10) // Add extra results in case more commands are called
         let factory = MockContextFactory(
-            runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL),
+            runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL) + extraResults,
             gitHandler: gitHandler
         )
         
         try createTestTapAndFormula(factory: factory)
-        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, buildType: .universal)
         
         let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
         
-        #expect(formulaFileContents.contains(projectName))
+        #expect(formulaFileContents.contains(projectName.capitalized))
         #expect(formulaFileContents.contains(sha256))
         #expect(formulaFileContents.contains(assetURL))
     }
@@ -92,7 +94,8 @@ extension PublishTests {
         }
         
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), gitHandler: gitHandler)
+        let extraResults = Array(repeating: sha256Output, count: 10) // Add extra results in case more commands are called
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL) + extraResults, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory, projectName: projectWithDashes, projectFolder: projectFolderWithDashes)
         
@@ -114,7 +117,8 @@ extension PublishTests {
     @Test("Commits changes when commit message is included in args")
     func commitsChanges() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler)
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let factory = MockContextFactory(runResults: ["", "", "", sha256Output, sha256Output] + extraResults, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -125,7 +129,8 @@ extension PublishTests {
     @Test("Automatically updates localProjectPath for formula if it doesn't match project folder path")
     func updatesFormulaLocalPath() throws {
         let staleLocalPath = "~/Desktop/stale"
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL])
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let factory = MockContextFactory(runResults: ["", "", "", sha256Output, sha256Output] + extraResults)
         let context = try factory.makeContext()
         
         try createTestTapAndFormula(factory: factory, formulaPath: staleLocalPath)
@@ -148,7 +153,8 @@ extension PublishTests {
     @Test("Uploads with inline release notes when included in args")
     func uploadsDirectReleaseNotes() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler)
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let factory = MockContextFactory(runResults: ["", "", "", sha256Output, sha256Output] + extraResults, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -162,7 +168,8 @@ extension PublishTests {
     @Test("Uploads release notes from file when included in args")
     func uploadsReleaseNotesFromFile() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler)
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let factory = MockContextFactory(runResults: ["", "", "", sha256Output, sha256Output] + extraResults, gitHandler: gitHandler)
         let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
         let filePath = releaseNoteFile.path
         
@@ -178,9 +185,10 @@ extension PublishTests {
     
     @Test("Does not include tests when none exist")
     func doesNotIncludeTests() throws {
-        let shell = MockShell()
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler, shell: shell)
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let shell = MockShell(results: ["", "", "", sha256Output, sha256Output] + extraResults)
+        let factory = MockContextFactory(runResults: ["", "", "", sha256Output, sha256Output] + extraResults, gitHandler: gitHandler, shell: shell)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -190,9 +198,11 @@ extension PublishTests {
     
     @Test("Runs tests when formula includes default test command")
     func runsTestsWithDefaultCommand() throws {
-        let shell = MockShell()
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL, includeTestCommand: true), gitHandler: gitHandler, shell: shell)
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let testResults = ["", "", "", "", sha256Output, sha256Output, ""] + extraResults // 7 commands: git status, clean, build arm64, build x86_64, sha256 arm64, sha256 x86_64, test
+        let shell = MockShell(results: testResults)
+        let factory = MockContextFactory(runResults: testResults, gitHandler: gitHandler, shell: shell)
         
         try createTestTapAndFormula(factory: factory, testCommand: .defaultCommand)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -202,10 +212,12 @@ extension PublishTests {
     
     @Test("Runs tests when formula includes custom test command")
     func runsTestsWithCustomCommand() throws {
-        let shell = MockShell()
         let testCommand = "xcodebuild test -scheme testScheme -destination 'platform=macOS'"
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL, includeTestCommand: true), gitHandler: gitHandler, shell: shell)
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let testResults = ["", "", "", "", sha256Output, sha256Output, ""] + extraResults // 7 commands: git status, clean, build arm64, build x86_64, sha256 arm64, sha256 x86_64, test
+        let shell = MockShell(results: testResults)
+        let factory = MockContextFactory(runResults: testResults, gitHandler: gitHandler, shell: shell)
         
         try createTestTapAndFormula(factory: factory, testCommand: .custom(testCommand))
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -215,9 +227,11 @@ extension PublishTests {
     
     @Test("Skips tests when indicated in arg even when formula contains test command", arguments: [TestCommand.defaultCommand, TestCommand.custom("some command"), nil])
     func skipsTests(testCommand: TestCommand?) throws {
-        let shell = MockShell()
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler, shell: shell)
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let testResults = ["", "", "", sha256Output, sha256Output] + extraResults
+        let shell = MockShell(results: testResults)
+        let factory = MockContextFactory(runResults: testResults, gitHandler: gitHandler, shell: shell)
         
         try createTestTapAndFormula(factory: factory, testCommand: testCommand)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, skipTests: true)
@@ -236,9 +250,11 @@ extension PublishTests {
     
     @Test("Fails to publish when tests fail")
     func failsToPublishWhenTestsFail() throws {
-        let shell = MockShell(shouldThrowError: true)
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: ["", sha256, assetURL], gitHandler: gitHandler, shell: shell)
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let testResults = ["", "", "", sha256Output, sha256Output] + extraResults
+        let shell = MockShell(results: testResults, shouldThrowError: true)
+        let factory = MockContextFactory(runResults: testResults, gitHandler: gitHandler, shell: shell)
         
         try createTestTapAndFormula(factory: factory, testCommand: .defaultCommand)
         
@@ -262,7 +278,8 @@ extension PublishTests {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let trashHandler = MockTrashHandler()
         let inputs = [versionNumber, filePath, commitMessage]
-        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [true, true], gitHandler: gitHandler, trashHandler: trashHandler)
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL) + extraResults, selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [true, true], gitHandler: gitHandler, trashHandler: trashHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory)
@@ -270,7 +287,7 @@ extension PublishTests {
         let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
         let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
         
-        #expect(formulaFileContents.contains(projectName))
+        #expect(formulaFileContents.contains(projectName.capitalized))
         #expect(formulaFileContents.contains(sha256))
         #expect(formulaFileContents.contains(assetURL))
         #expect(gitHandler.message == commitMessage)
@@ -286,7 +303,8 @@ extension PublishTests {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let trashHandler = MockTrashHandler()
         let inputs = [versionNumber, filePath, commitMessage]
-        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [false, true], gitHandler: gitHandler, trashHandler: trashHandler)
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL) + extraResults, selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [false, true], gitHandler: gitHandler, trashHandler: trashHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory)
@@ -298,7 +316,7 @@ extension PublishTests {
 
 // MARK: - Run Command
 private extension PublishTests {
-    func runCommand(_ factory: MockContextFactory, version: ReleaseVersionInfo? = nil, message: String? = nil, notes: String? = nil, notesFile: String? = nil, skipTests: Bool = false) throws {
+    func runCommand(_ factory: MockContextFactory, version: ReleaseVersionInfo? = nil, message: String? = nil, notes: String? = nil, notesFile: String? = nil, skipTests: Bool = false, buildType: BuildType? = nil) throws {
         var args = ["brew", "publish", "-p", projectFolder.path]
         
         if let version {
@@ -319,6 +337,10 @@ private extension PublishTests {
         
         if skipTests {
             args.append("--skip-tests")
+        }
+        
+        if let buildType {
+            args.append(contentsOf: ["-b", buildType.rawValue])
         }
         
         try Nnex.testRun(contextFactory: factory, args: args)
@@ -345,20 +367,24 @@ private extension PublishTests {
     ///   - includeTestCommand: Whether to include an extra result for test command execution
     /// - Returns: Array of mock results positioned correctly for publish workflow
     func makePublishMockResults(sha256: String, assetURL: String, includeTestCommand: Bool = false) -> [String] {
+        // New simplified build workflow:
+        // 1. Clean project (if not skipped)
+        // 2. Build for arm64
+        // 3. Build for x86_64 (for universal builds)
+        // 4. Get SHA256 for arm64
+        // 5. Get SHA256 for x86_64 (for universal builds)
+        // 6. Run tests (if included)
+        
         var results = [
             "",       // 1. Clean project
             "",       // 2. Build arm64
-            "",       // 3. Build x86_64  
-            "",       // 4. Create universal binary folder
-            "",       // 5. Combine architectures (lipo)
-            "",       // 6. Strip symbols
-            "",       // 7. Create GitHub release
-            sha256,   // 8. Calculate SHA256 (shasum)
-            assetURL  // 9. Get latest release asset URL
+            "",       // 3. Build x86_64
+            sha256Output,   // 4. SHA256 for arm64 (shasum output format)
+            sha256Output,   // 5. SHA256 for x86_64 (shasum output format)
         ]
         
         if includeTestCommand {
-            results.append("") // 10. Test command execution
+            results.append("") // 6. Test command execution
         }
         
         return results

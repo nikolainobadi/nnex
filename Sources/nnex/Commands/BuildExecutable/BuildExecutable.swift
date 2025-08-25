@@ -63,15 +63,25 @@ extension Nnex {
             
             let config = BuildConfig(projectName: executableName, projectPath: projectFolder.path, buildType: buildType, extraBuildArgs: [], skipClean: !clean, testCommand: nil)
             let builder = ProjectBuilder(shell: shell, config: config)
-            let binaryInfo = try builder.build()
+            let binaryOutput = try builder.build()
             
             // Copy binary to selected location if different from default
-            let finalPath = try copyBinaryToLocation(binaryInfo: binaryInfo, outputLocation: outputLocation, executableName: executableName, shell: shell)
+            let finalPaths = try copyBinaryToLocation(binaryOutput: binaryOutput, outputLocation: outputLocation, executableName: executableName, shell: shell)
             
-            print("New binary was built at \(finalPath)")
-            
-            if openInFinder {
-                _ = try shell.bash("open -R \(finalPath)")
+            switch finalPaths {
+            case .single(let binaryInfo):
+                print("New binary was built at \(binaryInfo.path)")
+                if openInFinder {
+                    _ = try shell.bash("open -R \(binaryInfo.path)")
+                }
+            case .multiple(let binaries):
+                print("Universal binary built:")
+                for (arch, binaryInfo) in binaries {
+                    print("  \(arch.name): \(binaryInfo.path)")
+                }
+                if openInFinder, let firstBinary = binaries.values.first {
+                    _ = try shell.bash("open -R \(firstBinary.path)")
+                }
             }
         }
     }
@@ -171,22 +181,36 @@ extension Nnex.Build {
         return .custom(parentFolder.path)
     }
     
-    func copyBinaryToLocation(binaryInfo: BinaryInfo, outputLocation: BuildOutputLocation, executableName: String, shell: any Shell) throws -> String {
+    func copyBinaryToLocation(binaryOutput: BinaryOutput, outputLocation: BuildOutputLocation, executableName: String, shell: any Shell) throws -> BinaryOutput {
         switch outputLocation {
         case .currentDirectory:
             // Binary is already in the correct location
-            return binaryInfo.path
+            return binaryOutput
             
         case .desktop:
             let desktop = try Folder.home.subfolder(named: "Desktop")
-            let destinationPath = desktop.path + "/" + executableName
-            _ = try shell.bash("cp \"\(binaryInfo.path)\" \"\(destinationPath)\"")
-            return destinationPath
+            return try copyToDestination(binaryOutput: binaryOutput, destinationPath: desktop.path, executableName: executableName, shell: shell)
             
         case .custom(let parentPath):
-            let destinationPath = parentPath + "/" + executableName
-            _ = try shell.bash("cp \"\(binaryInfo.path)\" \"\(destinationPath)\"")
-            return destinationPath
+            return try copyToDestination(binaryOutput: binaryOutput, destinationPath: parentPath, executableName: executableName, shell: shell)
+        }
+    }
+    
+    private func copyToDestination(binaryOutput: BinaryOutput, destinationPath: String, executableName: String, shell: any Shell) throws -> BinaryOutput {
+        switch binaryOutput {
+        case .single(let binaryInfo):
+            let finalPath = destinationPath + "/" + executableName
+            _ = try shell.bash("cp \"\(binaryInfo.path)\" \"\(finalPath)\"")
+            return .single(.init(path: finalPath, sha256: binaryInfo.sha256))
+            
+        case .multiple(let binaries):
+            var results: [ReleaseArchitecture: BinaryInfo] = [:]
+            for (arch, binaryInfo) in binaries {
+                let finalPath = destinationPath + "/" + executableName + "-\(arch.name)"
+                _ = try shell.bash("cp \"\(binaryInfo.path)\" \"\(finalPath)\"")
+                results[arch] = .init(path: finalPath, sha256: binaryInfo.sha256)
+            }
+            return .multiple(results)
         }
     }
 }

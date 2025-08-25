@@ -16,36 +16,33 @@ public struct ReleaseStore {
     }
 }
 
-
 // MARK: - Upload
 extension ReleaseStore {
-    /// Represents the result of a successful upload, containing the asset URL and version number.
-    public typealias UploadResult = (assertURL: String, versionNumber: String)
+    /// Represents the result of a successful upload, containing asset URLs and version number.
+    public typealias UploadResult = (assetURLs: [String], versionNumber: String)
 
-    /// Uploads a release to the remote repository.
-    /// - Parameter info: The information related to the release.
-    /// - Returns: An UploadResult containing the asset URL and version number.
+    /// Uploads a release to the remote repository with optional additional assets.
+    /// - Parameters:
+    ///   - info: The information related to the release.
+    ///   - additionalAssetPaths: Optional additional binary paths to upload to the same release.
+    /// - Returns: An UploadResult containing all asset URLs and version number.
     /// - Throws: An error if the upload process fails.
-    public func uploadRelease(info: ReleaseInfo) throws -> UploadResult {
+    public func uploadRelease(info: ReleaseInfo, additionalAssetPaths: [String] = []) throws -> UploadResult {
         let versionNumber = try getVersionNumber(info)
-        let assetURL = try gitHandler.createNewRelease(
+        let assetURLs = try gitHandler.createNewRelease(
             version: versionNumber,
             binaryPath: info.binaryPath,
+            additionalBinaryPaths: additionalAssetPaths,
             releaseNoteInfo: info.releaseNoteInfo,
             path: info.projectPath
         )
-
-        return (assetURL, versionNumber)
+        return (assetURLs, versionNumber)
     }
 }
-
 
 // MARK: - Private Methods
 private extension ReleaseStore {
     /// Determines the version number for the release.
-    /// - Parameter info: The release information containing version details.
-    /// - Returns: The resolved version number as a string.
-    /// - Throws: An error if the version number could not be determined.
     func getVersionNumber(_ info: ReleaseInfo) throws -> String {
         switch info.versionInfo {
         case .version(let number):
@@ -53,11 +50,16 @@ private extension ReleaseStore {
                 throw NnexError.invalidVersionNumber
             }
             return number
+
         case .increment(let part):
             guard let previousVersion = info.previousVersion else {
                 throw NnexError.noPreviousVersionToIncrement
             }
-            return try VersionHandler.incrementVersion(for: part, path: info.projectPath, previousVersion: previousVersion)
+            return try VersionHandler.incrementVersion(
+                for: part,
+                path: info.projectPath,
+                previousVersion: previousVersion
+            )
         }
     }
 }
