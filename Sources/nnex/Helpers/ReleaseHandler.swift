@@ -23,7 +23,7 @@ struct ReleaseHandler {
 
 // MARK: - Action
 extension ReleaseHandler {
-    func uploadRelease(folder: Folder, binaryOutput: BinaryOutput, versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> String {
+    func uploadRelease(folder: Folder, binaryOutput: BinaryOutput, versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
         let noteInfo = try getReleaseNoteInfo(projectName: folder.name, releaseNotesSource: releaseNotesSource)
         let store = ReleaseStore(gitHandler: gitHandler)
 
@@ -40,7 +40,7 @@ extension ReleaseHandler {
             try maybeTrashReleaseNotes(noteInfo)
             let primaryAssetURL = assetURLs.first ?? ""
             print("GitHub release \(versionNumber) created and binary uploaded to \(primaryAssetURL)")
-            return primaryAssetURL
+            return assetURLs
 
         case .multiple(let map):
             // deterministic order: prefer arm then intel when available
@@ -67,7 +67,7 @@ extension ReleaseHandler {
                     print("  Asset \(index + 2): \(url)")
                 }
             }
-            return primaryAssetURL
+            return assetURLs
         }
     }
 }

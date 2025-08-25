@@ -37,7 +37,7 @@ extension ReleaseHandlerTests {
             previousVersion: testPreviousVersion
         )
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: versionInfo,
@@ -45,7 +45,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseVersion == testVersionNumber)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == false)
@@ -64,7 +64,7 @@ extension ReleaseHandlerTests {
         let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
         let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: resolvedVersion,
@@ -72,7 +72,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
     }
     
@@ -89,7 +89,7 @@ extension ReleaseHandlerTests {
         let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
         let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: resolvedVersion,
@@ -97,7 +97,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseVersion == testVersionNumber)
     }
     
@@ -111,7 +111,7 @@ extension ReleaseHandlerTests {
             previousVersion: testPreviousVersion
         )
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: versionInfo,
@@ -119,7 +119,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotesFile)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == true)
     }
@@ -134,7 +134,7 @@ extension ReleaseHandlerTests {
             previousVersion: testPreviousVersion
         )
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: versionInfo,
@@ -142,7 +142,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == false)
     }
@@ -159,7 +159,7 @@ extension ReleaseHandlerTests {
             selectedIndices: [0] // Direct input option
         )
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: versionInfo,
@@ -167,7 +167,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == false)
     }
@@ -185,7 +185,7 @@ extension ReleaseHandlerTests {
         let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
         let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: resolvedVersion,
@@ -193,7 +193,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
     }
     
     @Test("Handles version input with specific version number")
@@ -209,7 +209,7 @@ extension ReleaseHandlerTests {
         let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
         let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: resolvedVersion,
@@ -217,7 +217,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseVersion == "2.1.0")
     }
     
@@ -234,7 +234,7 @@ extension ReleaseHandlerTests {
         let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
         let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: resolvedVersion,
@@ -242,7 +242,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseVersion == "1.5.0")
     }
     
@@ -259,7 +259,7 @@ extension ReleaseHandlerTests {
         let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler)
         let (resolvedVersion, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: nil, projectPath: folder.path)
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: resolvedVersion,
@@ -267,7 +267,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseVersion == "1.0.0")
     }
     
@@ -283,7 +283,7 @@ extension ReleaseHandlerTests {
         )
         
         #expect(throws: (any Error).self) {
-            try sut.uploadRelease(
+            _ = try sut.uploadRelease(
                 folder: folder,
                 binaryOutput: makeBinaryOutput(),
                 versionInfo: versionInfo,
@@ -319,7 +319,7 @@ extension ReleaseHandlerTests {
             permissionResponses: [true]
         )
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: versionInfo,
@@ -327,7 +327,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotesFile)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == true)
         #expect(trashHandler.moveToTrashCalled == true)
@@ -345,7 +345,7 @@ extension ReleaseHandlerTests {
             permissionResponses: [false]
         )
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: versionInfo,
@@ -353,7 +353,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotesFile)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == true)
         #expect(trashHandler.moveToTrashCalled == false)
@@ -371,7 +371,7 @@ extension ReleaseHandlerTests {
             permissionResponses: [true] // This shouldn't matter since no file is involved
         )
         
-        let result = try sut.uploadRelease(
+        let results = try sut.uploadRelease(
             folder: folder,
             binaryOutput: makeBinaryOutput(),
             versionInfo: versionInfo,
@@ -379,7 +379,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(result == testAssetURL)
+        #expect(results.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == false)
         #expect(trashHandler.moveToTrashCalled == false)
@@ -400,7 +400,7 @@ extension ReleaseHandlerTests {
         
         // Even if trash fails, the release should still succeed
         #expect(throws: (any Error).self) {
-            try sut.uploadRelease(
+            _ = try sut.uploadRelease(
                 folder: folder,
                 binaryOutput: makeBinaryOutput(),
                 versionInfo: versionInfo,

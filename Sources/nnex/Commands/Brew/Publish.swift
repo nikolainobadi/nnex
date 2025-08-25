@@ -48,9 +48,10 @@ extension Nnex.Brew {
             let (resolvedVersionInfo, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: version, projectPath: projectFolder.path)
             
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
-            let binaryInfo = try buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests)
-            let assetURL = try uploadRelease(folder: projectFolder, binaryInfo: binaryInfo, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
-            let formulaContent = makeFormulaContent(formula: formula, assetURL: assetURL, sha256: binaryInfo.sha256)
+            let binaryOutput = try buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests)
+            let assetURLs = try uploadRelease(folder: projectFolder, binaryOutput: binaryOutput, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
+            
+            let formulaContent = try makeFormulaContent(formula: formula, binaryOutput: binaryOutput, assetURLs: assetURLs)
             
             try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
         }
@@ -120,24 +121,84 @@ private extension Nnex.Brew.Publish {
     ///   - formula: The Homebrew formula associated with the project.
     ///   - buildType: The type of build to perform.
     ///   - skipTesting: Whether or not to skip tests, if the formula contains a `TestCommand`
-    /// - Returns: The binary information including path and hash.
+    /// - Returns: The binary output including path(s) and hash(es).
     /// - Throws: An error if the build process fails.
-    func buildBinary(formula: SwiftDataFormula, buildType: BuildType, skipTesting: Bool) throws -> BinaryInfo {
-        fatalError() // TODO: - 
-//        let testCommand = skipTesting ? nil : formula.testCommand
-//        let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
-//        let builder = ProjectBuilder(shell: shell, config: config)
-//        
-//        return try builder.build()
+    func buildBinary(formula: SwiftDataFormula, buildType: BuildType, skipTesting: Bool) throws -> BinaryOutput {
+        let testCommand = skipTesting ? nil : formula.testCommand
+        let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
+        let builder = ProjectBuilder(shell: shell, config: config)
+        
+        return try builder.build()
     }
 
-    func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> String {
-        fatalError() // TODO: -
-//        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: Nnex.makeTrashHandler())
-//            
-//        return try handler.uploadRelease(folder: folder, binaryInfo: binaryInfo, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
+    /// Uploads a release to GitHub and returns the asset URLs.
+    /// - Parameters:
+    ///   - folder: The project folder.
+    ///   - binaryOutput: The binary output from the build.
+    ///   - versionInfo: The version information for the release.
+    ///   - previousVersion: The previous version, if any.
+    ///   - releaseNotesSource: The source of release notes.
+    /// - Returns: An array of asset URLs from the GitHub release.
+    /// - Throws: An error if the upload fails.
+    func uploadRelease(folder: Folder, binaryOutput: BinaryOutput, versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
+        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: Nnex.makeTrashHandler())
+        return try handler.uploadRelease(folder: folder, binaryOutput: binaryOutput, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
 
+    /// Creates formula content based on the binary output and asset URLs.
+    /// - Parameters:
+    ///   - formula: The Homebrew formula.
+    ///   - binaryOutput: The binary output from the build.
+    ///   - assetURLs: The asset URLs from the GitHub release.
+    /// - Returns: The formula content as a string.
+    /// - Throws: An error if formula generation fails.
+    func makeFormulaContent(formula: SwiftDataFormula, binaryOutput: BinaryOutput, assetURLs: [String]) throws -> String {
+        switch binaryOutput {
+        case .single(let info):
+            guard let assetURL = assetURLs.first else {
+                throw NnexError.missingSha256 // Should create a better error for missing URL
+            }
+            return FormulaContentGenerator.makeFormulaFileContent(
+                name: formula.name,
+                details: formula.details,
+                homepage: formula.homepage,
+                license: formula.license,
+                assetURL: assetURL,
+                sha256: info.sha256
+            )
+            
+        case .multiple(let map):
+            // For multiple binaries, we need to extract URLs for each architecture
+            // Assuming URLs are in deterministic order: ARM first, then Intel
+            let armInfo = map[.arm]
+            let intelInfo = map[.intel]
+            
+            // Extract URLs - assuming first is ARM, second is Intel when both present
+            var armURL: String?
+            var intelURL: String?
+            
+            if armInfo != nil && intelInfo != nil {
+                armURL = assetURLs.count > 0 ? assetURLs[0] : nil
+                intelURL = assetURLs.count > 1 ? assetURLs[1] : nil
+            } else if armInfo != nil {
+                armURL = assetURLs.first
+            } else if intelInfo != nil {
+                intelURL = assetURLs.first
+            }
+            
+            return FormulaContentGenerator.makeFormulaFileContent(
+                name: formula.name,
+                details: formula.details,
+                homepage: formula.homepage,
+                license: formula.license,
+                armURL: armURL,
+                armSHA256: armInfo?.sha256,
+                intelURL: intelURL,
+                intelSHA256: intelInfo?.sha256
+            )
+        }
+    }
+    
     /// Publishes the Homebrew formula to the specified tap.
     /// - Parameters:
     ///   - content: The formula content as a string.
@@ -170,37 +231,6 @@ private extension Nnex.Brew.Publish {
         }
 
         return try picker.getRequiredInput(prompt: "Enter your commit message.")
-    }
-    
-    /// Creates formula content with sanitized name for valid Ruby class naming.
-    /// - Parameters:
-    ///   - formula: The formula containing the metadata.
-    ///   - assetURL: The URL of the binary or tarball asset.
-    ///   - sha256: The SHA256 hash of the asset.
-    /// - Returns: The generated formula file content with a sanitized class name.
-    func makeFormulaContent(formula: SwiftDataFormula, assetURL: String, sha256: String) -> String {
-        let sanitizedClassName = FormulaNameSanitizer.sanitizeFormulaName(formula.name)
-        let originalName = formula.name
-        
-        // We need to generate the formula content manually to use different names
-        // for the class (sanitized) and the binary (original)
-        return """
-        class \(sanitizedClassName) < Formula
-            desc "\(formula.details)"
-            homepage "\(formula.homepage)"
-            url "\(assetURL)"
-            sha256 "\(sha256)"
-            license "\(formula.license)"
-
-            def install
-                bin.install "\(originalName)"
-            end
-
-            test do
-                system "#{bin}/\(originalName)", "--help"
-            end
-        end
-        """
     }
 }
 

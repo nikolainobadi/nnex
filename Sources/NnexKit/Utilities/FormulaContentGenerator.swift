@@ -6,17 +6,6 @@
 //
 
 public enum FormulaContentGenerator {
-    public static func makeFormulaFileContent(formula: SwiftDataFormula, assetURL: String, sha256: String) -> String {
-        return makeFormulaFileContent(
-            name: formula.name,
-            details: formula.details,
-            homepage: formula.homepage,
-            license: formula.license,
-            assetURL: assetURL,
-            sha256: sha256
-        )
-    }
-
     public static func makeFormulaFileContent(
         name: String,
         details: String,
