@@ -74,7 +74,7 @@ private extension ProjectBuilder {
             case .defaultCommand:
                 testCommand = "swift test --package-path \(config.projectPath)"
             case .custom(let command):
-                testCommand = command
+                testCommand = command + " -quiet -allowProvisioningUpdates"
             }
             log("🧪 Running tests: \(testCommand)")
             let output = try shell.bash(testCommand)
