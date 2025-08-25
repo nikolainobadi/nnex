@@ -76,7 +76,7 @@ extension PublishTests {
         
         let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
         
-        #expect(formulaFileContents.contains(projectName))
+        #expect(formulaFileContents.contains(projectName.capitalized))
         #expect(formulaFileContents.contains(sha256))
         #expect(formulaFileContents.contains(assetURL))
     }
@@ -94,7 +94,8 @@ extension PublishTests {
         }
         
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL), gitHandler: gitHandler)
+        let extraResults = Array(repeating: sha256Output, count: 10) // Add extra results in case more commands are called
+        let factory = MockContextFactory(runResults: makePublishMockResults(sha256: sha256, assetURL: assetURL) + extraResults, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory, projectName: projectWithDashes, projectFolder: projectFolderWithDashes)
         
