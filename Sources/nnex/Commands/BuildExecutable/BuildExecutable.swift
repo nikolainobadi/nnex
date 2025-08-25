@@ -51,28 +51,29 @@ extension Nnex {
         var clean: Bool = true
         
         func run() throws {
-            let shell = Nnex.makeShell()
-            let picker = Nnex.makePicker()
-            let context = try Nnex.makeContext()
-            let buildType = buildType ?? context.loadDefaultBuildType()
-            let projectFolder = try Nnex.Brew.getProjectFolder(at: path)
-            let executableName = try getExecutableName(for: projectFolder)
+//            let shell = Nnex.makeShell()
+//            let picker = Nnex.makePicker()
+//            let context = try Nnex.makeContext()
+//            let buildType = buildType ?? context.loadDefaultBuildType()
+//            let projectFolder = try Nnex.Brew.getProjectFolder(at: path)
+//            let executableName = try getExecutableName(for: projectFolder)
+//            
+//            // Select output location
+//            let outputLocation = try selectOutputLocation(buildType: buildType, picker: picker)
+//            
+//            let config = BuildConfig(projectName: executableName, projectPath: projectFolder.path, buildType: buildType, extraBuildArgs: [], skipClean: !clean, testCommand: nil)
+//            let builder = ProjectBuilder(shell: shell, config: config)
+//            let binaryInfo = try builder.build()
             
-            // Select output location
-            let outputLocation = try selectOutputLocation(buildType: buildType, picker: picker)
-            
-            let config = BuildConfig(projectName: executableName, projectPath: projectFolder.path, buildType: buildType, extraBuildArgs: [], skipClean: !clean, testCommand: nil)
-            let builder = ProjectBuilder(shell: shell, config: config)
-            let binaryInfo = try builder.build()
-            
+            // TODO: -
             // Copy binary to selected location if different from default
-            let finalPath = try copyBinaryToLocation(binaryInfo: binaryInfo, outputLocation: outputLocation, executableName: executableName, shell: shell)
-            
-            print("New binary was built at \(finalPath)")
-            
-            if openInFinder {
-                _ = try shell.bash("open -R \(finalPath)")
-            }
+//            let finalPath = try copyBinaryToLocation(binaryInfo: binaryInfo, outputLocation: outputLocation, executableName: executableName, shell: shell)
+//            
+//            print("New binary was built at \(finalPath)")
+//            
+//            if openInFinder {
+//                _ = try shell.bash("open -R \(finalPath)")
+//            }
         }
     }
 }

@@ -123,11 +123,12 @@ private extension Nnex.Brew.Publish {
     /// - Returns: The binary information including path and hash.
     /// - Throws: An error if the build process fails.
     func buildBinary(formula: SwiftDataFormula, buildType: BuildType, skipTesting: Bool) throws -> BinaryInfo {
-        let testCommand = skipTesting ? nil : formula.testCommand
-        let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
-        let builder = ProjectBuilder(shell: shell, config: config)
-        
-        return try builder.build()
+        fatalError()
+//        let testCommand = skipTesting ? nil : formula.testCommand
+//        let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
+//        let builder = ProjectBuilder(shell: shell, config: config)
+//        
+//        return try builder.build()
     }
 
     func uploadRelease(folder: Folder, binaryInfo: BinaryInfo, versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> String {
