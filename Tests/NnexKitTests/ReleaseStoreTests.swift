@@ -31,7 +31,7 @@ extension ReleaseStoreTests {
         let (sut, gitHandler) = makeSUT()
         let result = try sut.uploadRelease(info: info)
         
-        #expect(result.assertURL == assetURL)
+        #expect(result.assetURLs.first == assetURL)
         #expect(result.versionNumber == version)
         #expect(gitHandler.releaseVersion == version)
     }
@@ -54,7 +54,7 @@ extension ReleaseStoreTests {
         let (sut, gitHandler) = makeSUT()
         let result = try sut.uploadRelease(info: info)
         
-        #expect(result.assertURL == assetURL)
+        #expect(result.assetURLs.first == assetURL)
         #expect(result.versionNumber == expectedRelease)
         #expect(gitHandler.releaseVersion == expectedRelease)
     }

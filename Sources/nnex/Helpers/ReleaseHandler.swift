@@ -36,10 +36,11 @@ extension ReleaseHandler {
                 previousVersion: previousVersion,
                 versionInfo: versionInfo
             )
-            let (assetURL, versionNumber) = try store.uploadRelease(info: releaseInfo)
+            let (assetURLs, versionNumber) = try store.uploadRelease(info: releaseInfo)
             try maybeTrashReleaseNotes(noteInfo)
-            print("GitHub release \(versionNumber) created and binary uploaded to \(assetURL)")
-            return assetURL
+            let primaryAssetURL = assetURLs.first ?? ""
+            print("GitHub release \(versionNumber) created and binary uploaded to \(primaryAssetURL)")
+            return primaryAssetURL
 
         case .multiple(let map):
             // deterministic order: prefer arm then intel when available
@@ -55,11 +56,18 @@ extension ReleaseHandler {
             )
 
             let others = Array(ordered.dropFirst()).map { $0.path }
-            let (assetURL, versionNumber) = try store.uploadRelease(info: releaseInfo, additionalAssetPaths: others)
+            let (assetURLs, versionNumber) = try store.uploadRelease(info: releaseInfo, additionalAssetPaths: others)
 
             try maybeTrashReleaseNotes(noteInfo)
-            print("GitHub release \(versionNumber) created and \(ordered.count) binaries uploaded. First asset at \(assetURL)")
-            return assetURL
+            let primaryAssetURL = assetURLs.first ?? ""
+            print("GitHub release \(versionNumber) created and \(ordered.count) binaries uploaded. First asset at \(primaryAssetURL)")
+            if assetURLs.count > 1 {
+                print("Additional assets:")
+                for (index, url) in assetURLs.dropFirst().enumerated() {
+                    print("  Asset \(index + 2): \(url)")
+                }
+            }
+            return primaryAssetURL
         }
     }
 }

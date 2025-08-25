@@ -66,18 +66,26 @@ extension DefaultGitHandler: GitHandler {
         return try GitHubRepoStarter(path: path, shell: gitShell, repoInfo: info).repoInit()
     }
 
-    /// Creates a new release with a binary at the specified path and returns the release URL.
+    /// Creates a new release with one or more binaries and returns all asset URLs.
     /// - Parameters:
     ///   - version: The version number for the release.
-    ///   - binaryPath: The file path to the binary file.
-    ///   - releaseNotes: A string containing release notes.
+    ///   - binaryPath: The file path to the primary binary file.
+    ///   - additionalBinaryPaths: Optional additional binary paths to upload to the same release.
+    ///   - releaseNoteInfo: Information for generating release notes.
     ///   - path: The file path of the repository.
-    /// - Returns: A string representing the release URL.
-    public func createNewRelease(version: String, binaryPath: String, releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> String {
-        "" // TODO: -
-//        let command = makeGitHubCommand(.createNewReleaseWithBinary(version: version, binaryPath: binaryPath, releaseNoteInfo: releaseNoteInfo), path: path)
-//        _ = try shell.bash(command)
-//        return try shell.bash(makeGitHubCommand(.getLatestReleaseAssetURL, path: path))
+    /// - Returns: An array of asset URLs, with the primary asset URL first, followed by additional asset URLs.
+    public func createNewRelease(version: String, binaryPath: String, additionalBinaryPaths: [String], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String] {
+        // Create the primary release with the main binary
+        let primaryAssetURL = try createPrimaryRelease(version: version, binaryPath: binaryPath, releaseNoteInfo: releaseNoteInfo, path: path)
+        
+        // Upload additional binaries to the same release if provided
+        var allAssetURLs = [primaryAssetURL]
+        if !additionalBinaryPaths.isEmpty {
+            let additionalAssetURLs = try uploadAdditionalAssets(tag: version, assetPaths: additionalBinaryPaths, projectPath: path)
+            allAssetURLs.append(contentsOf: additionalAssetURLs)
+        }
+        
+        return allAssetURLs
     }
 
     /// Verifies if the GitHub CLI (gh) is installed and provides installation instructions if not.
@@ -85,5 +93,43 @@ extension DefaultGitHandler: GitHandler {
         if try shell.bash("which gh").contains("not found") {
             throw NnexError.missingGitHubCLI
         }
+    }
+}
+
+
+// MARK: - Private Methods
+private extension DefaultGitHandler {
+    /// Creates the primary release with the main binary and release notes.
+    func createPrimaryRelease(version: String, binaryPath: String, releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> String {
+        // Build the release notes parameter
+        let notesParam: String
+        if releaseNoteInfo.isFromFile {
+            notesParam = "--notes-file \"\(releaseNoteInfo.content)\""
+        } else {
+            notesParam = "--notes \"\(releaseNoteInfo.content)\""
+        }
+        
+        // Create the release and upload the primary binary
+        let createCmd = "cd \"\(path)\" && gh release create \(version) \"\(binaryPath)\" --title \"\(version)\" \(notesParam)"
+        _ = try shell.bash(createCmd)
+        
+        // Get the asset URL for the primary binary
+        let listCmd = "cd \"\(path)\" && gh release view \(version) --json assets --jq '.assets[0].url'"
+        return try shell.bash(listCmd)
+    }
+    
+    /// Uses GitHub CLI to upload additional assets to an existing release tag and returns their asset URLs.
+    func uploadAdditionalAssets(tag: String, assetPaths: [String], projectPath: String) throws -> [String] {
+        // Upload all additional assets
+        let quotedPaths = assetPaths.map { "\"\($0)\"" }.joined(separator: " ")
+        let uploadCmd = "cd \"\(projectPath)\" && gh release upload \(tag) \(quotedPaths) --clobber"
+        _ = try shell.bash(uploadCmd)
+        
+        // Get asset URLs for the uploaded files
+        let listCmd = "cd \"\(projectPath)\" && gh release view \(tag) --json assets --jq '.assets[].url'"
+        let allAssetURLs = try shell.bash(listCmd).components(separatedBy: .newlines).filter { !$0.isEmpty }
+        
+        // Return only the additional asset URLs (excluding the first one which is the primary)
+        return Array(allAssetURLs.dropFirst())
     }
 }
