@@ -55,9 +55,8 @@ extension GitHandlerTests {
         #expect(shell.executedCommands[0] == makeGitHubCommand(.getPreviousReleaseVersion, path: defaultPath))
     }
     
-    @Test("Successfully creates a new GitHub release and retrieves the latest asset URL")
+    @Test("Successfully creates a new GitHub release and retrieves the latest asset URL", .disabled()) // TODO: -
     func createNewReleaseSuccess() throws {
-        // TODO: - 
 //        let version = "v2.0.0"
 //        let binaryPath = "/path/to/binary"
 //        let releaseNoteInfo = ReleaseNoteInfo(content: "Release notes for v2.0.0", isFromFile: false)
