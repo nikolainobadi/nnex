@@ -196,11 +196,11 @@ extension PublishTests {
         #expect(!shell.executedCommands.contains(where: { $0.contains("swift test") }))
     }
     
-    @Test("Runs tests when formula includes default test command", .disabled())
+    @Test("Runs tests when formula includes default test command")
     func runsTestsWithDefaultCommand() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let extraResults = Array(repeating: sha256Output, count: 50) // Increase to ensure enough results
-        let testResults = makePublishMockResults(sha256: sha256, assetURL: assetURL, includeTestCommand: true) + extraResults
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let testResults = ["", "", "", "", sha256Output, sha256Output, ""] + extraResults // 7 commands: git status, clean, build arm64, build x86_64, sha256 arm64, sha256 x86_64, test
         let shell = MockShell(results: testResults)
         let factory = MockContextFactory(runResults: testResults, gitHandler: gitHandler, shell: shell)
         
@@ -210,12 +210,12 @@ extension PublishTests {
         #expect(shell.executedCommands.contains { $0.contains("swift test") })
     }
     
-    @Test("Runs tests when formula includes custom test command", .disabled())
+    @Test("Runs tests when formula includes custom test command")
     func runsTestsWithCustomCommand() throws {
         let testCommand = "xcodebuild test -scheme testScheme -destination 'platform=macOS'"
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let extraResults = Array(repeating: sha256Output, count: 50) // Increase to ensure enough results
-        let testResults = makePublishMockResults(sha256: sha256, assetURL: assetURL, includeTestCommand: true) + extraResults
+        let extraResults = Array(repeating: sha256Output, count: 10)
+        let testResults = ["", "", "", "", sha256Output, sha256Output, ""] + extraResults // 7 commands: git status, clean, build arm64, build x86_64, sha256 arm64, sha256 x86_64, test
         let shell = MockShell(results: testResults)
         let factory = MockContextFactory(runResults: testResults, gitHandler: gitHandler, shell: shell)
         
