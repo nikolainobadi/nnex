@@ -75,17 +75,12 @@ extension DefaultGitHandler: GitHandler {
     ///   - path: The file path of the repository.
     /// - Returns: An array of asset URLs, with the primary asset URL first, followed by additional asset URLs.
     public func createNewRelease(version: String, binaryPath: String, additionalBinaryPaths: [String], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String] {
-        // Create the primary release with the main binary
-        let primaryAssetURL = try createPrimaryRelease(version: version, binaryPath: binaryPath, releaseNoteInfo: releaseNoteInfo, path: path)
+        // Combine all binary paths into a single array
+        var allBinaryPaths = [binaryPath]
+        allBinaryPaths.append(contentsOf: additionalBinaryPaths)
         
-        // Upload additional binaries to the same release if provided
-        var allAssetURLs = [primaryAssetURL]
-        if !additionalBinaryPaths.isEmpty {
-            let additionalAssetURLs = try uploadAdditionalAssets(tag: version, assetPaths: additionalBinaryPaths, projectPath: path)
-            allAssetURLs.append(contentsOf: additionalAssetURLs)
-        }
-        
-        return allAssetURLs
+        // Create the release with all binaries at once
+        return try createReleaseWithAllBinaries(version: version, binaryPaths: allBinaryPaths, releaseNoteInfo: releaseNoteInfo, path: path)
     }
 
     /// Verifies if the GitHub CLI (gh) is installed and provides installation instructions if not.
@@ -99,8 +94,8 @@ extension DefaultGitHandler: GitHandler {
 
 // MARK: - Private Methods
 private extension DefaultGitHandler {
-    /// Creates the primary release with the main binary and release notes.
-    func createPrimaryRelease(version: String, binaryPath: String, releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> String {
+    /// Creates a release with all binaries uploaded simultaneously.
+    func createReleaseWithAllBinaries(version: String, binaryPaths: [String], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String] {
         // Build the release notes parameter
         let notesParam: String
         if releaseNoteInfo.isFromFile {
@@ -109,27 +104,17 @@ private extension DefaultGitHandler {
             notesParam = "--notes \"\(releaseNoteInfo.content)\""
         }
         
-        // Create the release and upload the primary binary
-        let createCmd = "cd \"\(path)\" && gh release create \(version) \"\(binaryPath)\" --title \"\(version)\" \(notesParam)"
+        // Quote all binary paths for the command
+        let quotedBinaryPaths = binaryPaths.map { "\"\($0)\"" }.joined(separator: " ")
+        
+        // Create the release and upload all binaries at once
+        let createCmd = "cd \"\(path)\" && gh release create \(version) \(quotedBinaryPaths) --title \"\(version)\" \(notesParam)"
         _ = try shell.bash(createCmd)
         
-        // Get the asset URL for the primary binary
-        let listCmd = "cd \"\(path)\" && gh release view \(version) --json assets --jq '.assets[0].url'"
-        return try shell.bash(listCmd)
-    }
-    
-    /// Uses GitHub CLI to upload additional assets to an existing release tag and returns their asset URLs.
-    func uploadAdditionalAssets(tag: String, assetPaths: [String], projectPath: String) throws -> [String] {
-        // Upload all additional assets
-        let quotedPaths = assetPaths.map { "\"\($0)\"" }.joined(separator: " ")
-        let uploadCmd = "cd \"\(projectPath)\" && gh release upload \(tag) \(quotedPaths) --clobber"
-        _ = try shell.bash(uploadCmd)
-        
-        // Get asset URLs for the uploaded files
-        let listCmd = "cd \"\(projectPath)\" && gh release view \(tag) --json assets --jq '.assets[].url'"
+        // Get all asset URLs
+        let listCmd = "cd \"\(path)\" && gh release view \(version) --json assets --jq '.assets[].url'"
         let allAssetURLs = try shell.bash(listCmd).components(separatedBy: .newlines).filter { !$0.isEmpty }
         
-        // Return only the additional asset URLs (excluding the first one which is the primary)
-        return Array(allAssetURLs.dropFirst())
+        return allAssetURLs
     }
 }

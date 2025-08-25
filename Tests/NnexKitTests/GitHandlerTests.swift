@@ -60,7 +60,7 @@ extension GitHandlerTests {
         let version = "v2.0.0"
         let binaryPath = "/path/to/binary"
         let releaseNoteInfo = ReleaseNoteInfo(content: "Release notes for v2.0.0", isFromFile: false)
-        let (sut, shell) = makeSUT(runResults: ["", releaseAssetURL]) // First result for create release, second for get asset URL
+        let (sut, shell) = makeSUT(runResults: ["", releaseAssetURL]) // First result for create release, second for get asset URLs
         
         let result = try sut.createNewRelease(version: version, binaryPath: binaryPath, additionalBinaryPaths: [], releaseNoteInfo: releaseNoteInfo, path: defaultPath)
         
@@ -68,7 +68,7 @@ extension GitHandlerTests {
         #expect(result.first == releaseAssetURL)
         #expect(shell.executedCommands.count == 2)
         #expect(shell.executedCommands[0] == "cd \"\(defaultPath)\" && gh release create \(version) \"\(binaryPath)\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
-        #expect(shell.executedCommands[1] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[0].url'")
+        #expect(shell.executedCommands[1] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
     }
     
     @Test("Successfully creates a new GitHub release with additional assets")
@@ -80,7 +80,7 @@ extension GitHandlerTests {
         let additionalURL1 = "https://github.com/username/repo/releases/latest/binary2"
         let additionalURL2 = "https://github.com/username/repo/releases/latest/binary3"
         let allURLsOutput = "\(releaseAssetURL)\n\(additionalURL1)\n\(additionalURL2)"
-        let (sut, shell) = makeSUT(runResults: ["", releaseAssetURL, "", allURLsOutput]) // create, view primary, upload additional, view all
+        let (sut, shell) = makeSUT(runResults: ["", allURLsOutput]) // create, view all assets
         
         let result = try sut.createNewRelease(version: version, binaryPath: binaryPath, additionalBinaryPaths: additionalPaths, releaseNoteInfo: releaseNoteInfo, path: defaultPath)
         
@@ -88,11 +88,9 @@ extension GitHandlerTests {
         #expect(result[0] == releaseAssetURL)
         #expect(result[1] == additionalURL1)
         #expect(result[2] == additionalURL2)
-        #expect(shell.executedCommands.count == 4)
-        #expect(shell.executedCommands[0] == "cd \"\(defaultPath)\" && gh release create \(version) \"\(binaryPath)\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
-        #expect(shell.executedCommands[1] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[0].url'")
-        #expect(shell.executedCommands[2] == "cd \"\(defaultPath)\" && gh release upload \(version) \"/path/to/binary2\" \"/path/to/binary3\" --clobber")
-        #expect(shell.executedCommands[3] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
+        #expect(shell.executedCommands.count == 2)
+        #expect(shell.executedCommands[0] == "cd \"\(defaultPath)\" && gh release create \(version) \"\(binaryPath)\" \"/path/to/binary2\" \"/path/to/binary3\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
+        #expect(shell.executedCommands[1] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
     }
     
     @Test("Throws error if initializing Git repository fails")
