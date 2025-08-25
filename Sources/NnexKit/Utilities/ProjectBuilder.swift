@@ -69,12 +69,20 @@ private extension ProjectBuilder {
 
     func runTests() throws {
         if let testCommandEnum = config.testCommand {
-            let testCommand: String
+            var testCommand: String
             switch testCommandEnum {
             case .defaultCommand:
                 testCommand = "swift test --package-path \(config.projectPath)"
             case .custom(let command):
-                testCommand = command + " -quiet -allowProvisioningUpdates"
+                testCommand = command
+                
+                let additions = ["-quiet", "-allowProvisioningUpdates"]
+                
+                for addition in additions {
+                    if !testCommand.contains(addition) {
+                        testCommand.append(" \(addition)")
+                    }
+                }
             }
             log("🧪 Running tests: \(testCommand)")
             let output = try shell.bash(testCommand)

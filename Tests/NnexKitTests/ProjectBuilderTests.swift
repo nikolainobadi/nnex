@@ -122,6 +122,85 @@ extension ProjectBuilderTests {
         #expect(!shell.executedCommands.contains { $0.contains("swift test") })
         #expect(!shell.executedCommands.contains { $0.contains(customTestCommand) })
     }
+
+    @Test("Custom command without flags gets required flags added")
+    func customCommandWithoutFlags() throws {
+        let baseCommand = "xcodebuild test -scheme nnex"
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .custom(baseCommand))
+        
+        try sut.discardableBuild()
+        
+        let testCommand = shell.executedCommands.first { $0.contains("xcodebuild") }
+        #expect(testCommand?.contains("-quiet") == true)
+        #expect(testCommand?.contains("-allowProvisioningUpdates") == true)
+        #expect(testCommand?.contains(baseCommand) == true)
+    }
+
+    @Test("Custom command with one flag gets missing flag added")
+    func customCommandWithOneFlag() throws {
+        let baseCommand = "xcodebuild test -scheme nnex -quiet"
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .custom(baseCommand))
+        
+        try sut.discardableBuild()
+        
+        let testCommand = shell.executedCommands.first { $0.contains("xcodebuild") }
+        #expect(testCommand?.contains("-quiet") == true)
+        #expect(testCommand?.contains("-allowProvisioningUpdates") == true)
+        // Should only contain -quiet once
+        let quietCount = testCommand?.components(separatedBy: "-quiet").count ?? 0
+        #expect(quietCount == 2) // Original string + 1 split = 2 components
+    }
+
+    @Test("Custom command with both flags remains unchanged")
+    func customCommandWithBothFlags() throws {
+        let baseCommand = "xcodebuild test -scheme nnex -quiet -allowProvisioningUpdates"
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .custom(baseCommand))
+        
+        try sut.discardableBuild()
+        
+        let testCommand = shell.executedCommands.first { $0.contains("xcodebuild") }
+        // Should contain both flags but not be duplicated
+        let quietCount = testCommand?.components(separatedBy: "-quiet").count ?? 0
+        let allowProvisioningCount = testCommand?.components(separatedBy: "-allowProvisioningUpdates").count ?? 0
+        #expect(quietCount == 2) // Original string + 1 split = 2 components
+        #expect(allowProvisioningCount == 2) // Original string + 1 split = 2 components
+    }
+
+    @Test("Custom command with flags in different positions avoids duplication")
+    func customCommandWithFlagsInDifferentPositions() throws {
+        let baseCommand = "xcodebuild -quiet test -scheme nnex -allowProvisioningUpdates"
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .custom(baseCommand))
+        
+        try sut.discardableBuild()
+        
+        let testCommand = shell.executedCommands.first { $0.contains("xcodebuild") }
+        let quietCount = testCommand?.components(separatedBy: "-quiet").count ?? 0
+        let allowProvisioningCount = testCommand?.components(separatedBy: "-allowProvisioningUpdates").count ?? 0
+        #expect(quietCount == 2) // Should only appear once
+        #expect(allowProvisioningCount == 2) // Should only appear once
+    }
+
+    @Test("Default command does not get custom flags added")
+    func defaultCommandUnchanged() throws {
+        let armSha256 = "arm123def456"
+        let intelSha256 = "intel123def456"
+        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .defaultCommand)
+        
+        try sut.discardableBuild()
+        
+        let testCommand = shell.executedCommands.first { $0.contains("swift test") }
+        #expect(testCommand?.contains("swift test --package-path \(projectPath)") == true)
+        #expect(testCommand?.contains("-quiet") == false)
+        #expect(testCommand?.contains("-allowProvisioningUpdates") == false)
+    }
     
     @Test("Includes cleaning by default")
     func includesCleaning() throws {
