@@ -15,7 +15,7 @@ public enum FormulaContentGenerator {
         sha256: String
     ) -> String {
         return """
-        class \(name) < Formula
+        class \(FormulaNameSanitizer.sanitizeFormulaName(name)) < Formula
             desc "\(details)"
             homepage "\(homepage)"
             url "\(assetURL)"
@@ -48,7 +48,7 @@ public enum FormulaContentGenerator {
 
         if hasArm && hasIntel {
             return """
-            class \(name) < Formula
+            class \(FormulaNameSanitizer.sanitizeFormulaName(name)) < Formula
                 desc "\(details)"
                 homepage "\(homepage)"
                 license "\(license)"

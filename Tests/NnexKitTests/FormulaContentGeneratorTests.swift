@@ -19,6 +19,10 @@ struct FormulaContentGeneratorTests {
     private let testArmSHA256 = "arm64sha256hash"
     private let testIntelURL = "https://github.com/test/testtool/releases/download/v1.0.0/testtool-x86_64.tar.gz"
     private let testIntelSHA256 = "x86_64sha256hash"
+    
+    private var expectedName: String {
+        return FormulaNameSanitizer.sanitizeFormulaName(testName)
+    }
 }
 
 
@@ -35,7 +39,7 @@ extension FormulaContentGeneratorTests {
             sha256: testSHA256
         )
         
-        #expect(content.contains("class Testtool < Formula"))
+        #expect(content.contains("class \(expectedName) < Formula"))
         #expect(content.contains("desc \"A test command line tool\""))
         #expect(content.contains("homepage \"https://github.com/test/testtool\""))
         #expect(content.contains("url \"https://github.com/test/testtool/releases/download/v1.0.0/testtool.tar.gz\""))
@@ -48,7 +52,7 @@ extension FormulaContentGeneratorTests {
     @Test("Capitalizes formula class name correctly")
     func capitalizesFormulaClassName() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: "mytool",
+            name: "my-tool",
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -56,7 +60,7 @@ extension FormulaContentGeneratorTests {
             sha256: testSHA256
         )
         
-        #expect(content.contains("class Mytool < Formula"))
+        #expect(content.contains("class MyTool < Formula"))
     }
     
     @Test("Handles empty strings in single binary formula")
@@ -94,7 +98,7 @@ extension FormulaContentGeneratorTests {
             intelSHA256: testIntelSHA256
         )
         
-        #expect(content.contains("class Testtool < Formula"))
+        #expect(content.contains("class \(expectedName) < Formula"))
         #expect(content.contains("desc \"A test command line tool\""))
         #expect(content.contains("homepage \"https://github.com/test/testtool\""))
         #expect(content.contains("license \"MIT\""))
@@ -251,7 +255,7 @@ extension FormulaContentGeneratorTests {
         // Should generate formula with empty URL and SHA256
         #expect(content.contains("url \"\""))
         #expect(content.contains("sha256 \"\""))
-        #expect(content.contains("class Testtool < Formula"))
+        #expect(content.contains("class \(expectedName) < Formula"))
         #expect(content.contains("desc \"A test command line tool\""))
     }
     

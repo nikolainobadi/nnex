@@ -153,7 +153,7 @@ private extension Nnex.Brew.Publish {
     /// - Returns: The formula content as a string.
     /// - Throws: An error if formula generation fails.
     func makeFormulaContent(formula: SwiftDataFormula, binaryOutput: BinaryOutput, assetURLs: [String]) throws -> String {
-        let formattedName = FormulaNameSanitizer.sanitizeFormulaName(formula.name)
+        let formulaName = formula.name
         
         switch binaryOutput {
         case .single(let info):
@@ -161,7 +161,7 @@ private extension Nnex.Brew.Publish {
                 throw NnexError.missingSha256 // Should create a better error for missing URL
             }
             return FormulaContentGenerator.makeFormulaFileContent(
-                name: formattedName,
+                name: formulaName,
                 details: formula.details,
                 homepage: formula.homepage,
                 license: formula.license,
@@ -189,7 +189,7 @@ private extension Nnex.Brew.Publish {
             }
             
             return FormulaContentGenerator.makeFormulaFileContent(
-                name: formattedName,
+                name: formulaName,
                 details: formula.details,
                 homepage: formula.homepage,
                 license: formula.license,
