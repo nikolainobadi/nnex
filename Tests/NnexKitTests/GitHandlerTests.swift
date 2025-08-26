@@ -60,15 +60,17 @@ extension GitHandlerTests {
         let version = "v2.0.0"
         let binaryPath = "/path/to/binary"
         let releaseNoteInfo = ReleaseNoteInfo(content: "Release notes for v2.0.0", isFromFile: false)
-        let (sut, shell) = makeSUT(runResults: ["", releaseAssetURL]) // First result for create release, second for get asset URLs
+        let (sut, shell) = makeSUT(runResults: ["", "", "", releaseAssetURL]) // tar, gh create, rm, gh view
         
         let result = try sut.createNewRelease(version: version, binaryPath: binaryPath, additionalBinaryPaths: [], releaseNoteInfo: releaseNoteInfo, path: defaultPath)
         
         #expect(result.count == 1)
         #expect(result.first == releaseAssetURL)
-        #expect(shell.executedCommands.count == 2)
-        #expect(shell.executedCommands[0] == "cd \"\(defaultPath)\" && gh release create \(version) \"\(binaryPath)\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
-        #expect(shell.executedCommands[1] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
+        #expect(shell.executedCommands.count == 4)
+        #expect(shell.executedCommands[0] == "cd \"/path/to\" && tar -czf \"binary.tar.gz\" \"binary\"")
+        #expect(shell.executedCommands[1] == "cd \"\(defaultPath)\" && gh release create \(version) \"/path/to/binary.tar.gz\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
+        #expect(shell.executedCommands[2] == "rm -f \"/path/to/binary.tar.gz\"")
+        #expect(shell.executedCommands[3] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
     }
     
     @Test("Successfully creates a new GitHub release with additional assets")
@@ -92,16 +94,16 @@ extension GitHandlerTests {
         #expect(shell.executedCommands.count == 6)
         
         // Expected commands in order:
-        // 1. Copy primary binary with arch suffix
-        #expect(shell.executedCommands[0] == "cp \"/path/to/.build/arm64-apple-macosx/release/nnex\" \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64\"")
-        // 2. Copy additional binary with arch suffix  
-        #expect(shell.executedCommands[1] == "cp \"/path/to/.build/x86_64-apple-macosx/release/nnex\" \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64\"")
-        // 3. Create release with both renamed binaries in single command
-        #expect(shell.executedCommands[2] == "cd \"\(defaultPath)\" && gh release create \(version) \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64\" \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
-        // 4. Remove renamed primary binary
-        #expect(shell.executedCommands[3] == "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64\"")
-        // 5. Remove renamed additional binary
-        #expect(shell.executedCommands[4] == "rm -f \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64\"")
+        // 1. Create tar.gz for ARM binary
+        #expect(shell.executedCommands[0] == "cd \"/path/to/.build/arm64-apple-macosx/release\" && tar -czf \"nnex-arm64.tar.gz\" \"nnex\"")
+        // 2. Create tar.gz for x86_64 binary  
+        #expect(shell.executedCommands[1] == "cd \"/path/to/.build/x86_64-apple-macosx/release\" && tar -czf \"nnex-x86_64.tar.gz\" \"nnex\"")
+        // 3. Create release with both archives in single command
+        #expect(shell.executedCommands[2] == "cd \"\(defaultPath)\" && gh release create \(version) \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\" \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
+        // 4. Remove ARM archive
+        #expect(shell.executedCommands[3] == "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"")
+        // 5. Remove x86_64 archive
+        #expect(shell.executedCommands[4] == "rm -f \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"")
         // 6. Get asset URLs
         #expect(shell.executedCommands[5] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
     }

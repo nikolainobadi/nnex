@@ -123,9 +123,9 @@ private extension DefaultGitHandler {
         return allAssetURLs
     }
     
-    /// Creates architecture-specific copies of binaries to avoid naming conflicts on GitHub.
+    /// Creates architecture-specific tar.gz archives of binaries to avoid naming conflicts on GitHub.
     func createArchitectureSpecificBinaries(binaryPaths: [String], projectPath: String) throws -> [String] {
-        var renamedPaths: [String] = []
+        var archivePaths: [String] = []
         
         for binaryPath in binaryPaths {
             let url = URL(fileURLWithPath: binaryPath)
@@ -139,32 +139,35 @@ private extension DefaultGitHandler {
             } else if binaryPath.contains("x86_64-apple-macosx") {
                 archSuffix = "-x86_64"
             } else {
-                // For single architecture builds or universal binaries, don't add suffix
-                renamedPaths.append(binaryPath)
+                // For single architecture builds or universal binaries, create simple tar.gz
+                let archivePath = "\(directory)/\(fileName).tar.gz"
+                let tarCmd = "cd \"\(directory)\" && tar -czf \"\(fileName).tar.gz\" \"\(url.lastPathComponent)\""
+                _ = try shell.bash(tarCmd)
+                archivePaths.append(archivePath)
                 continue
             }
             
-            let renamedFileName = fileName + archSuffix
-            let renamedPath = "\(directory)/\(renamedFileName)"
+            let archiveName = fileName + archSuffix + ".tar.gz"
+            let archivePath = "\(directory)/\(archiveName)"
             
-            // Copy the binary with the new name
-            let copyCmd = "cp \"\(binaryPath)\" \"\(renamedPath)\""
-            _ = try shell.bash(copyCmd)
+            // Create tar.gz archive with the correctly named binary inside
+            let tarCmd = "cd \"\(directory)\" && tar -czf \"\(archiveName)\" \"\(url.lastPathComponent)\""
+            _ = try shell.bash(tarCmd)
             
-            renamedPaths.append(renamedPath)
+            archivePaths.append(archivePath)
         }
         
-        return renamedPaths
+        return archivePaths
     }
     
-    /// Removes the temporary renamed binaries after upload.
+    /// Removes the temporary archive files after upload.
     func cleanupRenamedBinaries(_ paths: [String]) throws {
         for path in paths {
             let url = URL(fileURLWithPath: path)
             let fileName = url.lastPathComponent
             
-            // Only remove files that have architecture suffixes (our renamed files)
-            if fileName.hasSuffix("-arm64") || fileName.hasSuffix("-x86_64") {
+            // Remove tar.gz files we created
+            if fileName.hasSuffix(".tar.gz") {
                 let removeCmd = "rm -f \"\(path)\""
                 _ = try shell.bash(removeCmd)
             }
