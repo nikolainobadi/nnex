@@ -13,21 +13,17 @@ import Foundation
 struct BuildExecutionManager {
     private let shell: any Shell
     private let picker: NnexPicker
-    private let context: NnexContext
     private let copyUtility: BinaryCopyUtility
     
-    init(shell: any Shell, picker: NnexPicker, context: NnexContext) {
+    init(shell: any Shell, picker: NnexPicker) {
         self.shell = shell
         self.picker = picker
-        self.context = context
         self.copyUtility = BinaryCopyUtility(shell: shell)
     }
     
-    func executeBuild(projectPath: String?, buildType: BuildType?, clean: Bool, openInFinder: Bool) throws {
-        let buildType = buildType ?? context.loadDefaultBuildType()
+    func executeBuild(projectPath: String?, buildType: BuildType, clean: Bool, openInFinder: Bool) throws {
         let projectFolder = try Nnex.Brew.getProjectFolder(at: projectPath)
         let executableName = try getExecutableName(for: projectFolder)
-        
         let outputLocation = try selectOutputLocation(buildType: buildType)
         let config = BuildConfig(projectName: executableName, projectPath: projectFolder.path, buildType: buildType, extraBuildArgs: [], skipClean: !clean, testCommand: nil)
         let builder = ProjectBuilder(shell: shell, config: config)
@@ -71,9 +67,7 @@ private extension BuildExecutionManager {
         do {
             return try picker.requiredSingleSelection(title: "Which executable would you like to build?", items: names)
         } catch {
-            throw NSError(domain: "BuildError", code: 8, userInfo: [
-                NSLocalizedDescriptionKey: "Failed to select executable: \(error.localizedDescription)"
-            ])
+            throw BuildExecutionError.failedToSelectExecutable(reason: error.localizedDescription)
         }
     }
     
@@ -97,12 +91,12 @@ private extension BuildExecutionManager {
         let parentPath = try picker.getRequiredInput(prompt: "Enter the path to the parent directory where you want to place the binary:")
         
         guard let parentFolder = try? Folder(path: parentPath) else {
-            throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "The specified path '\(parentPath)' does not exist or is not accessible."])
+            throw BuildExecutionError.invalidCustomPath(path: parentPath)
         }
         
         let confirmed = picker.getPermission(prompt: "The binary will be placed at: \(parentFolder.path). Continue?")
         guard confirmed else {
-            throw NSError(domain: "BuildError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Build cancelled by user."])
+            throw BuildExecutionError.buildCancelledByUser
         }
         
         return .custom(parentFolder.path)
