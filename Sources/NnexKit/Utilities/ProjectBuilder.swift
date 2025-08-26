@@ -92,13 +92,24 @@ private extension ProjectBuilder {
     func build(for arch: ReleaseArchitecture) throws {
         log("🔨 Building for \(arch.name)...")
         let extra = config.extraBuildArgs.joined(separator: " ")
-        let cmd = "swift build -c release --arch \(arch.name) -Xswiftc -Osize -Xswiftc -wmo -Xlinker -dead_strip_dylibs --package-path \(config.projectPath) \(extra)"
+        let cmd = "swift build -c release --arch \(arch.name) -Xswiftc -Osize -Xswiftc -wmo -Xswiftc -gnone -Xswiftc -cross-module-optimization -Xlinker -dead_strip_dylibs --package-path \(config.projectPath) \(extra)"
         let output = try shell.bash(cmd)
         if !output.isEmpty { print(output) }
+        
+        try stripBinary(for: arch)
     }
 
     func binaryPath(for arch: ReleaseArchitecture) -> String {
         "\(config.projectPath).build/\(arch.name)-apple-macosx/release/\(config.projectName)"
+    }
+    
+    func stripBinary(for arch: ReleaseArchitecture) throws {
+        log("✂️ Stripping binary for \(arch.name)...")
+        let binaryPath = binaryPath(for: arch)
+        let stripCmd = "strip -x \"\(binaryPath)\""
+        let output = try shell.bash(stripCmd)
+        if !output.isEmpty { print(output) }
+        log("✅ Binary stripped for \(arch.name).")
     }
 
 }
