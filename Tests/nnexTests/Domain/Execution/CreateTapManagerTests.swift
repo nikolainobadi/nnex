@@ -7,6 +7,7 @@
 
 import Testing
 import NnexKit
+import Foundation
 import GitShellKit
 import NnexSharedTestHelpers
 @testable import nnex
@@ -21,7 +22,7 @@ final class CreateTapManagerTests {
     private let defaultTapFolderName = "NnexHomebrewTaps"
     
     init() throws {
-        self.tapListFolder = try Folder.temporary.createSubfolder(named: "testTapList")
+        self.tapListFolder = try Folder.temporary.createSubfolder(named: "testTapList-createTapManager-\(UUID().uuidString)")
     }
     
     deinit {
