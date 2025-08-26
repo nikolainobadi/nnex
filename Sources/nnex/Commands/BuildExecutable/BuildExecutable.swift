@@ -70,54 +70,13 @@ extension Nnex {
 extension Nnex.Build {
     func getExecutableName(for projectFolder: Folder) throws -> String {
         let picker = Nnex.makePicker()
+        let resolver = ExecutableNameResolver()
+        let names = try resolver.getExecutableNames(from: projectFolder)
         
-        // Check if Package.swift exists
-        guard projectFolder.containsFile(named: "Package.swift") else {
-            throw NSError(domain: "BuildError", code: 3, userInfo: [
-                NSLocalizedDescriptionKey: "No Package.swift file found in '\(projectFolder.path)'. This does not appear to be a Swift package."
-            ])
-        }
-        
-        // Read and validate Package.swift content
-        let content: String
-        do {
-            content = try projectFolder.file(named: "Package.swift").readAsString()
-        } catch {
-            throw NSError(domain: "BuildError", code: 4, userInfo: [
-                NSLocalizedDescriptionKey: "Failed to read Package.swift file: \(error.localizedDescription)"
-            ])
-        }
-        
-        // Validate content is not empty
-        guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw NSError(domain: "BuildError", code: 5, userInfo: [
-                NSLocalizedDescriptionKey: "Package.swift file is empty or contains only whitespace."
-            ])
-        }
-        
-        // Extract executable names
-        let names: [String]
-        do {
-            names = try ExecutableDetector.getExecutables(packageManifestContent: content)
-        } catch {
-            throw NSError(domain: "BuildError", code: 6, userInfo: [
-                NSLocalizedDescriptionKey: "Failed to parse executable targets from Package.swift: \(error.localizedDescription)"
-            ])
-        }
-        
-        // Validate that at least one executable was found
-        guard !names.isEmpty else {
-            throw NSError(domain: "BuildError", code: 7, userInfo: [
-                NSLocalizedDescriptionKey: "No executable targets found in Package.swift. Make sure your package defines at least one executable product."
-            ])
-        }
-        
-        // Return single executable or prompt for selection
         guard names.count > 1 else {
             return names.first!
         }
         
-        // Handle multiple executables
         do {
             return try picker.requiredSingleSelection(title: "Which executable would you like to build?", items: names)
         } catch {
