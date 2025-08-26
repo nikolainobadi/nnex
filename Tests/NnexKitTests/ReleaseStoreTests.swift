@@ -43,7 +43,6 @@ extension ReleaseStoreTests {
     @Test("Uploads a release with additional assets and returns all URLs")
     func uploadReleaseWithAdditionalAssets() throws {
         let info = makeReleaseInfo(versionInfo: .version(version))
-        let additionalPaths = [additionalAssetPath1, additionalAssetPath2]
         let (sut, gitHandler) = makeSUT()
         let mockArchived = ArchivedBinary(originalPath: "/test/path", archivePath: "/test/archive.tar.gz", sha256: "testhash")
         let mockArchived1 = ArchivedBinary(originalPath: additionalAssetPath1, archivePath: "/tmp/archive1.tar.gz", sha256: "hash1")
