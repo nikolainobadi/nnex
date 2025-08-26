@@ -19,7 +19,7 @@ Instead of manually managing taps and formulae, let **nnex** do the heavy liftin
 
 **nnex** requires both **Homebrew** and the **GitHub CLI (gh)** to function properly. Please ensure they are installed and configured on your system before using **nnex** (you'll be prompted to install them if you use **nnex** without them).
 
-**Stability Notice (v0.8.5)**  
+**Stability Notice (v0.8.12)**  
 `nnex` is functional and ready to use, but its features and API may evolve as it becomes more flexible and robust.  
 Breaking changes are possible before reaching v1.0.0.  
 Your feedback and suggestions are welcome as the project continues to improve!  
@@ -63,6 +63,8 @@ swift build -c release
 - **Build commands** handle local binary building 
 - **Config commands** are used to set preferences
 - **Archive commands** provide archiving and packaging functionality
+
+The tool follows a clean architecture with separation of concerns between command parsing, business logic, and infrastructure.
 
 ## Brew Commands
 

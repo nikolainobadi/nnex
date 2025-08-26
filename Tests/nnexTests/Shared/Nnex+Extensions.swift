@@ -12,9 +12,10 @@ import ArgumentParser
 extension Nnex {
     @discardableResult
     static func testRun(contextFactory: MockContextFactory? = nil, args: [String]? = []) throws -> String {
-        self.contextFactory = contextFactory ?? MockContextFactory()
+        let factory = contextFactory ?? MockContextFactory()
+        self.contextFactory = factory
         
-        return try captureOutput(factory: contextFactory, args: args)
+        return try captureOutput(factory: factory, args: args)
     }
 }
 
