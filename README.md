@@ -49,13 +49,6 @@ Alternatively, you can install it directly:
 brew install nikolainobadi/tap/nnex
 ```
 
-Or, build from source:
-```bash
-git clone https://github.com/nikolainobadi/nnex.git
-cd Nnex
-swift build -c release
-```
-
 ## Commands
 **nnex** utilizes four subcommands: `Brew`, `Build`, `Config`, and `Archive`.
 
@@ -125,8 +118,16 @@ Issues and suggestions are also welcome via [GitHub Issues](https://github.com/n
 ## Acknowledgements
 
 ### Third-Party Libraries
-- [SwiftArgumentParser](https://github.com/apple/swift-argument-parser)
-- [SwiftPicker](https://github.com/nikolainobadi/SwiftPicker)
+
+#### My Libraries
+- [SwiftPicker](https://github.com/nikolainobadi/SwiftPicker) - Interactive command-line selection interfaces
+- [NnGitKit](https://github.com/nikolainobadi/NnGitKit) - Git operations wrapper (GitShellKit)
+- [NnShellKit](https://github.com/nikolainobadi/NnShellKit) - Shell command execution utilities
+- [NnSwiftDataKit](https://github.com/nikolainobadi/NnSwiftDataKit) - SwiftData utilities and extensions
+
+#### External Libraries
+- [Swift Argument Parser](https://github.com/apple/swift-argument-parser) - Command-line argument parsing
+- [Files](https://github.com/JohnSundell/Files) - File system operations
 
 ## License
 
