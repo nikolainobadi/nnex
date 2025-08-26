@@ -14,11 +14,15 @@ struct PublishExecutionManager {
     private let shell: any Shell
     private let picker: NnexPicker
     private let gitHandler: GitHandler
+    private let publishInfoLoader: PublishInfoLoader
+    private let context: NnexContext
     
-    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler) {
+    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, context: NnexContext) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
+        self.publishInfoLoader = publishInfoLoader
+        self.context = context
     }
 }
 
@@ -28,7 +32,7 @@ extension PublishExecutionManager {
     func executePublish(
         projectPath: String?,
         version: ReleaseVersionInfo?,
-        buildType: BuildType?,
+        buildType: BuildType,
         notes: String?,
         notesFile: String?,
         message: String?,
@@ -79,16 +83,12 @@ private extension PublishExecutionManager {
     /// Retrieves the Homebrew tap and formula associated with the project folder.
     /// - Parameters:
     ///   - projectFolder: The project folder.
-    ///   - buildType: An optional build type to override the default.
+    ///   - buildType: The build type to use.
     ///   - skipTests: Whether to skip tests during loading.
     /// - Returns: A tuple containing the tap, formula, and build type.
     /// - Throws: An error if the tap or formula cannot be found.
-    func getTapAndFormula(projectFolder: Folder, buildType: BuildType?, skipTests: Bool) throws -> (SwiftDataTap, SwiftDataFormula, BuildType) {
-        let context = try Nnex.makeContext()
-        let buildType = buildType ?? context.loadDefaultBuildType()
-        let loader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler, skipTests: skipTests)
-
-        let (tap, formula) = try loader.loadPublishInfo()
+    func getTapAndFormula(projectFolder: Folder, buildType: BuildType, skipTests: Bool) throws -> (SwiftDataTap, SwiftDataFormula, BuildType) {
+        let (tap, formula) = try publishInfoLoader.loadPublishInfo()
         
         if formula.localProjectPath.isEmpty || formula.localProjectPath != projectFolder.path {
             formula.localProjectPath = projectFolder.path
@@ -165,4 +165,3 @@ enum PublishExecutionError: Error, LocalizedError {
         }
     }
 }
-
