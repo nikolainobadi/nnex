@@ -21,18 +21,17 @@ extension ReleaseStore {
     /// Represents the result of a successful upload, containing asset URLs and version number.
     public typealias UploadResult = (assetURLs: [String], versionNumber: String)
 
-    /// Uploads a release to the remote repository with optional additional assets.
+    /// Uploads a release to the remote repository with archived binaries.
     /// - Parameters:
     ///   - info: The information related to the release.
-    ///   - additionalAssetPaths: Optional additional binary paths to upload to the same release.
+    ///   - archivedBinaries: The archived binaries to upload to the release.
     /// - Returns: An UploadResult containing all asset URLs and version number.
     /// - Throws: An error if the upload process fails.
-    public func uploadRelease(info: ReleaseInfo, additionalAssetPaths: [String] = []) throws -> UploadResult {
+    public func uploadRelease(info: ReleaseInfo, archivedBinaries: [ArchivedBinary]) throws -> UploadResult {
         let versionNumber = try getVersionNumber(info)
         let assetURLs = try gitHandler.createNewRelease(
             version: versionNumber,
-            binaryPath: info.binaryPath,
-            additionalBinaryPaths: additionalAssetPaths,
+            archivedBinaries: archivedBinaries,
             releaseNoteInfo: info.releaseNoteInfo,
             path: info.projectPath
         )

@@ -31,7 +31,8 @@ extension ReleaseStoreTests {
     func uploadRelease() throws {
         let info = makeReleaseInfo(versionInfo: .version(version))
         let (sut, gitHandler) = makeSUT()
-        let result = try sut.uploadRelease(info: info)
+        let mockArchived = ArchivedBinary(originalPath: "/test/path", archivePath: "/test/archive.tar.gz", sha256: "testhash")
+        let result = try sut.uploadRelease(info: info, archivedBinaries: [mockArchived])
         
         #expect(result.assetURLs.count == 1)
         #expect(result.assetURLs.first == assetURL)
@@ -44,7 +45,10 @@ extension ReleaseStoreTests {
         let info = makeReleaseInfo(versionInfo: .version(version))
         let additionalPaths = [additionalAssetPath1, additionalAssetPath2]
         let (sut, gitHandler) = makeSUT()
-        let result = try sut.uploadRelease(info: info, additionalAssetPaths: additionalPaths)
+        let mockArchived = ArchivedBinary(originalPath: "/test/path", archivePath: "/test/archive.tar.gz", sha256: "testhash")
+        let mockArchived1 = ArchivedBinary(originalPath: additionalAssetPath1, archivePath: "/tmp/archive1.tar.gz", sha256: "hash1")
+        let mockArchived2 = ArchivedBinary(originalPath: additionalAssetPath2, archivePath: "/tmp/archive2.tar.gz", sha256: "hash2")
+        let result = try sut.uploadRelease(info: info, archivedBinaries: [mockArchived, mockArchived1, mockArchived2])
         
         #expect(result.assetURLs.count == 3) // Primary + 2 additional
         #expect(result.assetURLs.first == assetURL) // Primary asset URL
@@ -58,7 +62,8 @@ extension ReleaseStoreTests {
     func uploadReleaseWithEmptyAdditionalAssets() throws {
         let info = makeReleaseInfo(versionInfo: .version(version))
         let (sut, gitHandler) = makeSUT()
-        let result = try sut.uploadRelease(info: info, additionalAssetPaths: [])
+        let mockArchived = ArchivedBinary(originalPath: "/test/path", archivePath: "/test/archive.tar.gz", sha256: "testhash")
+        let result = try sut.uploadRelease(info: info, archivedBinaries: [mockArchived])
         
         #expect(result.assetURLs.count == 1) // Only primary
         #expect(result.assetURLs.first == assetURL)
@@ -72,7 +77,7 @@ extension ReleaseStoreTests {
         let sut = makeSUT(throwError: true).sut
 
         #expect(throws: (any Error).self) {
-            try sut.uploadRelease(info: info)
+            try sut.uploadRelease(info: info, archivedBinaries: [])
         }
     }
     
@@ -82,7 +87,8 @@ extension ReleaseStoreTests {
         let expectedRelease = "2.0.0"
         let info = makeReleaseInfo(previousVersion: previousRelease, versionInfo: .increment(.major))
         let (sut, gitHandler) = makeSUT()
-        let result = try sut.uploadRelease(info: info)
+        let mockArchived = ArchivedBinary(originalPath: "/test/path", archivePath: "/test/archive.tar.gz", sha256: "testhash")
+        let result = try sut.uploadRelease(info: info, archivedBinaries: [mockArchived])
         
         #expect(result.assetURLs.count == 1)
         #expect(result.assetURLs.first == assetURL)
@@ -96,7 +102,7 @@ extension ReleaseStoreTests {
         let (sut, gitHandler) = makeSUT()
         
         #expect(throws: (any Error).self) {
-            try sut.uploadRelease(info: info)
+            try sut.uploadRelease(info: info, archivedBinaries: [])
         }
         
         #expect(gitHandler.releaseVersion == nil)
@@ -108,7 +114,7 @@ extension ReleaseStoreTests {
         let (sut, _) = makeSUT()
         
         #expect(throws: (any Error).self) {
-            try sut.uploadRelease(info: info)
+            try sut.uploadRelease(info: info, archivedBinaries: [])
         }
     }
 }
@@ -122,7 +128,7 @@ private extension ReleaseStoreTests {
         return (sut, gitHandler)
     }
     
-    func makeReleaseInfo(binaryPath: String = "path/to/binary", projectPath: String = "path/to/project", releaseNoteInfo: ReleaseNoteInfo = .init(content: "release notes", isFromFile: false) , previousVersion: String? = nil, versionInfo: ReleaseVersionInfo = .version("1.0.0")) -> ReleaseInfo {
-        return .init(binaryPath: binaryPath, projectPath: projectPath, releaseNoteInfo: releaseNoteInfo, previousVersion: previousVersion, versionInfo: versionInfo)
+    func makeReleaseInfo(projectPath: String = "path/to/project", releaseNoteInfo: ReleaseNoteInfo = .init(content: "release notes", isFromFile: false) , previousVersion: String? = nil, versionInfo: ReleaseVersionInfo = .version("1.0.0")) -> ReleaseInfo {
+        return .init(projectPath: projectPath, releaseNoteInfo: releaseNoteInfo, previousVersion: previousVersion, versionInfo: versionInfo)
     }
 }

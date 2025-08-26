@@ -28,18 +28,16 @@ public extension ProjectBuilder {
         case .arm64, .x86_64:
             let arch = config.buildType.archs.first!
             let path = binaryPath(for: arch)
-            let sha256 = try getSha256(binaryPath: path)
             
             try runTests()
             
-            return .single(.init(path: path, sha256: sha256))
+            return .single(.init(path: path))
 
         case .universal:
             var results: [ReleaseArchitecture: BinaryInfo] = [:]
             for arch in config.buildType.archs {
                 let path = binaryPath(for: arch)
-                let sha256 = try getSha256(binaryPath: path)
-                results[arch] = .init(path: path, sha256: sha256)
+                results[arch] = .init(path: path)
             }
             
             try runTests()
@@ -103,14 +101,6 @@ private extension ProjectBuilder {
         "\(config.projectPath).build/\(arch.name)-apple-macosx/release/\(config.projectName)"
     }
 
-    func getSha256(binaryPath: String) throws -> String {
-        guard
-            let raw = try? shell.bash("shasum -a 256 \(binaryPath)"),
-            let sha = raw.components(separatedBy: " ").first,
-            !sha.isEmpty
-        else { throw NnexError.missingSha256 }
-        return sha
-    }
 }
 
 public enum BinaryOutput {

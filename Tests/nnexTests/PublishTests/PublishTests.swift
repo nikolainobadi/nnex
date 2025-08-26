@@ -200,7 +200,7 @@ extension PublishTests {
     func runsTestsWithDefaultCommand() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let extraResults = Array(repeating: sha256Output, count: 10)
-        let testResults = ["", "", "", "", sha256Output, sha256Output, ""] + extraResults // 7 commands: git status, clean, build arm64, build x86_64, sha256 arm64, sha256 x86_64, test
+        let testResults = ["", "", "", "", sha256Output, "", sha256Output, ""] + extraResults // 8 commands: clean, build arm64, build x86_64, test, sha256 arm64, tar arm64, sha256 x86_64, tar x86_64
         let shell = MockShell(results: testResults)
         let factory = MockContextFactory(runResults: testResults, gitHandler: gitHandler, shell: shell)
         
@@ -215,7 +215,7 @@ extension PublishTests {
         let testCommand = "xcodebuild test -scheme testScheme -destination 'platform=macOS'"
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let extraResults = Array(repeating: sha256Output, count: 10)
-        let testResults = ["", "", "", "", sha256Output, sha256Output, ""] + extraResults // 7 commands: git status, clean, build arm64, build x86_64, sha256 arm64, sha256 x86_64, test
+        let testResults = ["", "", "", "", sha256Output, "", sha256Output, ""] + extraResults // 8 commands: clean, build arm64, build x86_64, test, sha256 arm64, tar arm64, sha256 x86_64, tar x86_64
         let shell = MockShell(results: testResults)
         let factory = MockContextFactory(runResults: testResults, gitHandler: gitHandler, shell: shell)
         
@@ -367,25 +367,32 @@ private extension PublishTests {
     ///   - includeTestCommand: Whether to include an extra result for test command execution
     /// - Returns: Array of mock results positioned correctly for publish workflow
     func makePublishMockResults(sha256: String, assetURL: String, includeTestCommand: Bool = false) -> [String] {
-        // New simplified build workflow:
+        // New workflow with BinaryArchiver:
         // 1. Clean project (if not skipped)
         // 2. Build for arm64
         // 3. Build for x86_64 (for universal builds)
-        // 4. Get SHA256 for arm64
-        // 5. Get SHA256 for x86_64 (for universal builds)
-        // 6. Run tests (if included)
+        // 4. Run tests (if included)
+        // 5. Get SHA256 for arm64 (during archive creation)
+        // 6. Create tar for arm64
+        // 7. Get SHA256 for x86_64 (during archive creation)
+        // 8. Create tar for x86_64
         
         var results = [
             "",       // 1. Clean project
             "",       // 2. Build arm64
             "",       // 3. Build x86_64
-            sha256Output,   // 4. SHA256 for arm64 (shasum output format)
-            sha256Output,   // 5. SHA256 for x86_64 (shasum output format)
         ]
         
         if includeTestCommand {
-            results.append("") // 6. Test command execution
+            results.append("") // 4. Test command execution
         }
+        
+        results.append(contentsOf: [
+            sha256Output,   // SHA256 for arm64 (shasum output format)
+            "",            // Create tar for arm64
+            sha256Output,   // SHA256 for x86_64 (shasum output format)
+            ""             // Create tar for x86_64
+        ])
         
         return results
     }

@@ -41,13 +41,12 @@ public protocol GitHandler {
     /// - Returns: A string representing the repository URL.
     func remoteRepoInit(tapName: String, path: String, projectDetails: String, visibility: RepoVisibility) throws -> String
     
-    /// Creates a new release with one or more binaries and returns all asset URLs.
+    /// Creates a new release with one or more archived binaries and returns all asset URLs.
     /// - Parameters:
     ///   - version: The version number for the release.
-    ///   - binaryPath: The file path to the primary binary file.
-    ///   - additionalBinaryPaths: Optional additional binary paths to upload to the same release.
+    ///   - archivedBinaries: The archived binary files to upload to the release.
     ///   - releaseNoteInfo: Information for generating release notes.
     ///   - path: The file path of the repository.
     /// - Returns: An array of asset URLs, with the primary asset URL first, followed by additional asset URLs.
-    func createNewRelease(version: String, binaryPath: String, additionalBinaryPaths: [String], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String]
+    func createNewRelease(version: String, archivedBinaries: [ArchivedBinary], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String]
 }

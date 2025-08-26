@@ -10,7 +10,6 @@ import NnShellKit
 @testable import NnexKit
 
 struct ProjectBuilderTests {
-    private let sha256 = "abc123def456"
     private let projectName = "TestProject"
     private let projectPath = "/path/to/project"
     private let extraArgs = ["extraArg"]
@@ -21,14 +20,10 @@ struct ProjectBuilderTests {
 extension ProjectBuilderTests {
     @Test("Successfully builds a universal binary")
     func buildUniversalBinary() throws {
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
         let shellResults = [
             "", // clean
             "", // build arm64
-            "", // build x86_64
-            "\(armSha256)  /path/to/binary",
-            "\(intelSha256)  /path/to/binary"
+            ""  // build x86_64
         ]
         
         let sut = makeSUT(runResults: shellResults).sut
@@ -38,19 +33,16 @@ extension ProjectBuilderTests {
         case .single:
             Issue.record("Expected .multiple BinaryOutput but found .single")
         case .multiple(let dict):
-            for (key, info) in dict {
-                let expectedSha256 = key == .arm ? armSha256 : intelSha256
-                
+            for (_, info) in dict {
                 #expect(info.path.contains(projectPath))
                 #expect(info.path.contains(projectName))
-                #expect(info.sha256 == expectedSha256, "Expected SHA-256 \(expectedSha256), but got \(info.sha256)")
             }
         }
     }
     
     @Test("Successfully builds an single binary", arguments: [BuildType.arm64, BuildType.x86_64])
     func buildSingleBinary(buildType: BuildType) throws {
-        let sut = makeSUT(buildType: buildType, runResults: ["", "", "\(sha256)  /path/to/binary"]).sut
+        let sut = makeSUT(buildType: buildType, runResults: ["", ""]).sut
         let result = try sut.discardableBuild()
         
         switch result {
@@ -58,7 +50,6 @@ extension ProjectBuilderTests {
             #expect(info.path.contains(projectPath))
             #expect(info.path.contains("\(buildType.rawValue)-apple-macosx"))
             #expect(info.path.contains(projectName))
-            #expect(info.sha256 == sha256, "Expected SHA-256 \(sha256), but got \(info.sha256)")
         case .multiple:
             Issue.record("Expected .single BinaryOutput but found .multiple")
         }
@@ -66,10 +57,8 @@ extension ProjectBuilderTests {
     
     @Test("Successfully passes extra build arguments")
     func buildWithExtraArgs() throws {
-        // Need results for: clean, build arm64, build x86_64, shasum arm, shasum intel, test
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""])
+        // Need results for: clean, build arm64, build x86_64, test
+        let (sut, shell) = makeSUT(runResults: ["", "", "", ""])
         let result = try sut.discardableBuild()
         let expectedCommandPart = extraArgs.joined(separator: " ")
         
@@ -88,10 +77,8 @@ extension ProjectBuilderTests {
     
     @Test("Runs default test command after build")
     func runsDefaultTestCommand() throws {
-        // Need results for: clean, build arm64, build x86_64, shasum arm, shasum intel, test
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .defaultCommand)
+        // Need results for: clean, build arm64, build x86_64, test
+        let (sut, shell) = makeSUT(runResults: ["", "", "", ""], testCommand: .defaultCommand)
         
         try sut.discardableBuild()
         
@@ -100,10 +87,8 @@ extension ProjectBuilderTests {
 
     @Test("Runs custom test command after build")
     func runsCustomTestCommand() throws {
-        // Need results for: clean, build arm64, build x86_64, shasum arm, shasum intel, test
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .custom(customTestCommand))
+        // Need results for: clean, build arm64, build x86_64, test
+        let (sut, shell) = makeSUT(runResults: ["", "", "", ""], testCommand: .custom(customTestCommand))
         
         try sut.discardableBuild()
         
@@ -112,10 +97,8 @@ extension ProjectBuilderTests {
 
     @Test("Skips running tests if no test command is provided")
     func skipsRunningTests() throws {
-        // Need results for: clean, build arm64, build x86_64, shasum arm, shasum intel
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"], testCommand: nil)
+        // Need results for: clean, build arm64, build x86_64
+        let (sut, shell) = makeSUT(runResults: ["", "", ""], testCommand: nil)
         
         try sut.discardableBuild()
         
@@ -126,9 +109,7 @@ extension ProjectBuilderTests {
     @Test("Custom command without flags gets required flags added")
     func customCommandWithoutFlags() throws {
         let baseCommand = "xcodebuild test -scheme nnex"
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .custom(baseCommand))
+        let (sut, shell) = makeSUT(runResults: ["", "", "", ""], testCommand: .custom(baseCommand))
         
         try sut.discardableBuild()
         
@@ -141,9 +122,7 @@ extension ProjectBuilderTests {
     @Test("Custom command with one flag gets missing flag added")
     func customCommandWithOneFlag() throws {
         let baseCommand = "xcodebuild test -scheme nnex -quiet"
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .custom(baseCommand))
+        let (sut, shell) = makeSUT(runResults: ["", "", "", ""], testCommand: .custom(baseCommand))
         
         try sut.discardableBuild()
         
@@ -158,9 +137,7 @@ extension ProjectBuilderTests {
     @Test("Custom command with both flags remains unchanged")
     func customCommandWithBothFlags() throws {
         let baseCommand = "xcodebuild test -scheme nnex -quiet -allowProvisioningUpdates"
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .custom(baseCommand))
+        let (sut, shell) = makeSUT(runResults: ["", "", "", ""], testCommand: .custom(baseCommand))
         
         try sut.discardableBuild()
         
@@ -175,9 +152,7 @@ extension ProjectBuilderTests {
     @Test("Custom command with flags in different positions avoids duplication")
     func customCommandWithFlagsInDifferentPositions() throws {
         let baseCommand = "xcodebuild -quiet test -scheme nnex -allowProvisioningUpdates"
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .custom(baseCommand))
+        let (sut, shell) = makeSUT(runResults: ["", "", "", ""], testCommand: .custom(baseCommand))
         
         try sut.discardableBuild()
         
@@ -190,9 +165,7 @@ extension ProjectBuilderTests {
 
     @Test("Default command does not get custom flags added")
     func defaultCommandUnchanged() throws {
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary", ""], testCommand: .defaultCommand)
+        let (sut, shell) = makeSUT(runResults: ["", "", "", ""], testCommand: .defaultCommand)
         
         try sut.discardableBuild()
         
@@ -204,10 +177,8 @@ extension ProjectBuilderTests {
     
     @Test("Includes cleaning by default")
     func includesCleaning() throws {
-        // Need results for: clean, build arm64, build x86_64, shasum arm, shasum intel
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
+        // Need results for: clean, build arm64, build x86_64
+        let (sut, shell) = makeSUT(runResults: ["", "", ""])
         
         try sut.discardableBuild()
         
@@ -216,10 +187,8 @@ extension ProjectBuilderTests {
     
     @Test("Skips cleaning when indicated")
     func skipsCleaning() throws {
-        // Need results for: build arm64, build x86_64, shasum arm, shasum intel (no clean)
-        let armSha256 = "arm123def456"
-        let intelSha256 = "intel123def456"
-        let (sut, shell) = makeSUT(runResults: ["", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"], skipClean: true)
+        // Need results for: build arm64, build x86_64 (no clean)
+        let (sut, shell) = makeSUT(runResults: ["", ""], skipClean: true)
         
         try sut.discardableBuild()
         
@@ -248,14 +217,6 @@ extension ProjectBuilderTests {
         }
     }
     
-    @Test("Throws error if SHA-256 calculation fails")
-    func sha256CalculationFails() throws {
-        let (sut, _) = makeSUT(runResults: ["some/path"], throwShellError: true)
-        
-        #expect(throws: (any Error).self) {
-            try sut.discardableBuild()
-        }
-    }
 }
 
 
