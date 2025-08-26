@@ -39,7 +39,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: versionInfo,
             previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
@@ -66,7 +66,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: resolvedVersion,
             previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
@@ -91,7 +91,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: resolvedVersion,
             previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
@@ -113,7 +113,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: versionInfo,
             previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
@@ -136,7 +136,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: versionInfo,
             previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
@@ -161,7 +161,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: versionInfo,
             previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
@@ -187,7 +187,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: resolvedVersion,
             previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
@@ -211,7 +211,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: resolvedVersion,
             previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
@@ -236,7 +236,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: resolvedVersion,
             previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
@@ -261,7 +261,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: resolvedVersion,
             previousVersion: previousVersion,
             releaseNotesSource: releaseNotesSource
@@ -285,7 +285,7 @@ extension ReleaseHandlerTests {
         #expect(throws: (any Error).self) {
             _ = try sut.uploadRelease(
                 folder: folder,
-                binaryOutput: makeBinaryOutput(),
+                archivedBinaries: makeArchivedBinaries(),
                 versionInfo: versionInfo,
                 previousVersion: testPreviousVersion,
                 releaseNotesSource: releaseNotesSource
@@ -321,7 +321,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: versionInfo,
             previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
@@ -347,7 +347,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: versionInfo,
             previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
@@ -373,7 +373,7 @@ extension ReleaseHandlerTests {
         
         let results = try sut.uploadRelease(
             folder: folder,
-            binaryOutput: makeBinaryOutput(),
+            archivedBinaries: makeArchivedBinaries(),
             versionInfo: versionInfo,
             previousVersion: testPreviousVersion,
             releaseNotesSource: releaseNotesSource
@@ -402,7 +402,7 @@ extension ReleaseHandlerTests {
         #expect(throws: (any Error).self) {
             _ = try sut.uploadRelease(
                 folder: folder,
-                binaryOutput: makeBinaryOutput(),
+                archivedBinaries: makeArchivedBinaries(),
                 versionInfo: versionInfo,
                 previousVersion: testPreviousVersion,
                 releaseNotesSource: releaseNotesSource
@@ -451,7 +451,7 @@ private extension ReleaseHandlerTests {
         return (sut, folder, gitHandler, picker, trashHandler)
     }
     
-    func makeBinaryOutput() -> BinaryOutput {
-        return .single(BinaryInfo(path: testBinaryPath, sha256: testBinarySha256))
+    func makeArchivedBinaries() -> [ArchivedBinary] {
+        return [ArchivedBinary(originalPath: testBinaryPath, archivePath: "/tmp/test.tar.gz", sha256: testBinarySha256)]
     }
 }

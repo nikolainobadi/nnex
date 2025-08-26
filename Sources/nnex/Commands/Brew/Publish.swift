@@ -49,9 +49,10 @@ extension Nnex.Brew {
             
             let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType)
             let binaryOutput = try buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests)
-            let assetURLs = try uploadRelease(folder: projectFolder, binaryOutput: binaryOutput, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
+            let archivedBinaries = try createArchives(from: binaryOutput)
+            let assetURLs = try uploadRelease(folder: projectFolder, archivedBinaries: archivedBinaries, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
             
-            let formulaContent = try makeFormulaContent(formula: formula, binaryOutput: binaryOutput, assetURLs: assetURLs)
+            let formulaContent = try makeFormulaContent(formula: formula, archivedBinaries: archivedBinaries, assetURLs: assetURLs)
             
             try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
         }
@@ -131,32 +132,49 @@ private extension Nnex.Brew.Publish {
         return try builder.build()
     }
 
+    /// Creates tar.gz archives from binary output.
+    /// - Parameter binaryOutput: The binary output from the build.
+    /// - Returns: An array of archived binaries.
+    /// - Throws: An error if archive creation fails.
+    func createArchives(from binaryOutput: BinaryOutput) throws -> [ArchivedBinary] {
+        let archiver = BinaryArchiver(shell: shell)
+        
+        switch binaryOutput {
+        case .single(let info):
+            return try archiver.createArchives(from: [info.path])
+        case .multiple(let map):
+            let binaryPaths = [ReleaseArchitecture.arm, ReleaseArchitecture.intel]
+                .compactMap { map[$0]?.path }
+            return try archiver.createArchives(from: binaryPaths)
+        }
+    }
+
     /// Uploads a release to GitHub and returns the asset URLs.
     /// - Parameters:
     ///   - folder: The project folder.
-    ///   - binaryOutput: The binary output from the build.
+    ///   - archivedBinaries: The archived binaries to upload.
     ///   - versionInfo: The version information for the release.
     ///   - previousVersion: The previous version, if any.
     ///   - releaseNotesSource: The source of release notes.
     /// - Returns: An array of asset URLs from the GitHub release.
     /// - Throws: An error if the upload fails.
-    func uploadRelease(folder: Folder, binaryOutput: BinaryOutput, versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
+    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
         let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: Nnex.makeTrashHandler())
-        return try handler.uploadRelease(folder: folder, binaryOutput: binaryOutput, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
+        return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
 
-    /// Creates formula content based on the binary output and asset URLs.
+    /// Creates formula content based on the archived binaries and asset URLs.
     /// - Parameters:
     ///   - formula: The Homebrew formula.
-    ///   - binaryOutput: The binary output from the build.
+    ///   - archivedBinaries: The archived binaries with their SHA256 values.
     ///   - assetURLs: The asset URLs from the GitHub release.
     /// - Returns: The formula content as a string.
     /// - Throws: An error if formula generation fails.
-    func makeFormulaContent(formula: SwiftDataFormula, binaryOutput: BinaryOutput, assetURLs: [String]) throws -> String {
+    func makeFormulaContent(formula: SwiftDataFormula, archivedBinaries: [ArchivedBinary], assetURLs: [String]) throws -> String {
         let formulaName = formula.name
         
-        switch binaryOutput {
-        case .single(let info):
+        if archivedBinaries.count == 1 {
+            // Single binary case
             guard let assetURL = assetURLs.first else {
                 throw NnexError.missingSha256 // Should create a better error for missing URL
             }
@@ -166,25 +184,31 @@ private extension Nnex.Brew.Publish {
                 homepage: formula.homepage,
                 license: formula.license,
                 assetURL: assetURL,
-                sha256: info.sha256
+                sha256: archivedBinaries[0].sha256
             )
+        } else {
+            // Multiple binaries case - match archive paths to determine architecture
+            var armArchive: ArchivedBinary?
+            var intelArchive: ArchivedBinary?
             
-        case .multiple(let map):
-            // For multiple binaries, we need to extract URLs for each architecture
-            // Assuming URLs are in deterministic order: ARM first, then Intel
-            let armInfo = map[.arm]
-            let intelInfo = map[.intel]
+            for archive in archivedBinaries {
+                if archive.originalPath.contains("arm64-apple-macosx") {
+                    armArchive = archive
+                } else if archive.originalPath.contains("x86_64-apple-macosx") {
+                    intelArchive = archive
+                }
+            }
             
             // Extract URLs - assuming first is ARM, second is Intel when both present
             var armURL: String?
             var intelURL: String?
             
-            if armInfo != nil && intelInfo != nil {
+            if armArchive != nil && intelArchive != nil {
                 armURL = assetURLs.count > 0 ? assetURLs[0] : nil
                 intelURL = assetURLs.count > 1 ? assetURLs[1] : nil
-            } else if armInfo != nil {
+            } else if armArchive != nil {
                 armURL = assetURLs.first
-            } else if intelInfo != nil {
+            } else if intelArchive != nil {
                 intelURL = assetURLs.first
             }
             
@@ -194,9 +218,9 @@ private extension Nnex.Brew.Publish {
                 homepage: formula.homepage,
                 license: formula.license,
                 armURL: armURL,
-                armSHA256: armInfo?.sha256,
+                armSHA256: armArchive?.sha256,
                 intelURL: intelURL,
-                intelSHA256: intelInfo?.sha256
+                intelSHA256: intelArchive?.sha256
             )
         }
     }

@@ -23,52 +23,34 @@ struct ReleaseHandler {
 
 // MARK: - Action
 extension ReleaseHandler {
-    func uploadRelease(folder: Folder, binaryOutput: BinaryOutput, versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
+    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
         let noteInfo = try getReleaseNoteInfo(projectName: folder.name, releaseNotesSource: releaseNotesSource)
         let store = ReleaseStore(gitHandler: gitHandler)
 
-        switch binaryOutput {
-        case .single(let info):
-            let releaseInfo = ReleaseInfo(
-                binaryPath: info.path,
-                projectPath: folder.path,
-                releaseNoteInfo: noteInfo,
-                previousVersion: previousVersion,
-                versionInfo: versionInfo
-            )
-            let (assetURLs, versionNumber) = try store.uploadRelease(info: releaseInfo)
-            try maybeTrashReleaseNotes(noteInfo)
-            let primaryAssetURL = assetURLs.first ?? ""
+        let releaseInfo = ReleaseInfo(
+            projectPath: folder.path,
+            releaseNoteInfo: noteInfo,
+            previousVersion: previousVersion,
+            versionInfo: versionInfo
+        )
+
+        let (assetURLs, versionNumber) = try store.uploadRelease(info: releaseInfo, archivedBinaries: archivedBinaries)
+        try maybeTrashReleaseNotes(noteInfo)
+        let primaryAssetURL = assetURLs.first ?? ""
+        
+        if archivedBinaries.count == 1 {
             print("GitHub release \(versionNumber) created and binary uploaded to \(primaryAssetURL)")
-            return assetURLs
-
-        case .multiple(let map):
-            // deterministic order: prefer arm then intel when available
-            let ordered: [BinaryInfo] = [.arm, .intel].compactMap { map[$0] }
-            guard let primary = ordered.first else { throw NnexError.missingSha256 }
-
-            let releaseInfo = ReleaseInfo(
-                binaryPath: primary.path,
-                projectPath: folder.path,
-                releaseNoteInfo: noteInfo,
-                previousVersion: previousVersion,
-                versionInfo: versionInfo
-            )
-
-            let others = Array(ordered.dropFirst()).map { $0.path }
-            let (assetURLs, versionNumber) = try store.uploadRelease(info: releaseInfo, additionalAssetPaths: others)
-
-            try maybeTrashReleaseNotes(noteInfo)
-            let primaryAssetURL = assetURLs.first ?? ""
-            print("GitHub release \(versionNumber) created and \(ordered.count) binaries uploaded. First asset at \(primaryAssetURL)")
+        } else {
+            print("GitHub release \(versionNumber) created and \(archivedBinaries.count) binaries uploaded. First asset at \(primaryAssetURL)")
             if assetURLs.count > 1 {
                 print("Additional assets:")
                 for (index, url) in assetURLs.dropFirst().enumerated() {
                     print("  Asset \(index + 2): \(url)")
                 }
             }
-            return assetURLs
         }
+        
+        return assetURLs
     }
 }
 

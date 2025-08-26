@@ -5,6 +5,7 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
+import Foundation
 import GitShellKit
 import NnShellKit
 
@@ -66,21 +67,15 @@ extension DefaultGitHandler: GitHandler {
         return try GitHubRepoStarter(path: path, shell: gitShell, repoInfo: info).repoInit()
     }
 
-    /// Creates a new release with one or more binaries and returns all asset URLs.
+    /// Creates a new release with one or more archived binaries and returns all asset URLs.
     /// - Parameters:
     ///   - version: The version number for the release.
-    ///   - binaryPath: The file path to the primary binary file.
-    ///   - additionalBinaryPaths: Optional additional binary paths to upload to the same release.
+    ///   - archivedBinaries: The archived binary files to upload to the release.
     ///   - releaseNoteInfo: Information for generating release notes.
     ///   - path: The file path of the repository.
     /// - Returns: An array of asset URLs, with the primary asset URL first, followed by additional asset URLs.
-    public func createNewRelease(version: String, binaryPath: String, additionalBinaryPaths: [String], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String] {
-        // Combine all binary paths into a single array
-        var allBinaryPaths = [binaryPath]
-        allBinaryPaths.append(contentsOf: additionalBinaryPaths)
-        
-        // Create the release with all binaries at once
-        return try createReleaseWithAllBinaries(version: version, binaryPaths: allBinaryPaths, releaseNoteInfo: releaseNoteInfo, path: path)
+    public func createNewRelease(version: String, archivedBinaries: [ArchivedBinary], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String] {
+        return try createReleaseWithAllBinaries(version: version, archivedBinaries: archivedBinaries, releaseNoteInfo: releaseNoteInfo, path: path)
     }
 
     /// Verifies if the GitHub CLI (gh) is installed and provides installation instructions if not.
@@ -94,8 +89,8 @@ extension DefaultGitHandler: GitHandler {
 
 // MARK: - Private Methods
 private extension DefaultGitHandler {
-    /// Creates a release with all binaries uploaded simultaneously.
-    func createReleaseWithAllBinaries(version: String, binaryPaths: [String], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String] {
+    /// Creates a release with all binaries uploaded simultaneously in a single command.
+    func createReleaseWithAllBinaries(version: String, archivedBinaries: [ArchivedBinary], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String] {
         // Build the release notes parameter
         let notesParam: String
         if releaseNoteInfo.isFromFile {
@@ -104,12 +99,14 @@ private extension DefaultGitHandler {
             notesParam = "--notes \"\(releaseNoteInfo.content)\""
         }
         
-        // Quote all binary paths for the command
-        let quotedBinaryPaths = binaryPaths.map { "\"\($0)\"" }.joined(separator: " ")
-        
-        // Create the release and upload all binaries at once
-        let createCmd = "cd \"\(path)\" && gh release create \(version) \(quotedBinaryPaths) --title \"\(version)\" \(notesParam)"
+        // Create the release and upload all archives at once
+        let quotedArchivePaths = archivedBinaries.map { "\"\($0.archivePath)\"" }.joined(separator: " ")
+        let createCmd = "cd \"\(path)\" && gh release create \(version) \(quotedArchivePaths) --title \"\(version)\" \(notesParam)"
         _ = try shell.bash(createCmd)
+        
+        // Clean up archive files after upload
+        let archiver = BinaryArchiver(shell: shell)
+        try archiver.cleanup(archivedBinaries)
         
         // Get all asset URLs
         let listCmd = "cd \"\(path)\" && gh release view \(version) --json assets --jq '.assets[].url'"
