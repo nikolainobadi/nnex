@@ -64,8 +64,10 @@ extension BrewImportTapTests {
         
         try runCommand(testFactory, path: tapFolder.path)
         
-        let newTap = try #require(try context.loadTaps().first)
-        let newFormula = try #require(try context.loadFormulas().first)
+        let tapList = try context.loadTaps()
+        let newTap = try #require(tapList.first)
+        let formulaList = try context.loadFormulas()
+        let newFormula = try #require(formulaList.first)
         
         #expect(newTap.name == tapName)
         #expect(newTap.formulas.count == 1)
