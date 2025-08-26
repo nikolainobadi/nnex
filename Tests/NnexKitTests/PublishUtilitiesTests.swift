@@ -102,7 +102,7 @@ extension PublishUtilitiesTests {
 
 // MARK: - createArchives Tests
 extension PublishUtilitiesTests {
-    @Test("Creates archive from single binary", .disabled())
+    @Test("Creates archive from single binary")
     func createsArchiveFromSingleBinary() throws {
         // Create temporary binary file for testing
         let tempFolder = try Folder.temporary.createSubfolder(named: "test-binary-\(UUID().uuidString)")
@@ -111,7 +111,7 @@ extension PublishUtilitiesTests {
         let binaryFile = try tempFolder.createFile(named: "testBinary")
         try binaryFile.write("fake binary content")
         
-        let shell = MockShell(results: [sha256Output, ""])
+        let shell = MockShell(results: ["", sha256Output])  // tar command result, then shasum result
         let binaryOutput = BinaryOutput.single(.init(path: binaryFile.path))
         
         let archives = try PublishUtilities.createArchives(from: binaryOutput, shell: shell)
@@ -121,7 +121,7 @@ extension PublishUtilitiesTests {
         #expect(archives[0].originalPath == binaryFile.path)
     }
     
-    @Test("Creates archives from multiple binaries", .disabled())
+    @Test("Creates archives from multiple binaries")
     func createsArchivesFromMultipleBinaries() throws {
         // Create temporary binary files for testing
         let tempFolder = try Folder.temporary.createSubfolder(named: "test-binaries-\(UUID().uuidString)")
@@ -132,7 +132,7 @@ extension PublishUtilitiesTests {
         try armFile.write("fake arm binary content")
         try intelFile.write("fake intel binary content")
         
-        let shell = MockShell(results: [sha256Output, "", sha256Output, ""])
+        let shell = MockShell(results: ["", sha256Output, "", sha256Output])  // tar, shasum, tar, shasum
         let binaryOutput = BinaryOutput.multiple([
             .arm: .init(path: armFile.path),
             .intel: .init(path: intelFile.path)
