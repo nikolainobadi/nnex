@@ -16,13 +16,15 @@ struct PublishExecutionManager {
     private let gitHandler: GitHandler
     private let publishInfoLoader: PublishInfoLoader
     private let context: NnexContext
+    private let trashHandler: TrashHandler
     
-    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, context: NnexContext) {
+    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, context: NnexContext, trashHandler: TrashHandler) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
         self.publishInfoLoader = publishInfoLoader
         self.context = context
+        self.trashHandler = trashHandler
     }
 }
 
@@ -30,7 +32,7 @@ struct PublishExecutionManager {
 // MARK: - Action
 extension PublishExecutionManager {
     func executePublish(
-        projectPath: String?,
+        projectFolder: Folder,
         version: ReleaseVersionInfo?,
         buildType: BuildType,
         notes: String?,
@@ -39,8 +41,6 @@ extension PublishExecutionManager {
         skipTests: Bool
     ) throws {
         try gitHandler.checkForGitHubCLI()
-        
-        let projectFolder = try Nnex.Brew.getProjectFolder(at: projectPath)
         
         try ensureNoUncommittedChanges(at: projectFolder.path)
         
@@ -108,7 +108,7 @@ private extension PublishExecutionManager {
     /// - Returns: An array of asset URLs from the GitHub release.
     /// - Throws: An error if the upload fails.
     func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
-        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: Nnex.makeTrashHandler())
+        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler)
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
 

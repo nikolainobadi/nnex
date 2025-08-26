@@ -43,11 +43,12 @@ extension Nnex.Brew {
             let context = try Nnex.makeContext()
             let buildType = buildType ?? context.loadDefaultBuildType()
             let projectFolder = try Nnex.Brew.getProjectFolder(at: path)
+            let trashHandler = Nnex.makeTrashHandler()
             let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler, skipTests: skipTests)
-            let manager = PublishExecutionManager(shell: shell, picker: picker, gitHandler: gitHandler, publishInfoLoader: publishInfoLoader, context: context)
+            let manager = PublishExecutionManager(shell: shell, picker: picker, gitHandler: gitHandler, publishInfoLoader: publishInfoLoader, context: context, trashHandler: trashHandler)
             
             try manager.executePublish(
-                projectPath: path,
+                projectFolder: projectFolder,
                 version: version,
                 buildType: buildType,
                 notes: notes,
