@@ -35,8 +35,12 @@ struct BuildExecutionManager {
         
         displayBuildResult(finalPaths, openInFinder: openInFinder)
     }
-    
-    private func displayBuildResult(_ binaryOutput: BinaryOutput, openInFinder: Bool) {
+}
+
+
+// MARK: - Private Methods
+private extension BuildExecutionManager {
+    func displayBuildResult(_ binaryOutput: BinaryOutput, openInFinder: Bool) {
         switch binaryOutput {
         case .single(let binaryInfo):
             print("New binary was built at \(binaryInfo.path)")
@@ -54,7 +58,7 @@ struct BuildExecutionManager {
         }
     }
     
-    private func getExecutableName(for projectFolder: Folder) throws -> String {
+    func getExecutableName(for projectFolder: Folder) throws -> String {
         let resolver = ExecutableNameResolver()
         let names = try resolver.getExecutableNames(from: projectFolder)
         
@@ -71,7 +75,7 @@ struct BuildExecutionManager {
         }
     }
     
-    private func selectOutputLocation(buildType: BuildType) throws -> BuildOutputLocation {
+    func selectOutputLocation(buildType: BuildType) throws -> BuildOutputLocation {
         let options: [BuildOutputLocation] = [
             .currentDirectory(buildType),
             .desktop,
@@ -87,7 +91,7 @@ struct BuildExecutionManager {
         return selection
     }
     
-    private func handleCustomLocationInput() throws -> BuildOutputLocation {
+    func handleCustomLocationInput() throws -> BuildOutputLocation {
         let parentPath = try picker.getRequiredInput(prompt: "Enter the path to the parent directory where you want to place the binary:")
         
         guard let parentFolder = try? Folder(path: parentPath) else {
@@ -102,11 +106,10 @@ struct BuildExecutionManager {
         return .custom(parentFolder.path)
     }
     
-    private func copyBinaryToLocation(binaryOutput: BinaryOutput, outputLocation: BuildOutputLocation, executableName: String) throws -> BinaryOutput {
+    func copyBinaryToLocation(binaryOutput: BinaryOutput, outputLocation: BuildOutputLocation, executableName: String) throws -> BinaryOutput {
         switch outputLocation {
         case .currentDirectory:
             return binaryOutput
-            
         case .desktop:
             let desktop = try Folder.home.subfolder(named: "Desktop")
             return try copyToDestination(binaryOutput: binaryOutput, destinationPath: desktop.path, executableName: executableName)
@@ -116,7 +119,7 @@ struct BuildExecutionManager {
         }
     }
     
-    private func copyToDestination(binaryOutput: BinaryOutput, destinationPath: String, executableName: String) throws -> BinaryOutput {
+    func copyToDestination(binaryOutput: BinaryOutput, destinationPath: String, executableName: String) throws -> BinaryOutput {
         switch binaryOutput {
         case .single(let binaryInfo):
             let finalPath = destinationPath + "/" + executableName
