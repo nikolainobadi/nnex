@@ -1,5 +1,5 @@
 //
-//  CreateTapExecutionManager.swift
+//  CreateTapManager.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 8/26/25.
@@ -11,7 +11,7 @@ import NnShellKit
 import GitShellKit
 import Foundation
 
-struct CreateTapExecutionManager {
+struct CreateTapManager {
     private let shell: any Shell
     private let picker: NnexPicker
     private let gitHandler: GitHandler
@@ -27,7 +27,7 @@ struct CreateTapExecutionManager {
 
 
 // MARK: - Action
-extension CreateTapExecutionManager {
+extension CreateTapManager {
     func executeCreateTap(name: String?, details: String?, visibility: RepoVisibility) throws {
         try gitHandler.checkForGitHubCLI()
         
@@ -52,7 +52,7 @@ extension CreateTapExecutionManager {
 
 
 // MARK: - Private Methods
-private extension CreateTapExecutionManager {
+private extension CreateTapManager {
     /// Retrieves the name of the new tap, prompting the user if not provided.
     /// - Parameter name: The optional tap name.
     /// - Returns: The resolved tap name as a string.

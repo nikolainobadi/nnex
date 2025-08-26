@@ -27,7 +27,7 @@ extension Nnex.Brew {
             let picker = Nnex.makePicker()
             let gitHandler = Nnex.makeGitHandler()
             let context = try Nnex.makeContext()
-            let manager = CreateTapExecutionManager(
+            let manager = CreateTapManager(
                 shell: shell,
                 picker: picker,
                 gitHandler: gitHandler,
