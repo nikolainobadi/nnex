@@ -96,14 +96,11 @@ extension PublishExecutionManagerTests {
         let factory = MockContextFactory(
             runResults: [
                 "", // git status --porcelain (clean)
-                "", // getPreviousReleaseVersion
                 "", // Clean project
                 "", // Build arm64
                 "", // Strip arm64  
                 "", // Build x86_64
                 "", // Strip x86_64
-                "", // Copy arm64 binary
-                "", // Copy x86_64 binary
                 "", // tar command for arm64
                 "abc123def456  /path/to/binary", // shasum for arm64
                 "", // tar command for x86_64
@@ -124,7 +121,7 @@ extension PublishExecutionManagerTests {
         
         try sut.executePublish(
             projectFolder: projectFolder,
-            version: nil as ReleaseVersionInfo?,
+            version: .version("2.0.0"),
             buildType: BuildType.universal,
             notes: nil as String?,
             notesFile: nil as String?,
@@ -140,14 +137,11 @@ extension PublishExecutionManagerTests {
         let factory = MockContextFactory(
             runResults: [
                 "", // git status --porcelain (clean)
-                "", // getPreviousReleaseVersion
                 "", // Clean project
                 "", // Build arm64
                 "", // Strip arm64  
                 "", // Build x86_64
                 "", // Strip x86_64
-                "", // Copy arm64 binary
-                "", // Copy x86_64 binary
                 "", // tar command for arm64
                 "abc123def456  /path/to/binary", // shasum for arm64
                 "", // tar command for x86_64
@@ -182,7 +176,7 @@ extension PublishExecutionManagerTests {
         
         try sut.executePublish(
             projectFolder: projectFolder,
-            version: nil as ReleaseVersionInfo?,
+            version: .version("2.0.0"),
             buildType: BuildType.universal,
             notes: nil as String?,
             notesFile: nil as String?,
@@ -198,14 +192,11 @@ extension PublishExecutionManagerTests {
         let factory = MockContextFactory(
             runResults: [
                 "", // git status --porcelain (clean)
-                "", // getPreviousReleaseVersion
                 "", // Clean project
                 "", // Build arm64
                 "", // Strip arm64  
                 "", // Build x86_64
                 "", // Strip x86_64
-                "", // Copy arm64 binary
-                "", // Copy x86_64 binary
                 "", // tar command for arm64
                 "abc123def456  /path/to/binary", // shasum for arm64
                 "", // tar command for x86_64
@@ -234,7 +225,7 @@ extension PublishExecutionManagerTests {
         
         try sut.executePublish(
             projectFolder: projectFolder,
-            version: nil,
+            version: .version("2.0.0"),
             buildType: BuildType.universal,
             notes: nil,
             notesFile: nil,
@@ -261,7 +252,7 @@ extension PublishExecutionManagerTests {
         #expect(throws: PublishExecutionError.uncommittedChanges) {
             try sut.executePublish(
                 projectFolder: projectFolder,
-                version: nil,
+                version: .version("2.0.0"),
                 buildType: BuildType.universal,
                 notes: nil,
                 notesFile: nil,
