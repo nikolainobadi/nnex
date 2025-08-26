@@ -123,7 +123,7 @@ extension MockContextFactory: ContextFactory {
 // MARK: - Private
 private extension MockContextFactory {
     func makeDefaults() -> UserDefaults {
-        let testSuiteName = "testSuiteDefaults"
+        let testSuiteName = "testSuiteDefaults_\(UUID().uuidString)"
         let userDefaults = UserDefaults(suiteName: testSuiteName)!
         userDefaults.removePersistentDomain(forName: testSuiteName)
         
