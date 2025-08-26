@@ -20,7 +20,11 @@ struct PublishExecutionManager {
         self.picker = picker
         self.gitHandler = gitHandler
     }
-    
+}
+
+
+// MARK: - Action
+extension PublishExecutionManager {
     func executePublish(
         projectPath: String?,
         version: ReleaseVersionInfo?,
@@ -40,11 +44,11 @@ struct PublishExecutionManager {
         let (resolvedVersionInfo, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: version, projectPath: projectFolder.path)
         
         let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType, skipTests: skipTests)
-        let binaryOutput = try buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests)
-        let archivedBinaries = try createArchives(from: binaryOutput)
+        let binaryOutput = try PublishUtilities.buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests, shell: shell)
+        let archivedBinaries = try PublishUtilities.createArchives(from: binaryOutput, shell: shell)
         let assetURLs = try uploadRelease(folder: projectFolder, archivedBinaries: archivedBinaries, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
         
-        let formulaContent = try makeFormulaContent(formula: formula, archivedBinaries: archivedBinaries, assetURLs: assetURLs)
+        let formulaContent = try PublishUtilities.makeFormulaContent(formula: formula, archivedBinaries: archivedBinaries, assetURLs: assetURLs)
         
         try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
     }
@@ -68,7 +72,7 @@ private extension PublishExecutionManager {
             
             Please commit or stash your changes before publishing.
             """)
-            throw PublishError.uncommittedChanges
+            throw PublishExecutionError.uncommittedChanges
         }
     }
 
@@ -94,38 +98,6 @@ private extension PublishExecutionManager {
         return (tap, formula, buildType)
     }
 
-    /// Builds the binary for the given project and formula.
-    /// - Parameters:
-    ///   - formula: The Homebrew formula associated with the project.
-    ///   - buildType: The type of build to perform.
-    ///   - skipTesting: Whether or not to skip tests, if the formula contains a `TestCommand`
-    /// - Returns: The binary output including path(s) and hash(es).
-    /// - Throws: An error if the build process fails.
-    func buildBinary(formula: SwiftDataFormula, buildType: BuildType, skipTesting: Bool) throws -> BinaryOutput {
-        let testCommand = skipTesting ? nil : formula.testCommand
-        let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
-        let builder = ProjectBuilder(shell: shell, config: config)
-        
-        return try builder.build()
-    }
-
-    /// Creates tar.gz archives from binary output.
-    /// - Parameter binaryOutput: The binary output from the build.
-    /// - Returns: An array of archived binaries.
-    /// - Throws: An error if archive creation fails.
-    func createArchives(from binaryOutput: BinaryOutput) throws -> [ArchivedBinary] {
-        let archiver = BinaryArchiver(shell: shell)
-        
-        switch binaryOutput {
-        case .single(let info):
-            return try archiver.createArchives(from: [info.path])
-        case .multiple(let map):
-            let binaryPaths = [ReleaseArchitecture.arm, ReleaseArchitecture.intel]
-                .compactMap { map[$0]?.path }
-            return try archiver.createArchives(from: binaryPaths)
-        }
-    }
-
     /// Uploads a release to GitHub and returns the asset URLs.
     /// - Parameters:
     ///   - folder: The project folder.
@@ -140,67 +112,6 @@ private extension PublishExecutionManager {
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
 
-    /// Creates formula content based on the archived binaries and asset URLs.
-    /// - Parameters:
-    ///   - formula: The Homebrew formula.
-    ///   - archivedBinaries: The archived binaries with their SHA256 values.
-    ///   - assetURLs: The asset URLs from the GitHub release.
-    /// - Returns: The formula content as a string.
-    /// - Throws: An error if formula generation fails.
-    func makeFormulaContent(formula: SwiftDataFormula, archivedBinaries: [ArchivedBinary], assetURLs: [String]) throws -> String {
-        let formulaName = formula.name
-        
-        if archivedBinaries.count == 1 {
-            // Single binary case
-            guard let assetURL = assetURLs.first else {
-                throw NnexError.missingSha256 // Should create a better error for missing URL
-            }
-            return FormulaContentGenerator.makeFormulaFileContent(
-                name: formulaName,
-                details: formula.details,
-                homepage: formula.homepage,
-                license: formula.license,
-                assetURL: assetURL,
-                sha256: archivedBinaries[0].sha256
-            )
-        } else {
-            // Multiple binaries case - match archive paths to determine architecture
-            var armArchive: ArchivedBinary?
-            var intelArchive: ArchivedBinary?
-            
-            for archive in archivedBinaries {
-                if archive.originalPath.contains("arm64-apple-macosx") {
-                    armArchive = archive
-                } else if archive.originalPath.contains("x86_64-apple-macosx") {
-                    intelArchive = archive
-                }
-            }
-            
-            // Extract URLs - assuming first is ARM, second is Intel when both present
-            var armURL: String?
-            var intelURL: String?
-            
-            if armArchive != nil && intelArchive != nil {
-                armURL = assetURLs.count > 0 ? assetURLs[0] : nil
-                intelURL = assetURLs.count > 1 ? assetURLs[1] : nil
-            } else if armArchive != nil {
-                armURL = assetURLs.first
-            } else if intelArchive != nil {
-                intelURL = assetURLs.first
-            }
-            
-            return FormulaContentGenerator.makeFormulaFileContent(
-                name: formulaName,
-                details: formula.details,
-                homepage: formula.homepage,
-                license: formula.license,
-                armURL: armURL,
-                armSHA256: armArchive?.sha256,
-                intelURL: intelURL,
-                intelSHA256: intelArchive?.sha256
-            )
-        }
-    }
     
     /// Publishes the Homebrew formula to the specified tap.
     /// - Parameters:
@@ -244,7 +155,7 @@ struct ReleaseNotesSource {
     let notesFile: String?
 }
 
-enum PublishError: Error, LocalizedError {
+enum PublishExecutionError: Error, LocalizedError {
     case uncommittedChanges
     
     var errorDescription: String? {
@@ -254,3 +165,4 @@ enum PublishError: Error, LocalizedError {
         }
     }
 }
+
