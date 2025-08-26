@@ -12,26 +12,6 @@ import ArgumentParser
 import Foundation
 import SwiftPicker
 
-// MARK: - BuildOutputLocation
-enum BuildOutputLocation {
-    case currentDirectory(BuildType)
-    case desktop
-    case custom(String)
-}
-
-extension BuildOutputLocation: DisplayablePickerItem {
-    var displayName: String {
-        switch self {
-        case .currentDirectory(let buildType):
-            return "Current directory (.build/\(buildType.rawValue))"
-        case .desktop:
-            return "Desktop"
-        case .custom:
-            return "Custom location..."
-        }
-    }
-}
-
 extension Nnex {
     struct Build: ParsableCommand {
         static let configuration = CommandConfiguration(
