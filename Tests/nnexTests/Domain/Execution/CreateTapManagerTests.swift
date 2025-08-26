@@ -32,7 +32,7 @@ final class CreateTapManagerTests {
 
 // MARK: - Unit Tests
 extension CreateTapManagerTests {
-    @Test("Successfully creates tap with provided name and details", .disabled())
+    @Test("Successfully creates tap with provided name and details")
     func successfullyCreatesProvidedTap() throws {
         let factory = MockContextFactory()
         let context = try factory.makeContext()
@@ -49,10 +49,12 @@ extension CreateTapManagerTests {
         )
         
         let savedTaps = try context.loadTaps()
+        let firstTap = try #require(savedTaps.first)
+        
         #expect(savedTaps.count == 1)
-        #expect(savedTaps.first?.name == tapName)
-        #expect(savedTaps.first?.localPath == tapListFolder.path + "homebrew-\(tapName)")
-        #expect(savedTaps.first?.remotePath == remotePath)
+        #expect(firstTap.name == tapName)
+        #expect(firstTap.localPath == tapListFolder.path + "homebrew-\(tapName)/")
+        #expect(firstTap.remotePath == remotePath)
         
         #expect(gitHandler.gitInitPath != nil)
         #expect(gitHandler.remoteTapName == "homebrew-\(tapName)")
@@ -97,7 +99,7 @@ extension CreateTapManagerTests {
         // MockGitHandler doesn't track project details and visibility separately
     }
     
-    @Test("Creates default tap folder when path not saved", .disabled())
+    @Test("Creates default tap folder when path not saved")
     func createsDefaultTapFolder() throws {
         let factory = MockContextFactory(selectedItemIndex: 1, inputResponses: [])
         let context = try factory.makeContext()
@@ -112,7 +114,7 @@ extension CreateTapManagerTests {
             visibility: .publicRepo
         )
         
-        #expect(context.loadTapListFolderPath() == homeFolder.path + defaultTapFolderName)
+        #expect(context.loadTapListFolderPath() == homeFolder.path + defaultTapFolderName + "/")
         
         let savedTaps = try context.loadTaps()
         #expect(savedTaps.first?.localPath.contains(defaultTapFolderName) == true)
@@ -123,7 +125,7 @@ extension CreateTapManagerTests {
         }
     }
     
-    @Test("Creates custom tap folder when user selects custom path", .disabled())
+    @Test("Creates custom tap folder when user selects custom path")
     func createsCustomTapFolder() throws {
         let tempFolder = try Folder.temporary.createSubfolder(named: "customTaps")
         let factory = MockContextFactory(selectedItemIndex: 0, inputResponses: [tempFolder.path])
@@ -141,10 +143,12 @@ extension CreateTapManagerTests {
         #expect(context.loadTapListFolderPath() == tempFolder.path)
         
         let savedTaps = try context.loadTaps()
-        #expect(savedTaps.first?.localPath == tempFolder.path + "homebrew-\(tapName)")
+        let firstTap = try #require(savedTaps.first)
+        
+        #expect(firstTap.localPath == tempFolder.path + "homebrew-\(tapName)/")
     }
     
-    @Test("Uses existing tap folder path when saved", .disabled())
+    @Test("Uses existing tap folder path when saved")
     func usesExistingTapFolderPath() throws {
         let factory = MockContextFactory()
         let context = try factory.makeContext()
@@ -161,7 +165,8 @@ extension CreateTapManagerTests {
         )
         
         let savedTaps = try context.loadTaps()
-        #expect(savedTaps.first?.localPath == tapListFolder.path + "homebrew-\(tapName)")
+        let firstTap = try #require(savedTaps.first)
+        #expect(firstTap.localPath == tapListFolder.path + "homebrew-\(tapName)/")
     }
     
     @Test("Throws error for empty tap name from user input")
