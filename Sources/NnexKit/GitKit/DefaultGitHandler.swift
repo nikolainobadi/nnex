@@ -5,6 +5,7 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
+import Foundation
 import GitShellKit
 import NnShellKit
 
@@ -94,7 +95,7 @@ extension DefaultGitHandler: GitHandler {
 
 // MARK: - Private Methods
 private extension DefaultGitHandler {
-    /// Creates a release with all binaries uploaded simultaneously.
+    /// Creates a release with all binaries uploaded simultaneously in a single command.
     func createReleaseWithAllBinaries(version: String, binaryPaths: [String], releaseNoteInfo: ReleaseNoteInfo, path: String) throws -> [String] {
         // Build the release notes parameter
         let notesParam: String
@@ -104,17 +105,69 @@ private extension DefaultGitHandler {
             notesParam = "--notes \"\(releaseNoteInfo.content)\""
         }
         
-        // Quote all binary paths for the command
-        let quotedBinaryPaths = binaryPaths.map { "\"\($0)\"" }.joined(separator: " ")
+        // Create architecture-specific names for binaries to avoid naming conflicts
+        let renamedPaths = try createArchitectureSpecificBinaries(binaryPaths: binaryPaths, projectPath: path)
         
         // Create the release and upload all binaries at once
+        let quotedBinaryPaths = renamedPaths.map { "\"\($0)\"" }.joined(separator: " ")
         let createCmd = "cd \"\(path)\" && gh release create \(version) \(quotedBinaryPaths) --title \"\(version)\" \(notesParam)"
         _ = try shell.bash(createCmd)
+        
+        // Clean up renamed binaries after upload
+        try cleanupRenamedBinaries(renamedPaths)
         
         // Get all asset URLs
         let listCmd = "cd \"\(path)\" && gh release view \(version) --json assets --jq '.assets[].url'"
         let allAssetURLs = try shell.bash(listCmd).components(separatedBy: .newlines).filter { !$0.isEmpty }
         
         return allAssetURLs
+    }
+    
+    /// Creates architecture-specific copies of binaries to avoid naming conflicts on GitHub.
+    func createArchitectureSpecificBinaries(binaryPaths: [String], projectPath: String) throws -> [String] {
+        var renamedPaths: [String] = []
+        
+        for binaryPath in binaryPaths {
+            let url = URL(fileURLWithPath: binaryPath)
+            let fileName = url.lastPathComponent
+            let directory = url.deletingLastPathComponent().path
+            
+            // Determine architecture from the build path
+            let archSuffix: String
+            if binaryPath.contains("arm64-apple-macosx") {
+                archSuffix = "-arm64"
+            } else if binaryPath.contains("x86_64-apple-macosx") {
+                archSuffix = "-x86_64"
+            } else {
+                // For single architecture builds or universal binaries, don't add suffix
+                renamedPaths.append(binaryPath)
+                continue
+            }
+            
+            let renamedFileName = fileName + archSuffix
+            let renamedPath = "\(directory)/\(renamedFileName)"
+            
+            // Copy the binary with the new name
+            let copyCmd = "cp \"\(binaryPath)\" \"\(renamedPath)\""
+            _ = try shell.bash(copyCmd)
+            
+            renamedPaths.append(renamedPath)
+        }
+        
+        return renamedPaths
+    }
+    
+    /// Removes the temporary renamed binaries after upload.
+    func cleanupRenamedBinaries(_ paths: [String]) throws {
+        for path in paths {
+            let url = URL(fileURLWithPath: path)
+            let fileName = url.lastPathComponent
+            
+            // Only remove files that have architecture suffixes (our renamed files)
+            if fileName.hasSuffix("-arm64") || fileName.hasSuffix("-x86_64") {
+                let removeCmd = "rm -f \"\(path)\""
+                _ = try shell.bash(removeCmd)
+            }
+        }
     }
 }

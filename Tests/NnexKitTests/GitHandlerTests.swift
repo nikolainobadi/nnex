@@ -74,23 +74,36 @@ extension GitHandlerTests {
     @Test("Successfully creates a new GitHub release with additional assets")
     func createNewReleaseWithAdditionalAssets() throws {
         let version = "v2.0.0"
-        let binaryPath = "/path/to/binary"
-        let additionalPaths = ["/path/to/binary2", "/path/to/binary3"]
+        let binaryPath = "/path/to/.build/arm64-apple-macosx/release/nnex"
+        let additionalPaths = ["/path/to/.build/x86_64-apple-macosx/release/nnex"]
         let releaseNoteInfo = ReleaseNoteInfo(content: "Release notes for v2.0.0", isFromFile: false)
-        let additionalURL1 = "https://github.com/username/repo/releases/latest/binary2"
-        let additionalURL2 = "https://github.com/username/repo/releases/latest/binary3"
-        let allURLsOutput = "\(releaseAssetURL)\n\(additionalURL1)\n\(additionalURL2)"
-        let (sut, shell) = makeSUT(runResults: ["", allURLsOutput]) // create, view all assets
+        let additionalURL1 = "https://github.com/username/repo/releases/latest/nnex-arm64"
+        let additionalURL2 = "https://github.com/username/repo/releases/latest/nnex-x86_64"
+        let allURLsOutput = "\(additionalURL1)\n\(additionalURL2)"
+        
+        // Need mock results for: cp, cp, gh create (with both binaries), rm, rm, gh view
+        let (sut, shell) = makeSUT(runResults: ["", "", "", "", "", allURLsOutput])
         
         let result = try sut.createNewRelease(version: version, binaryPath: binaryPath, additionalBinaryPaths: additionalPaths, releaseNoteInfo: releaseNoteInfo, path: defaultPath)
         
-        #expect(result.count == 3)
-        #expect(result[0] == releaseAssetURL)
-        #expect(result[1] == additionalURL1)
-        #expect(result[2] == additionalURL2)
-        #expect(shell.executedCommands.count == 2)
-        #expect(shell.executedCommands[0] == "cd \"\(defaultPath)\" && gh release create \(version) \"\(binaryPath)\" \"/path/to/binary2\" \"/path/to/binary3\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
-        #expect(shell.executedCommands[1] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
+        #expect(result.count == 2)
+        #expect(result[0] == additionalURL1)
+        #expect(result[1] == additionalURL2)
+        #expect(shell.executedCommands.count == 6)
+        
+        // Expected commands in order:
+        // 1. Copy primary binary with arch suffix
+        #expect(shell.executedCommands[0] == "cp \"/path/to/.build/arm64-apple-macosx/release/nnex\" \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64\"")
+        // 2. Copy additional binary with arch suffix  
+        #expect(shell.executedCommands[1] == "cp \"/path/to/.build/x86_64-apple-macosx/release/nnex\" \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64\"")
+        // 3. Create release with both renamed binaries in single command
+        #expect(shell.executedCommands[2] == "cd \"\(defaultPath)\" && gh release create \(version) \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64\" \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
+        // 4. Remove renamed primary binary
+        #expect(shell.executedCommands[3] == "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64\"")
+        // 5. Remove renamed additional binary
+        #expect(shell.executedCommands[4] == "rm -f \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64\"")
+        // 6. Get asset URLs
+        #expect(shell.executedCommands[5] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
     }
     
     @Test("Throws error if initializing Git repository fails")
