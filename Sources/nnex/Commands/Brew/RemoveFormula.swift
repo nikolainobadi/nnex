@@ -24,9 +24,7 @@ extension Nnex.Brew {
                 try formulaFile.delete()
             }
             
-            // TODO: - temporary workaround
-            context.context.delete(selection)
-            try context.saveChanges()
+            try context.deleteFormula(selection)
         }
     }
 }

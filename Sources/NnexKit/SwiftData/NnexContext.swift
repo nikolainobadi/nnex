@@ -114,6 +114,11 @@ extension NnexContext {
         try context.save()
     }
     
+    public func deleteFormula(_ formula: SwiftDataFormula) throws {
+        context.delete(formula)
+        try context.save()
+    }
+    
     public func saveChanges() throws {
         try context.save()
     }
