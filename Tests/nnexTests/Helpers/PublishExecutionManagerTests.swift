@@ -37,14 +37,24 @@ final class PublishExecutionManagerTests {
 
 // MARK: - Tests
 extension PublishExecutionManagerTests {
-    @Test("Successfully executes publish with existing formula", .disabled())
+    @Test("Successfully executes publish with existing formula")
     func successfullyExecutesPublishWithExistingFormula() throws {
         try createPackageSwift()
         
         let factory = MockContextFactory(
-            runResults: Array(repeating: "", count: 50) + // Build, clean, strip commands (many empty results)
-                       Array(repeating: "abc123def456  /path/to/binary", count: 10) + // SHA256 commands  
-                       ["asset1.tar.gz\nasset2.tar.gz"], // Final asset list
+            runResults: [
+                "", // git status --porcelain (clean)
+                "", // Clean project
+                "", // Build arm64
+                "", // Strip arm64  
+                "", // Build x86_64
+                "", // Strip x86_64
+                "", // tar command for arm64
+                "abc123def456  /path/to/binary", // shasum for arm64
+                "", // tar command for x86_64
+                "abc123def456  /path/to/binary", // shasum for x86_64
+                "asset1.tar.gz\nasset2.tar.gz" // gh release view assets
+            ],
             selectedItemIndices: [],
             inputResponses: [],
             permissionResponses: [false] // Don't commit formula to GitHub
@@ -70,7 +80,7 @@ extension PublishExecutionManagerTests {
         
         try sut.executePublish(
             projectFolder: projectFolder,
-            version: nil as ReleaseVersionInfo?,
+            version: .version("2.0.0"),
             buildType: BuildType.universal,
             notes: nil as String?,
             notesFile: nil as String?,
@@ -79,14 +89,27 @@ extension PublishExecutionManagerTests {
         )
     }
     
-    @Test("Successfully executes publish with new formula creation", .disabled())
+    @Test("Successfully executes publish with new formula creation")
     func successfullyExecutesPublishWithNewFormulaCreation() throws {
         try createPackageSwift()
         
         let factory = MockContextFactory(
-            runResults: Array(repeating: "", count: 50) + // Build, clean, strip commands (many empty results)
-                       Array(repeating: "abc123def456  /path/to/binary", count: 10) + // SHA256 commands  
-                       ["asset1.tar.gz\nasset2.tar.gz"], // Final asset list
+            runResults: [
+                "", // git status --porcelain (clean)
+                "", // getPreviousReleaseVersion
+                "", // Clean project
+                "", // Build arm64
+                "", // Strip arm64  
+                "", // Build x86_64
+                "", // Strip x86_64
+                "", // Copy arm64 binary
+                "", // Copy x86_64 binary
+                "", // tar command for arm64
+                "abc123def456  /path/to/binary", // shasum for arm64
+                "", // tar command for x86_64
+                "abc123def456  /path/to/binary", // shasum for x86_64
+                "asset1.tar.gz\nasset2.tar.gz" // gh release view assets
+            ],
             selectedItemIndices: [0, 0], // Select tap, select no tests
             inputResponses: ["Test formula description"], // Formula description
             permissionResponses: [true, false] // Create new formula, don't commit to GitHub
@@ -110,14 +133,30 @@ extension PublishExecutionManagerTests {
         )
     }
     
-    @Test("Commits and pushes formula when user chooses to", .disabled())
+    @Test("Commits and pushes formula when user chooses to")
     func commitsAndPushesFormulaWhenUserChooses() throws {
         try createPackageSwift()
         
         let factory = MockContextFactory(
-            runResults: Array(repeating: "", count: 50) + // Build, clean, strip commands (many empty results)
-                       Array(repeating: "abc123def456  /path/to/binary", count: 10) + // SHA256 commands  
-                       ["asset1.tar.gz\nasset2.tar.gz"], // Final asset list
+            runResults: [
+                "", // git status --porcelain (clean)
+                "", // getPreviousReleaseVersion
+                "", // Clean project
+                "", // Build arm64
+                "", // Strip arm64  
+                "", // Build x86_64
+                "", // Strip x86_64
+                "", // Copy arm64 binary
+                "", // Copy x86_64 binary
+                "", // tar command for arm64
+                "abc123def456  /path/to/binary", // shasum for arm64
+                "", // tar command for x86_64
+                "abc123def456  /path/to/binary", // shasum for x86_64
+                "asset1.tar.gz\nasset2.tar.gz", // gh release view assets
+                "", // git add
+                "", // git commit
+                "" // git push
+            ],
             selectedItemIndices: [],
             inputResponses: ["Test commit message"], // Commit message
             permissionResponses: [true] // Commit and push to GitHub
@@ -152,14 +191,27 @@ extension PublishExecutionManagerTests {
         )
     }
     
-    @Test("Uses provided commit message instead of asking user", .disabled())
+    @Test("Uses provided commit message instead of asking user")
     func usesProvidedCommitMessage() throws {
         try createPackageSwift()
         
         let factory = MockContextFactory(
-            runResults: Array(repeating: "", count: 50) + // Build, clean, strip commands (many empty results)
-                       Array(repeating: "abc123def456  /path/to/binary", count: 10) + // SHA256 commands  
-                       ["asset1.tar.gz\nasset2.tar.gz"] // Final asset list
+            runResults: [
+                "", // git status --porcelain (clean)
+                "", // getPreviousReleaseVersion
+                "", // Clean project
+                "", // Build arm64
+                "", // Strip arm64  
+                "", // Build x86_64
+                "", // Strip x86_64
+                "", // Copy arm64 binary
+                "", // Copy x86_64 binary
+                "", // tar command for arm64
+                "abc123def456  /path/to/binary", // shasum for arm64
+                "", // tar command for x86_64
+                "abc123def456  /path/to/binary", // shasum for x86_64
+                "asset1.tar.gz\nasset2.tar.gz" // gh release view assets
+            ]
         )
         
         let context = try factory.makeContext()
