@@ -29,7 +29,7 @@ struct CreateTapManager {
 // MARK: - Action
 extension CreateTapManager {
     func executeCreateTap(name: String?, details: String?, visibility: RepoVisibility) throws {
-        try gitHandler.checkForGitHubCLI()
+        try gitHandler.ghVerification()
         
         let tapName = try getTapName(name: name)
         let tapListFolder = try getTapListFolder()
@@ -38,10 +38,11 @@ extension CreateTapManager {
         
         print("Created folder for new tap named \(tapName) at \(tapFolder.path)")
         
+        let projectDetails = try details ?? picker.getRequiredInput(prompt: "Enter the details for this new tap")
         let remotePath = try createNewRepository(
             tapName: homebrewTapName,
             path: tapFolder.path,
-            projectDetails: details,
+            projectDetails: projectDetails,
             visibility: visibility
         )
         
@@ -79,8 +80,7 @@ private extension CreateTapManager {
     ///   - visibility: The visibility of the repository.
     /// - Returns: The remote URL of the created repository.
     /// - Throws: An error if the repository creation fails.
-    func createNewRepository(tapName: String, path: String, projectDetails: String?, visibility: RepoVisibility) throws -> String {
-        let projectDetails = try projectDetails ?? picker.getRequiredInput(prompt: "Enter the details for this new tap")
+    func createNewRepository(tapName: String, path: String, projectDetails: String, visibility: RepoVisibility) throws -> String {
         try gitHandler.gitInit(path: path)
         print("Initialized local git repository for \(tapName)")
 
