@@ -8,9 +8,6 @@
 import NnexKit
 import SwiftPicker
 
-// Re-export from NnexKit
-public typealias BuildOutputLocation = NnexKit.BuildOutputLocation
-
 extension BuildOutputLocation: DisplayablePickerItem {
     public var displayName: String {
         switch self {
