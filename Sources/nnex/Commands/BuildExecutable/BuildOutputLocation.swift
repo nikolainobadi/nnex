@@ -8,14 +8,11 @@
 import NnexKit
 import SwiftPicker
 
-enum BuildOutputLocation {
-    case currentDirectory(BuildType)
-    case desktop
-    case custom(String)
-}
+// Re-export from NnexKit
+public typealias BuildOutputLocation = NnexKit.BuildOutputLocation
 
 extension BuildOutputLocation: DisplayablePickerItem {
-    var displayName: String {
+    public var displayName: String {
         switch self {
         case .currentDirectory(let buildType):
             return "Current directory (.build/\(buildType.rawValue))"
