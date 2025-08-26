@@ -60,17 +60,19 @@ extension GitHandlerTests {
         let version = "v2.0.0"
         let binaryPath = "/path/to/binary"
         let releaseNoteInfo = ReleaseNoteInfo(content: "Release notes for v2.0.0", isFromFile: false)
-        let (sut, shell) = makeSUT(runResults: ["", "", "", releaseAssetURL]) // tar, gh create, rm, gh view
+        let mockSha256 = "abc123def456789"
+        let (sut, shell) = makeSUT(runResults: ["", mockSha256, "", "", releaseAssetURL]) // tar, shasum, gh create, rm, gh view
         
         let result = try sut.createNewRelease(version: version, binaryPath: binaryPath, additionalBinaryPaths: [], releaseNoteInfo: releaseNoteInfo, path: defaultPath)
         
         #expect(result.count == 1)
         #expect(result.first == releaseAssetURL)
-        #expect(shell.executedCommands.count == 4)
+        #expect(shell.executedCommands.count == 5)
         #expect(shell.executedCommands[0] == "cd \"/path/to\" && tar -czf \"binary.tar.gz\" \"binary\"")
-        #expect(shell.executedCommands[1] == "cd \"\(defaultPath)\" && gh release create \(version) \"/path/to/binary.tar.gz\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
-        #expect(shell.executedCommands[2] == "rm -f \"/path/to/binary.tar.gz\"")
-        #expect(shell.executedCommands[3] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
+        #expect(shell.executedCommands[1] == "shasum -a 256 \"/path/to/binary.tar.gz\"")
+        #expect(shell.executedCommands[2] == "cd \"\(defaultPath)\" && gh release create \(version) \"/path/to/binary.tar.gz\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
+        #expect(shell.executedCommands[3] == "rm -f \"/path/to/binary.tar.gz\"")
+        #expect(shell.executedCommands[4] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
     }
     
     @Test("Successfully creates a new GitHub release with additional assets")
@@ -82,30 +84,36 @@ extension GitHandlerTests {
         let additionalURL1 = "https://github.com/username/repo/releases/latest/nnex-arm64"
         let additionalURL2 = "https://github.com/username/repo/releases/latest/nnex-x86_64"
         let allURLsOutput = "\(additionalURL1)\n\(additionalURL2)"
+        let mockArmSha256 = "arm64sha256hash"
+        let mockIntelSha256 = "x86_64sha256hash"
         
-        // Need mock results for: cp, cp, gh create (with both binaries), rm, rm, gh view
-        let (sut, shell) = makeSUT(runResults: ["", "", "", "", "", allURLsOutput])
+        // Need mock results for: tar (ARM), shasum (ARM), tar (x86_64), shasum (x86_64), gh create, rm (ARM), rm (x86_64), gh view
+        let (sut, shell) = makeSUT(runResults: ["", mockArmSha256, "", mockIntelSha256, "", "", "", allURLsOutput])
         
         let result = try sut.createNewRelease(version: version, binaryPath: binaryPath, additionalBinaryPaths: additionalPaths, releaseNoteInfo: releaseNoteInfo, path: defaultPath)
         
         #expect(result.count == 2)
         #expect(result[0] == additionalURL1)
         #expect(result[1] == additionalURL2)
-        #expect(shell.executedCommands.count == 6)
+        #expect(shell.executedCommands.count == 8)
         
         // Expected commands in order:
         // 1. Create tar.gz for ARM binary
         #expect(shell.executedCommands[0] == "cd \"/path/to/.build/arm64-apple-macosx/release\" && tar -czf \"nnex-arm64.tar.gz\" \"nnex\"")
-        // 2. Create tar.gz for x86_64 binary  
-        #expect(shell.executedCommands[1] == "cd \"/path/to/.build/x86_64-apple-macosx/release\" && tar -czf \"nnex-x86_64.tar.gz\" \"nnex\"")
-        // 3. Create release with both archives in single command
-        #expect(shell.executedCommands[2] == "cd \"\(defaultPath)\" && gh release create \(version) \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\" \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
-        // 4. Remove ARM archive
-        #expect(shell.executedCommands[3] == "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"")
-        // 5. Remove x86_64 archive
-        #expect(shell.executedCommands[4] == "rm -f \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"")
-        // 6. Get asset URLs
-        #expect(shell.executedCommands[5] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
+        // 2. Calculate SHA256 for ARM archive
+        #expect(shell.executedCommands[1] == "shasum -a 256 \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"")
+        // 3. Create tar.gz for x86_64 binary  
+        #expect(shell.executedCommands[2] == "cd \"/path/to/.build/x86_64-apple-macosx/release\" && tar -czf \"nnex-x86_64.tar.gz\" \"nnex\"")
+        // 4. Calculate SHA256 for x86_64 archive
+        #expect(shell.executedCommands[3] == "shasum -a 256 \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"")
+        // 5. Create release with both archives in single command
+        #expect(shell.executedCommands[4] == "cd \"\(defaultPath)\" && gh release create \(version) \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\" \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\" --title \"\(version)\" --notes \"\(releaseNoteInfo.content)\"")
+        // 6. Remove ARM archive
+        #expect(shell.executedCommands[5] == "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"")
+        // 7. Remove x86_64 archive
+        #expect(shell.executedCommands[6] == "rm -f \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"")
+        // 8. Get asset URLs
+        #expect(shell.executedCommands[7] == "cd \"\(defaultPath)\" && gh release view \(version) --json assets --jq '.assets[].url'")
     }
     
     @Test("Throws error if initializing Git repository fails")

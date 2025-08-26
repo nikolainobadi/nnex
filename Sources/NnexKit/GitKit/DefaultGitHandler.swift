@@ -105,72 +105,22 @@ private extension DefaultGitHandler {
             notesParam = "--notes \"\(releaseNoteInfo.content)\""
         }
         
-        // Create architecture-specific names for binaries to avoid naming conflicts
-        let renamedPaths = try createArchitectureSpecificBinaries(binaryPaths: binaryPaths, projectPath: path)
+        // Create tar.gz archives for binaries
+        let archiver = BinaryArchiver(shell: shell)
+        let archivedBinaries = try archiver.createArchives(from: binaryPaths)
         
-        // Create the release and upload all binaries at once
-        let quotedBinaryPaths = renamedPaths.map { "\"\($0)\"" }.joined(separator: " ")
-        let createCmd = "cd \"\(path)\" && gh release create \(version) \(quotedBinaryPaths) --title \"\(version)\" \(notesParam)"
+        // Create the release and upload all archives at once
+        let quotedArchivePaths = archivedBinaries.map { "\"\($0.archivePath)\"" }.joined(separator: " ")
+        let createCmd = "cd \"\(path)\" && gh release create \(version) \(quotedArchivePaths) --title \"\(version)\" \(notesParam)"
         _ = try shell.bash(createCmd)
         
-        // Clean up renamed binaries after upload
-        try cleanupRenamedBinaries(renamedPaths)
+        // Clean up archive files after upload
+        try archiver.cleanup(archivedBinaries)
         
         // Get all asset URLs
         let listCmd = "cd \"\(path)\" && gh release view \(version) --json assets --jq '.assets[].url'"
         let allAssetURLs = try shell.bash(listCmd).components(separatedBy: .newlines).filter { !$0.isEmpty }
         
         return allAssetURLs
-    }
-    
-    /// Creates architecture-specific tar.gz archives of binaries to avoid naming conflicts on GitHub.
-    func createArchitectureSpecificBinaries(binaryPaths: [String], projectPath: String) throws -> [String] {
-        var archivePaths: [String] = []
-        
-        for binaryPath in binaryPaths {
-            let url = URL(fileURLWithPath: binaryPath)
-            let fileName = url.lastPathComponent
-            let directory = url.deletingLastPathComponent().path
-            
-            // Determine architecture from the build path
-            let archSuffix: String
-            if binaryPath.contains("arm64-apple-macosx") {
-                archSuffix = "-arm64"
-            } else if binaryPath.contains("x86_64-apple-macosx") {
-                archSuffix = "-x86_64"
-            } else {
-                // For single architecture builds or universal binaries, create simple tar.gz
-                let archivePath = "\(directory)/\(fileName).tar.gz"
-                let tarCmd = "cd \"\(directory)\" && tar -czf \"\(fileName).tar.gz\" \"\(url.lastPathComponent)\""
-                _ = try shell.bash(tarCmd)
-                archivePaths.append(archivePath)
-                continue
-            }
-            
-            let archiveName = fileName + archSuffix + ".tar.gz"
-            let archivePath = "\(directory)/\(archiveName)"
-            
-            // Create tar.gz archive with the correctly named binary inside
-            let tarCmd = "cd \"\(directory)\" && tar -czf \"\(archiveName)\" \"\(url.lastPathComponent)\""
-            _ = try shell.bash(tarCmd)
-            
-            archivePaths.append(archivePath)
-        }
-        
-        return archivePaths
-    }
-    
-    /// Removes the temporary archive files after upload.
-    func cleanupRenamedBinaries(_ paths: [String]) throws {
-        for path in paths {
-            let url = URL(fileURLWithPath: path)
-            let fileName = url.lastPathComponent
-            
-            // Remove tar.gz files we created
-            if fileName.hasSuffix(".tar.gz") {
-                let removeCmd = "rm -f \"\(path)\""
-                _ = try shell.bash(removeCmd)
-            }
-        }
     }
 }
