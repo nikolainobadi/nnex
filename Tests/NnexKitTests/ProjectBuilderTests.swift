@@ -217,6 +217,37 @@ extension ProjectBuilderTests {
         }
     }
     
+    @Test("Throws TestFailureError when tests fail")
+    func testFailureThrowsTestFailureError() throws {
+        // Create a custom mock shell that succeeds for build commands but throws ShellError for test commands
+        let shell = TestFailureMockShell()
+        
+        let config = BuildConfig(
+            projectName: projectName,
+            projectPath: projectPath,
+            buildType: .arm64,
+            extraBuildArgs: [],
+            skipClean: false,
+            testCommand: .defaultCommand
+        )
+        
+        let sut = ProjectBuilder(shell: shell, config: config)
+        
+        var caughtError: TestFailureError?
+        do {
+            try sut.discardableBuild()
+        } catch let error as TestFailureError {
+            caughtError = error
+        } catch {
+            Issue.record("Expected TestFailureError but got \(type(of: error)): \(error)")
+        }
+        
+        #expect(caughtError != nil, "Should have caught a TestFailureError")
+        #expect(caughtError?.command.contains("swift test") == true, "Error should contain the test command")
+        #expect(caughtError?.output.contains("Test failed") == true, "Error should contain test output")
+        #expect(caughtError?.errorDescription?.contains("Tests failed when running") == true, "Error should have descriptive message")
+    }
+    
 }
 
 
@@ -240,6 +271,26 @@ private extension ProjectBuilderTests {
     }
 }
 
+
+// MARK: - Test Helpers
+private class TestFailureMockShell: Shell {
+    private var commandCount = 0
+    
+    func bash(_ command: String) throws -> String {
+        commandCount += 1
+        
+        // Succeed for clean and build commands, fail for test commands
+        if command.contains("swift test") {
+            throw ShellError.failed(program: "/bin/bash", code: 1, output: "Test failed: Expected true but got false")
+        }
+        
+        return ""
+    }
+    
+    func run(_ program: String, args: [String]) throws -> String {
+        return try bash("\(program) \(args.joined(separator: " "))")
+    }
+}
 
 // MARK: - Extension Helpers
 public extension ProjectBuilder {
