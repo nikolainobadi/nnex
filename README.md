@@ -19,7 +19,7 @@ Instead of manually managing taps and formulae, let **nnex** do the heavy liftin
 
 **nnex** requires both **Homebrew** and the **GitHub CLI (gh)** to function properly. Please ensure they are installed and configured on your system before using **nnex** (you'll be prompted to install them if you use **nnex** without them).
 
-**Stability Notice (v0.8.12)**  
+**Stability Notice (v0.9.1)**  
 `nnex` is functional and ready to use, but its features and API may evolve as it becomes more flexible and robust.  
 Breaking changes are possible before reaching v1.0.0.  
 Your feedback and suggestions are welcome as the project continues to improve!  
