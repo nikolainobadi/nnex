@@ -1,4 +1,5 @@
 import NnShellKit
+import Foundation
 
 public struct ProjectBuilder {
     private let shell: any Shell
@@ -83,9 +84,28 @@ private extension ProjectBuilder {
                 }
             }
             log("🧪 Running tests: \(testCommand)")
-            let output = try shell.bash(testCommand)
-            if !output.isEmpty { print(output) }
-            log("✅ Tests completed successfully.")
+            
+            do {
+                let output = try shell.bash(testCommand)
+                if !output.isEmpty { print(output) }
+                log("✅ Tests completed successfully.")
+            } catch let shellError as ShellError {
+                // Extract test output from the shell error
+                if case .failed(_, _, let output) = shellError {
+                    if !output.isEmpty {
+                        print("\n❌ Test failures:")
+                        print(output)
+                    } else {
+                        print("\n❌ Tests failed (no output captured)")
+                    }
+                    throw TestFailureError(command: testCommand, output: output)
+                } else {
+                    throw shellError
+                }
+            } catch {
+                print("\n❌ Tests failed with unexpected error: \(error)")
+                throw TestFailureError(command: testCommand, output: error.localizedDescription)
+            }
         }
     }
 
@@ -121,6 +141,19 @@ public enum BinaryOutput {
 
 public protocol BuildProgressDelegate: AnyObject {
     func didUpdateProgress(_ message: String)
+}
+
+public struct TestFailureError: Error, LocalizedError {
+    let command: String
+    let output: String
+    
+    public var errorDescription: String? {
+        if output.isEmpty {
+            return "Tests failed when running: \(command)"
+        } else {
+            return "Tests failed when running: \(command)\n\nTest output:\n\(output)"
+        }
+    }
 }
 
 private extension BuildType {
