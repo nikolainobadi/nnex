@@ -151,6 +151,8 @@ private extension ReleaseNotesHandler.NoteContentType {
             return 1
         case .createFile:
             return 2
+        case .aiGenerated:
+            return 3
         }
     }
 }

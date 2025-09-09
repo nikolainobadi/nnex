@@ -106,7 +106,7 @@ private extension PublishExecutionManager {
     /// - Returns: An array of asset URLs from the GitHub release.
     /// - Throws: An error if the upload fails.
     func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
-        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler)
+        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler, aiReleaseEnabled: aiReleaseEnabled, shell: shell)
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
 
