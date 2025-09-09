@@ -15,16 +15,16 @@ struct PublishExecutionManager {
     private let picker: NnexPicker
     private let gitHandler: GitHandler
     private let publishInfoLoader: PublishInfoLoader
-    private let context: NnexContext
     private let trashHandler: TrashHandler
+    private let aiReleaseEnabled: Bool
     
-    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, context: NnexContext, trashHandler: TrashHandler) {
+    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, trashHandler: TrashHandler, aiReleaseEnabled: Bool) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
         self.publishInfoLoader = publishInfoLoader
-        self.context = context
         self.trashHandler = trashHandler
+        self.aiReleaseEnabled = aiReleaseEnabled
     }
 }
 
@@ -41,7 +41,6 @@ extension PublishExecutionManager {
         skipTests: Bool
     ) throws {
         try gitHandler.checkForGitHubCLI()
-        
         try ensureNoUncommittedChanges(at: projectFolder.path)
         
         let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell)
@@ -90,11 +89,7 @@ private extension PublishExecutionManager {
     func getTapAndFormula(projectFolder: Folder, buildType: BuildType, skipTests: Bool) throws -> (SwiftDataTap, SwiftDataFormula, BuildType) {
         let (tap, formula) = try publishInfoLoader.loadPublishInfo()
         
-        if formula.localProjectPath.isEmpty || formula.localProjectPath != projectFolder.path {
-            formula.localProjectPath = projectFolder.path
-            try context.saveChanges()
-        }
-
+        // Note: The formula's localProjectPath update is now handled by PublishInfoLoader if needed
         return (tap, formula, buildType)
     }
 
@@ -108,7 +103,7 @@ private extension PublishExecutionManager {
     /// - Returns: An array of asset URLs from the GitHub release.
     /// - Throws: An error if the upload fails.
     func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
-        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler)
+        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler, aiReleaseEnabled: aiReleaseEnabled, shell: shell)
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
 
@@ -146,6 +141,7 @@ private extension PublishExecutionManager {
 
         return try picker.getRequiredInput(prompt: "Enter your commit message.")
     }
+    
 }
 
 
@@ -157,11 +153,14 @@ struct ReleaseNotesSource {
 
 enum PublishExecutionError: Error, LocalizedError {
     case uncommittedChanges
+    case noPreviousVersionToIncrement
     
     var errorDescription: String? {
         switch self {
         case .uncommittedChanges:
             return "Repository has uncommitted changes"
+        case .noPreviousVersionToIncrement:
+            return "No previous version found to increment"
         }
     }
 }

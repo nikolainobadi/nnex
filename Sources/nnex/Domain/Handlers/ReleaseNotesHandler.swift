@@ -8,26 +8,29 @@
 import Files
 import Foundation
 import GitCommandGen
+import NnShellKit
 
 struct ReleaseNotesHandler {
     private let picker: NnexPicker
     private let projectName: String
-    private let fileSystem: FileSystemProvider
-    private let dateProvider: DateProvider
+    private let fileUtility: ReleaseNotesFileUtility
+    private let aiReleaseEnabled: Bool
     
-    init(picker: NnexPicker, projectName: String, fileSystem: FileSystemProvider = DefaultFileSystemProvider(), dateProvider: DateProvider = DefaultDateProvider()) {
+    init(picker: NnexPicker, projectName: String, aiReleaseEnabled: Bool = false, fileUtility: ReleaseNotesFileUtility? = nil) {
         self.picker = picker
         self.projectName = projectName
-        self.fileSystem = fileSystem
-        self.dateProvider = dateProvider
+        self.aiReleaseEnabled = aiReleaseEnabled
+        self.fileUtility = fileUtility ?? ReleaseNotesFileUtility(picker: picker)
     }
 }
 
 
 // MARK: - Action
 extension ReleaseNotesHandler {
-    func getReleaseNoteInfo() throws -> ReleaseNoteInfo {
-        switch try picker.requiredSingleSelection(title: "How would you like to add your release notes for \(projectName)?", items: NoteContentType.allCases) {
+    func getReleaseNoteInfo(releaseNumber: String? = nil, projectPath: String? = nil, shell: (any Shell)? = nil) throws -> ReleaseNoteInfo {
+        let availableOptions = aiReleaseEnabled ? NoteContentType.allCases : NoteContentType.allCases.filter { $0 != .aiGenerated }
+        
+        switch try picker.requiredSingleSelection(title: "How would you like to add your release notes for \(projectName)?", items: availableOptions) {
         case .direct:
             let notes = try picker.getRequiredInput(prompt: "Enter your release notes.")
             
@@ -37,69 +40,30 @@ extension ReleaseNotesHandler {
             
             return .init(content: filePath, isFromFile: true)
         case .createFile:
-            let releaseNotesFile = try createAndOpenNewNoteFile()
+            let releaseNotesFile = try fileUtility.createAndOpenNewNoteFile(projectName: projectName)
             
-            return try decodeNoteFile(releaseNotesFile)
-        }
-    }
-}
-
-
-// MARK: - Private Helpers
-private extension ReleaseNotesHandler {
-    func createAndOpenNewNoteFile() throws -> FileProtocol {
-        let desktopPath = try Folder.home.subfolder(named: "Desktop").path
-        let fileName = "\(projectName)-releaseNotes-\(dateProvider.currentDate.shortFormat).md"
-        return try fileSystem.createFile(in: desktopPath, named: fileName)
-    }
-    
-    func decodeNoteFile(_ file: FileProtocol) throws -> ReleaseNoteInfo {
-        try picker.requiredPermission(prompt: "Did you add your release notes to \(file.path)?")
-        
-        let notesContent = try file.readAsString()
-        
-        if notesContent.isEmpty {
-            try picker.requiredPermission(prompt: "The file looks empty. Make sure to save your changes then type 'y' to proceed. Type 'n' to cancel")
-            
-            let notesContent = try file.readAsString()
-            
-            if notesContent.isEmpty {
-                throw ReleaseNotesError.emptyFileAfterRetry(filePath: file.path)
+            return try fileUtility.validateAndConfirmNoteFile(releaseNotesFile)
+        case .aiGenerated:
+            guard let releaseNumber, let projectPath, let shell else {
+                throw ReleaseNotesError.missingAIRequirements
             }
+            
+            let aiHandler = AIReleaseNotesHandler(
+                projectName: projectName,
+                shell: shell,
+                picker: picker,
+                fileUtility: fileUtility
+            )
+            
+            return try aiHandler.generateReleaseNotes(releaseNumber: releaseNumber, projectPath: projectPath)
         }
-        
-        return .init(content: file.path, isFromFile: true)
     }
 }
 
-
-// MARK: - Dependencies
-protocol DateProvider {
-    var currentDate: Date { get }
-}
-
-protocol FileProtocol {
-    var path: String { get }
-    func readAsString() throws -> String
-}
-
-protocol FileSystemProvider {
-    func createFile(in folderPath: String, named: String) throws -> FileProtocol
-}
 
 extension ReleaseNotesHandler {
     enum NoteContentType: CaseIterable {
-        case direct, fromPath, createFile
+        case direct, fromPath, createFile, aiGenerated
     }
 }
 
-
-// MARK: - Extension Dependencies
-private extension Date {
-    /// Formats the date as "M-d-yy- (e.g., "3-24-25").
-    var shortFormat: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "M-d-yy"
-        return formatter.string(from: self)
-    }
-}

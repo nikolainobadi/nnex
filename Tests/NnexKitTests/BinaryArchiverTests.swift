@@ -22,7 +22,11 @@ struct BinaryArchiverTests {
 extension BinaryArchiverTests {
     @Test("Creates archive for ARM64 binary with architecture-specific naming")
     func createsArmArchiveWithCorrectNaming() throws {
-        let (sut, shell) = makeSUT(runResults: ["", testSha256])
+        let commandResults: [String: String] = [
+            "cd \"/path/to/.build/arm64-apple-macosx/release\" && tar -czf \"nnex-arm64.tar.gz\" \"nnex\"": "",
+            "shasum -a 256 \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"": testSha256
+        ]
+        let (sut, shell) = makeSUT(commandResults: commandResults)
         
         let result = try sut.createArchives(from: [armBinaryPath])
         
@@ -39,7 +43,11 @@ extension BinaryArchiverTests {
     
     @Test("Creates archive for x86_64 binary with architecture-specific naming")
     func createsIntelArchiveWithCorrectNaming() throws {
-        let (sut, shell) = makeSUT(runResults: ["", testSha256])
+        let commandResults: [String: String] = [
+            "cd \"/path/to/.build/x86_64-apple-macosx/release\" && tar -czf \"nnex-x86_64.tar.gz\" \"nnex\"": "",
+            "shasum -a 256 \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"": testSha256
+        ]
+        let (sut, shell) = makeSUT(commandResults: commandResults)
         
         let result = try sut.createArchives(from: [intelBinaryPath])
         
@@ -79,7 +87,13 @@ extension BinaryArchiverTests {
     func createsBothArchitectureArchives() throws {
         let armSha256 = "arm64sha256hash"
         let intelSha256 = "x86_64sha256hash"
-        let (sut, shell) = makeSUT(runResults: ["", armSha256, "", intelSha256])
+        let commandResults: [String: String] = [
+            "cd \"/path/to/.build/arm64-apple-macosx/release\" && tar -czf \"nnex-arm64.tar.gz\" \"nnex\"": "",
+            "shasum -a 256 \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"": armSha256,
+            "cd \"/path/to/.build/x86_64-apple-macosx/release\" && tar -czf \"nnex-x86_64.tar.gz\" \"nnex\"": "",
+            "shasum -a 256 \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"": intelSha256
+        ]
+        let (sut, shell) = makeSUT(commandResults: commandResults)
         
         let result = try sut.createArchives(from: [armBinaryPath, intelBinaryPath])
         
@@ -144,7 +158,10 @@ extension BinaryArchiverTests {
             archivePath: "/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz",
             sha256: testSha256
         )
-        let (sut, shell) = makeSUT(runResults: [""])
+        let commandResults: [String: String] = [
+            "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"": ""
+        ]
+        let (sut, shell) = makeSUT(commandResults: commandResults)
         
         try sut.cleanup([archived])
         
@@ -313,7 +330,11 @@ extension BinaryArchiverTests {
     func parsesSha256FromShasumOutput() throws {
         let expectedSha256 = "a1b2c3d4e5f6789"
         let shasumOutput = "\(expectedSha256)  /path/to/file.tar.gz"
-        let (sut, _) = makeSUT(runResults: ["", shasumOutput])
+        let commandResults: [String: String] = [
+            "cd \"/path/to/binary\" && tar -czf \"nnex.tar.gz\" \"nnex\"": "",
+            "shasum -a 256 \"/path/to/binary/nnex.tar.gz\"": shasumOutput
+        ]
+        let (sut, _) = makeSUT(commandResults: commandResults)
         
         let result = try sut.createArchives(from: [genericBinaryPath])
         
@@ -337,8 +358,15 @@ extension BinaryArchiverTests {
 
 // MARK: - SUT
 private extension BinaryArchiverTests {
-    func makeSUT(runResults: [String] = [], throwError: Bool = false) -> (sut: BinaryArchiver, shell: MockShell) {
-        let shell = MockShell(results: runResults, shouldThrowError: throwError)
+    func makeSUT(runResults: [String] = [], commandResults: [String: String] = [:], throwError: Bool = false) -> (sut: BinaryArchiver, shell: MockShell) {
+        let shell: MockShell
+        
+        if !commandResults.isEmpty {
+            shell = MockShell(resultMap: commandResults, shouldThrowError: throwError)
+        } else {
+            shell = MockShell(results: runResults, shouldThrowError: throwError)
+        }
+        
         let sut = BinaryArchiver(shell: shell)
         
         return (sut, shell)

@@ -6,25 +6,32 @@
 //
 
 import Files
+import Foundation
 import NnexKit
 import GitCommandGen
+import NnShellKit
 
 struct ReleaseHandler {
     private let picker: NnexPicker
     private let gitHandler: GitHandler
     private let trashHandler: TrashHandler
+    private let aiReleaseEnabled: Bool
+    private let shell: (any Shell)?
     
-    init(picker: NnexPicker, gitHandler: GitHandler, trashHandler: TrashHandler) {
+    init(picker: NnexPicker, gitHandler: GitHandler, trashHandler: TrashHandler, aiReleaseEnabled: Bool = false, shell: (any Shell)? = nil) {
         self.picker = picker
         self.gitHandler = gitHandler
         self.trashHandler = trashHandler
+        self.aiReleaseEnabled = aiReleaseEnabled
+        self.shell = shell
     }
 }
 
 // MARK: - Action
 extension ReleaseHandler {
     func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
-        let noteInfo = try getReleaseNoteInfo(projectName: folder.name, releaseNotesSource: releaseNotesSource)
+        let releaseNumber = extractVersionString(from: versionInfo)
+        let noteInfo = try getReleaseNoteInfo(projectName: folder.name, releaseNotesSource: releaseNotesSource, releaseNumber: releaseNumber, projectPath: folder.path)
         let store = ReleaseStore(gitHandler: gitHandler)
 
         let releaseInfo = ReleaseInfo(
@@ -56,19 +63,30 @@ extension ReleaseHandler {
 
 // MARK: - Private
 private extension ReleaseHandler {
-    func getReleaseNoteInfo(projectName: String, releaseNotesSource: ReleaseNotesSource) throws -> ReleaseNoteInfo {
+    func getReleaseNoteInfo(projectName: String, releaseNotesSource: ReleaseNotesSource, releaseNumber: String, projectPath: String) throws -> ReleaseNoteInfo {
         if let notesFile = releaseNotesSource.notesFile {
             return .init(content: notesFile, isFromFile: true)
         }
         if let notes = releaseNotesSource.notes {
             return .init(content: notes, isFromFile: false)
         }
-        return try ReleaseNotesHandler(picker: picker, projectName: projectName).getReleaseNoteInfo()
+        return try ReleaseNotesHandler(picker: picker, projectName: projectName, aiReleaseEnabled: aiReleaseEnabled).getReleaseNoteInfo(releaseNumber: releaseNumber, projectPath: projectPath, shell: shell)
     }
     
     func maybeTrashReleaseNotes(_ info: ReleaseNoteInfo) throws {
         if info.isFromFile, picker.getPermission(prompt: "Would you like to move your release notes file to the trash?") {
             try trashHandler.moveToTrash(at: info.content)
+        }
+    }
+    
+    func extractVersionString(from versionInfo: ReleaseVersionInfo) -> String {
+        switch versionInfo {
+        case .version(let versionString):
+            return versionString.trimmingCharacters(in: CharacterSet(charactersIn: "v"))
+        case .increment:
+            // For increment case, we'll need to resolve this at a higher level
+            // For now, return a placeholder - the actual version will be resolved later
+            return "0.0.0"
         }
     }
 }

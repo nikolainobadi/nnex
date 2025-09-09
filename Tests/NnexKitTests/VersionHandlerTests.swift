@@ -88,5 +88,4 @@ private extension VersionHandlerTests {
             }
         }
     }
-
 }

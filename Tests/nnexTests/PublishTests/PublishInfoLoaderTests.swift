@@ -56,6 +56,68 @@ extension PublishInfoLoaderTests {
         #expect(tap.name == tapName)
         #expect(formula.name == projectName)
     }
+    
+    @Test("Updates formula localProjectPath when it doesn't match current project folder")
+    func updatesFormulaProjectPath() throws {
+        // Create Package.swift file
+        try createPackageSwift()
+        
+        let factory = MockContextFactory()
+        let context = try factory.makeContext()
+        let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        
+        // Create a formula with a different project path
+        let existingFormula = SwiftDataFormula(
+            name: projectName,
+            details: "Test formula",
+            homepage: "https://github.com/test/test",
+            license: "MIT",
+            localProjectPath: "/old/path/to/project", // Different path
+            uploadType: .binary,
+            testCommand: nil,
+            extraBuildArgs: []
+        )
+        
+        try context.saveNewTap(existingTap, formulas: [existingFormula])
+        
+        let sut = makeSUT(context: context)
+        let (tap, formula) = try sut.loadPublishInfo()
+        
+        #expect(tap.name == tapName)
+        #expect(formula.name == projectName)
+        #expect(formula.localProjectPath == projectFolder.path) // Should be updated to current project path
+    }
+    
+    @Test("Preserves formula localProjectPath when it matches current project folder")
+    func preservesMatchingProjectPath() throws {
+        // Create Package.swift file
+        try createPackageSwift()
+        
+        let factory = MockContextFactory()
+        let context = try factory.makeContext()
+        let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        
+        // Create a formula with the same project path
+        let existingFormula = SwiftDataFormula(
+            name: projectName,
+            details: "Test formula",
+            homepage: "https://github.com/test/test",
+            license: "MIT",
+            localProjectPath: projectFolder.path, // Same path
+            uploadType: .binary,
+            testCommand: nil,
+            extraBuildArgs: []
+        )
+        
+        try context.saveNewTap(existingTap, formulas: [existingFormula])
+        
+        let sut = makeSUT(context: context)
+        let (tap, formula) = try sut.loadPublishInfo()
+        
+        #expect(tap.name == tapName)
+        #expect(formula.name == projectName)
+        #expect(formula.localProjectPath == projectFolder.path) // Should remain the same
+    }
 }
 
 

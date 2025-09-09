@@ -10,15 +10,22 @@ swift build -c release
 ```
 
 ### Running Tests
+**Important**: Due to SwiftData compatibility issues, tests must be run using `xcodebuild` instead of `swift test`:
+
 ```bash
-swift test
+xcodebuild test -scheme nnex -destination 'platform=macOS'
+```
+
+For cleaner output, use with xcpretty:
+```bash
+xcodebuild test -scheme nnex -destination 'platform=macOS' | xcpretty
 ```
 
 ### Running Individual Tests
 ```bash
-swift test --filter BuildExecutableTests
-swift test --filter PublishTests
-swift test --filter CreateTapTests
+xcodebuild test -scheme nnex -destination 'platform=macOS' -only-testing:nnexTests/BuildExecutableTests
+xcodebuild test -scheme nnex -destination 'platform=macOS' -only-testing:nnexTests/PublishTests
+xcodebuild test -scheme nnex -destination 'platform=macOS' -only-testing:nnexTests/CreateTapTests
 ```
 
 ### Local Development Testing
@@ -105,10 +112,41 @@ The tool supports multiple build configurations:
 - macOS 14+ minimum deployment target
 - Swift 6.0+ required
 - Requires Homebrew and GitHub CLI (`gh`) for full functionality
+- Optional: Claude Code CLI for AI release notes generation
 
-## Recent Improvements (August 2024)
+## AI Integration
 
-### Architecture Refactoring
+### AI Release Notes
+The publish workflow includes optional AI-powered release notes generation using Claude Code:
+
+- **Enable AI**: Configure `aiReleaseEnabled` in app settings to show AI option
+- **Automatic generation**: AI analyzes git history and project context to create release notes
+- **Integration**: Uses `claude code edit` command to generate markdown files
+- **Conditional UI**: AI option only appears in picker when feature is enabled
+- **Fallback handling**: Graceful degradation when Claude Code CLI unavailable
+
+### AI Architecture
+- `AIReleaseNotesHandler`: Core AI functionality for release notes generation
+- `ReleaseNotesHandler`: Orchestrates all release notes options including AI
+- Conditional enum cases: `NoteContentType.aiGenerated` only available when enabled
+- Error handling: `ReleaseNotesError.missingAIRequirements` for validation
+- Testing: Comprehensive coverage of AI scenarios in `ReleaseNotesHandlerTests`
+
+## Recent Improvements
+
+### September 2025 - AI Release Notes Integration
+- **AI-powered release notes**: Integrated AI release notes generation into the publish workflow
+- **Conditional feature availability**: AI options only appear when `aiReleaseEnabled` is configured
+- **Comprehensive testing**: Added complete test coverage for AI functionality scenarios
+- **Clean architecture**: AI integration follows existing dependency injection patterns
+
+### Key AI Features
+- Four release notes options: Direct input, file path, create new file, and AI generation
+- AI option uses Claude Code to generate release notes from git history and project context
+- Backward compatibility maintained - existing workflows unchanged when AI disabled
+- Error handling for missing AI requirements (release number, project path, shell)
+
+### August 2024 - Architecture Refactoring
 - **Improved folder organization**: Clear separation between Commands, Core, Domain, and Infrastructure layers
 - **Manager pattern implementation**: Commands now delegate to execution managers for better testability
 - **Consistent patterns**: All commands follow the same structure with dependency injection
@@ -118,10 +156,12 @@ The tool supports multiple build configurations:
 - Test infrastructure improved with `@MainActor` pattern for SwiftData compatibility
 - Fixed test environment issues with proper mock factory parameter passing
 - All execution managers now have comprehensive unit test coverage
+- Removed legacy `AIChangeLogGenerator` functionality from publish workflow
 
 ### Known Issues
-- SwiftData may show "Unable to determine Bundle Name" errors at the end of test runs in Xcode (tests still execute successfully)
+- SwiftData may show "Unable to determine Bundle Name" errors at the end of test runs (tests still execute successfully)
 - This is a known issue with SwiftData in test environments and doesn't affect functionality
+- Tests must be run using `xcodebuild` instead of `swift test` due to SwiftData compatibility requirements
 
 ## Code Style Preferences
 

@@ -6,7 +6,6 @@
 //
 
 import Files
-import Foundation
 import NnShellKit
 
 public struct BinaryCopyUtility {
@@ -15,9 +14,13 @@ public struct BinaryCopyUtility {
     public init(shell: any Shell) {
         self.shell = shell
     }
-    
+}
+
+
+// MARK: - Actions
+public extension BinaryCopyUtility {
     @discardableResult
-    public func copyBinaryToLocation(binaryOutput: BinaryOutput, outputLocation: BuildOutputLocation, executableName: String) throws -> BinaryOutput {
+    func copyBinaryToLocation(binaryOutput: BinaryOutput, outputLocation: BuildOutputLocation, executableName: String) throws -> BinaryOutput {
         switch outputLocation {
         case .currentDirectory:
             return binaryOutput

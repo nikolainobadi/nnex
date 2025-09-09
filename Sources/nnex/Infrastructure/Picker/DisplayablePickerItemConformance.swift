@@ -40,6 +40,8 @@ extension ReleaseNotesHandler.NoteContentType: DisplayablePickerItem {
             return "Enter path to release notes file"
         case .createFile:
             return "Create a new file"
+        case .aiGenerated:
+            return "Generate with AI"
         }
     }
 }
