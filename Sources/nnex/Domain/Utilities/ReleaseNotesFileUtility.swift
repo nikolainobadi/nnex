@@ -76,10 +76,6 @@ extension ReleaseNotesFileUtility {
 }
 
 
-
-
-
-
 // MARK: - Dependencies
 protocol DateProvider {
     var currentDate: Date { get }
