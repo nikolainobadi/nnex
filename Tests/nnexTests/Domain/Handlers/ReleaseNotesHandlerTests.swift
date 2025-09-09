@@ -24,11 +24,7 @@ struct ReleaseNotesHandlerTests {
 extension ReleaseNotesHandlerTests {
     @Test("Returns direct input when user provides notes directly")
     func returnsDirectInput() throws {
-        let (sut, _, _) = makeSUT(
-            selectedOption: .direct,
-            inputResponses: [testNotes]
-        )
-        
+        let (sut, _, _) = makeSUT(selectedOption: .direct, inputResponses: [testNotes])
         let result = try sut.getReleaseNoteInfo()
         
         #expect(result.content == testNotes)
@@ -37,11 +33,7 @@ extension ReleaseNotesHandlerTests {
     
     @Test("Returns file path when user provides existing file path")
     func returnsFilePathInput() throws {
-        let (sut, _, _) = makeSUT(
-            selectedOption: .fromPath,
-            inputResponses: [testFilePath]
-        )
-        
+        let (sut, _, _) = makeSUT(selectedOption: .fromPath, inputResponses: [testFilePath])
         let result = try sut.getReleaseNoteInfo()
         
         #expect(result.content == testFilePath)
@@ -51,12 +43,7 @@ extension ReleaseNotesHandlerTests {
     @Test("Creates file with correct timestamp when user chooses to create new file")
     func createsFileWithTimestamp() throws {
         let expectedFileName = "\(projectName)-releaseNotes-8-10-23.md"
-        let (sut, _, fileSystem) = makeSUT(
-            selectedOption: .createFile,
-            permissionResponses: [true],
-            fileContent: testNotes
-        )
-        
+        let (sut, _, fileSystem) = makeSUT(selectedOption: .createFile, permissionResponses: [true], fileContent: testNotes)
         let result = try sut.getReleaseNoteInfo()
         
         #expect(fileSystem.createdFileName == expectedFileName)
@@ -66,12 +53,7 @@ extension ReleaseNotesHandlerTests {
     
     @Test("Handles non-empty file content successfully")
     func handlesNonEmptyFileContent() throws {
-        let (sut, _, fileSystem) = makeSUT(
-            selectedOption: .createFile,
-            permissionResponses: [true],
-            fileContent: testNotes
-        )
-        
+        let (sut, _, fileSystem) = makeSUT(selectedOption: .createFile, permissionResponses: [true], fileContent: testNotes)
         let result = try sut.getReleaseNoteInfo()
         
         #expect(result.content == fileSystem.createdFilePath)
@@ -150,12 +132,7 @@ extension ReleaseNotesHandlerTests {
     
     @Test("AI option does not appear when disabled")
     func aiOptionDoesNotAppearWhenDisabled() throws {
-        let (sut, picker, _) = makeSUT(
-            selectedOption: .direct,
-            inputResponses: [testNotes],
-            aiReleaseEnabled: false
-        )
-        
+        let sut = makeSUT(selectedOption: .direct, inputResponses: [testNotes]).sut
         let result = try sut.getReleaseNoteInfo()
         
         // When AI is disabled, the picker should only have 3 options (direct, fromPath, createFile)
@@ -166,10 +143,7 @@ extension ReleaseNotesHandlerTests {
     
     @Test("AI generation validates all parameters are present")
     func aiGenerationValidatesAllParametersArePresent() throws {
-        let (sut, _, _) = makeSUT(
-            selectedOption: .aiGenerated,
-            aiReleaseEnabled: true
-        )
+        let sut = makeSUT(selectedOption: .aiGenerated, aiReleaseEnabled: true).sut
         
         // Test that when all parameters are provided, it doesn't throw missingAIRequirements
         // Note: This test focuses on parameter validation, not the actual AI generation
@@ -180,9 +154,8 @@ extension ReleaseNotesHandlerTests {
         // This should not throw missingAIRequirements error since all params are provided
         // It may throw other errors related to the actual AI generation process, but that's expected
         #expect(throws: (any Error).self) {
-            // We expect some error (likely from AI processing), but NOT missingAIRequirements
-            let result = try sut.getReleaseNoteInfo(
-                releaseNumber: "1.0.0", 
+            try sut.getReleaseNoteInfo(
+                releaseNumber: "1.0.0",
                 projectPath: projectFolder.path, 
                 shell: MockShell()
             )
@@ -191,10 +164,7 @@ extension ReleaseNotesHandlerTests {
     
     @Test("AI generation throws error when missing release number")
     func aiGenerationThrowsErrorWhenMissingReleaseNumber() throws {
-        let (sut, _, _) = makeSUT(
-            selectedOption: .aiGenerated,
-            aiReleaseEnabled: true
-        )
+        let sut = makeSUT(selectedOption: .aiGenerated, aiReleaseEnabled: true).sut
         
         #expect(throws: ReleaseNotesError.missingAIRequirements) {
             try sut.getReleaseNoteInfo(

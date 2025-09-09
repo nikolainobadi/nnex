@@ -225,9 +225,7 @@ extension ProjectDetectorTests {
             Schemes:
         """
         
-        let (sut, tempFolder) = try makeSUT(
-            shellOutputs: [outputWithEmptySchemes]
-        )
+        let (sut, tempFolder) = try makeSUT(shellOutputs: [outputWithEmptySchemes])
         
         try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
@@ -239,10 +237,7 @@ extension ProjectDetectorTests {
     
     @Test("Handles xcodebuild command failure")
     func handlesXcodebuildCommandFailure() throws {
-        let (sut, tempFolder) = try makeSUT(
-            shouldThrowShellError: true
-        )
-        
+        let (sut, tempFolder) = try makeSUT(shouldThrowShellError: true)
         try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
         
@@ -255,16 +250,8 @@ extension ProjectDetectorTests {
 
 // MARK: - SUT
 private extension ProjectDetectorTests {
-    func makeSUT(
-        shellOutputs: [String] = [],
-        shouldThrowShellError: Bool = false
-    ) throws -> (sut: DefaultProjectDetector, tempFolder: Folder) {
-        
-        let shell = MockShell(
-            results: shellOutputs,
-            shouldThrowError: shouldThrowShellError
-        )
-        
+    func makeSUT(shellOutputs: [String] = [], shouldThrowShellError: Bool = false) throws -> (sut: DefaultProjectDetector, tempFolder: Folder) {
+        let shell = MockShell(results: shellOutputs, shouldThrowError: shouldThrowShellError)
         let sut = DefaultProjectDetector(shell: shell)
         let tempFolder = try Folder.temporary.createSubfolder(named: "ProjectDetectorTest-\(UUID().uuidString)")
         
