@@ -352,7 +352,6 @@ private extension PublishExecutionManagerTests {
             picker: picker,
             gitHandler: gitHandler,
             publishInfoLoader: publishInfoLoader,
-            context: context,
             trashHandler: trashHandler,
             aiReleaseEnabled: false
         )

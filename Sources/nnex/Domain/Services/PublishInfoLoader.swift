@@ -49,6 +49,11 @@ extension PublishInfoLoader {
         )
         
         if let formula = tap.formulas.first(where: { $0.name.lowercased() == projectFolder.name.lowercased() }) {
+            // Update the formula's localProjectPath if needed
+            if formula.localProjectPath.isEmpty || formula.localProjectPath != projectFolder.path {
+                formula.localProjectPath = projectFolder.path
+                try context.saveChanges()
+            }
             return (tap, formula)
         }
         

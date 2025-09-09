@@ -15,16 +15,14 @@ struct PublishExecutionManager {
     private let picker: NnexPicker
     private let gitHandler: GitHandler
     private let publishInfoLoader: PublishInfoLoader
-    private let context: NnexContext
     private let trashHandler: TrashHandler
     private let aiReleaseEnabled: Bool
     
-    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, context: NnexContext, trashHandler: TrashHandler, aiReleaseEnabled: Bool) {
+    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, trashHandler: TrashHandler, aiReleaseEnabled: Bool) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
         self.publishInfoLoader = publishInfoLoader
-        self.context = context
         self.trashHandler = trashHandler
         self.aiReleaseEnabled = aiReleaseEnabled
     }
@@ -94,11 +92,7 @@ private extension PublishExecutionManager {
     func getTapAndFormula(projectFolder: Folder, buildType: BuildType, skipTests: Bool) throws -> (SwiftDataTap, SwiftDataFormula, BuildType) {
         let (tap, formula) = try publishInfoLoader.loadPublishInfo()
         
-        if formula.localProjectPath.isEmpty || formula.localProjectPath != projectFolder.path {
-            formula.localProjectPath = projectFolder.path
-            try context.saveChanges()
-        }
-
+        // Note: The formula's localProjectPath update is now handled by PublishInfoLoader if needed
         return (tap, formula, buildType)
     }
 
