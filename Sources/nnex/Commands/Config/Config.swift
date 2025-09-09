@@ -116,20 +116,17 @@ extension Nnex.Config {
         static let configuration = CommandConfiguration(abstract: "Toggle AI release functionality.")
 
         func run() throws {
+            let picker = Nnex.makePicker()
             let context = try Nnex.makeContext()
             let currentSetting = context.loadAIReleaseEnabled()
             
             print("Current AI Release Setting: \(currentSetting ? "Enabled" : "Disabled")")
             
-            let shouldToggle = try Nnex.makePicker().getBooleanInput(prompt: "Would you like to toggle this setting?")
+            try picker.requiredPermission(prompt: "Would you like to toggle this setting?")
             
-            if shouldToggle {
-                let newSetting = !currentSetting
-                context.saveAIReleaseEnabled(newSetting)
-                print("AI Release functionality is now: \(newSetting ? "Enabled" : "Disabled")")
-            } else {
-                print("No changes made.")
-            }
+            let newSetting = !currentSetting
+            context.saveAIReleaseEnabled(newSetting)
+            print("AI Release functionality is now: \(newSetting ? "Enabled" : "Disabled")")
         }
     }
 }

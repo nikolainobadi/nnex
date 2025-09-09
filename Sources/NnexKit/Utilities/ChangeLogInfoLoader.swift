@@ -50,10 +50,14 @@ private extension ChangeLogInfoLoader {
     /// - Throws: An error if the git command fails.
     func getPreviousTag() throws -> String {
         do {
-            let tag = try shell.bash("git describe --tags --abbrev=0 HEAD^")
-            return tag.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let tag = try? shell.bash("git describe --tags --abbrev=0 HEAD^").trimmingCharacters(in: .whitespacesAndNewlines),
+               !tag.isEmpty {
+                return tag
+            }
+            // Fallback to first commit if no tags exist or tag is empty
+            let firstCommit = try shell.bash("git rev-list --max-parents=0 HEAD")
+            return firstCommit.trimmingCharacters(in: .whitespacesAndNewlines)
         } catch {
-            // Fallback to first commit if no tags exist
             let firstCommit = try shell.bash("git rev-list --max-parents=0 HEAD")
             return firstCommit.trimmingCharacters(in: .whitespacesAndNewlines)
         }
@@ -64,7 +68,7 @@ private extension ChangeLogInfoLoader {
     /// - Returns: An array of commit messages.
     /// - Throws: An error if the git command fails.
     func getCommits(since previousTag: String) throws -> [String] {
-        let output = try shell.bash("git log \(previousTag)..HEAD --pretty=format:'%s'")
+        let output = try shell.bash("GIT_PAGER= git log \(previousTag)..HEAD --pretty=format:%s")
         return output.components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
@@ -75,17 +79,37 @@ private extension ChangeLogInfoLoader {
     /// - Returns: An array of FileChange instances.
     /// - Throws: An error if the git command fails.
     func getFilesChanged(since previousTag: String) throws -> [FileChange] {
-        let output = try shell.bash("git diff --name-status \(previousTag)..HEAD")
-        return output.components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-            .compactMap { line in
-                let components = line.components(separatedBy: .whitespaces)
-                guard components.count >= 2 else { return nil }
-                let status = components[0]
-                let filename = components[1...].joined(separator: " ")
-                return FileChange(status: status, filename: filename)
+        // -z => NUL separated; name-status fields are tab-separated per record
+        let output = try shell.bash("GIT_PAGER= git diff --name-status -z \(previousTag)..HEAD")
+        let parts = output.split(separator: "\0").map(String.init)
+        var items: [FileChange] = []
+
+        var i = 0
+        while i < parts.count {
+            // status and first path are in the same NUL-delimited record but tab-separated
+            let fields = parts[i].split(separator: "\t").map(String.init)
+            guard let status = fields.first else { break }
+
+            switch status.prefix(1) {
+            case "R", "C": // rename/copy => status, old, new
+                // fields may be: [ "R100", "oldpath", "newpath" ] in one record
+                if fields.count >= 3 {
+                    items.append(FileChange(status: String(status), filename: fields[2]))
+                } else {
+                    // Some git versions emit status + old in first record, new in next; handle gracefully
+                    if i + 1 < parts.count {
+                        items.append(FileChange(status: String(status), filename: parts[i + 1]))
+                        i += 1
+                    }
+                }
+            default:
+                // A/M/D etc: fields[1] is the path
+                let filename = fields.count >= 2 ? fields[1] : (fields.first ?? "")
+                items.append(FileChange(status: String(status), filename: filename))
             }
+            i += 1
+        }
+        return items
     }
     
     /// Gets the change statistics (files changed, insertions, deletions) since the previous tag.
@@ -93,7 +117,7 @@ private extension ChangeLogInfoLoader {
     /// - Returns: A string containing the diff statistics.
     /// - Throws: An error if the git command fails.
     func getChangeStats(since previousTag: String) throws -> String {
-        let output = try shell.bash("git diff --stat \(previousTag)..HEAD")
+        let output = try shell.bash("GIT_PAGER= git diff --no-color --no-ext-diff --stat \(previousTag)..HEAD")
         return output.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
@@ -102,7 +126,7 @@ private extension ChangeLogInfoLoader {
     /// - Returns: A string containing the compact diff.
     /// - Throws: An error if the git command fails.
     func getCompactDiff(since previousTag: String) throws -> String {
-        let output = try shell.bash("git diff --unified=0 --function-context \(previousTag)..HEAD | head -n 800")
+        let output = try shell.bash("bash -lc 'GIT_PAGER= git diff --no-color --no-ext-diff --diff-algorithm=histogram --unified=0 --function-context \(previousTag)..HEAD | head -c 120000'")
         return output.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
