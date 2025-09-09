@@ -125,12 +125,8 @@ extension PublishInfoLoaderTests {
 private extension PublishInfoLoaderTests {
     func makeSUT(context: NnexContext, skipTests: Bool = false, inputResponses: [String] = [], permissionResponses: [Bool] = [], selectedItemIndices: [Int] = []) -> PublishInfoLoader {
         let shell = MockShell()
-        let picker = MockPicker(
-            selectedItemIndices: selectedItemIndices,
-            inputResponses: inputResponses,
-            permissionResponses: permissionResponses
-        )
         let gitHandler = MockGitHandler()
+        let picker = MockPicker(selectedItemIndices: selectedItemIndices, inputResponses: inputResponses, permissionResponses: permissionResponses)
         
         return .init(
             shell: shell,
