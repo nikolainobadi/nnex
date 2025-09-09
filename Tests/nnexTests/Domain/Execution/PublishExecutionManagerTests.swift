@@ -41,20 +41,28 @@ extension PublishExecutionManagerTests {
     func successfullyExecutesPublishWithExistingFormula() throws {
         try createPackageSwift()
         
+        let projectPath = projectFolder.path
+        let armBinaryPath = "\(projectPath).build/arm64-apple-macosx/release/\(executableName)"
+        let intelBinaryPath = "\(projectPath).build/x86_64-apple-macosx/release/\(executableName)"
+        let armArchivePath = "\(projectPath).build/arm64-apple-macosx/release/\(executableName)-arm64.tar.gz"
+        let intelArchivePath = "\(projectPath).build/x86_64-apple-macosx/release/\(executableName)-x86_64.tar.gz"
+        
+        let commandResults: [String: String] = [
+            "cd \"\(projectPath)\" && git status --porcelain": "",
+            "swift package clean --package-path \(projectPath)": "",
+            "swift build -c release --arch arm64 -Xswiftc -Osize -Xswiftc -wmo -Xswiftc -gnone -Xswiftc -cross-module-optimization -Xlinker -dead_strip_dylibs --package-path \(projectPath) ": "",
+            "strip -x \"\(armBinaryPath)\"": "",
+            "swift build -c release --arch x86_64 -Xswiftc -Osize -Xswiftc -wmo -Xswiftc -gnone -Xswiftc -cross-module-optimization -Xlinker -dead_strip_dylibs --package-path \(projectPath) ": "",
+            "strip -x \"\(intelBinaryPath)\"": "",
+            "cd \"\(projectPath).build/arm64-apple-macosx/release\" && tar -czf \"\(executableName)-arm64.tar.gz\" \"\(executableName)\"": "",
+            "shasum -a 256 \"\(armArchivePath)\"": "abc123def456  \(armArchivePath)",
+            "cd \"\(projectPath).build/x86_64-apple-macosx/release\" && tar -czf \"\(executableName)-x86_64.tar.gz\" \"\(executableName)\"": "",
+            "shasum -a 256 \"\(intelArchivePath)\"": "abc123def456  \(intelArchivePath)",
+            "gh release view --json assets": "asset1.tar.gz\nasset2.tar.gz"
+        ]
+        
         let factory = MockContextFactory(
-            runResults: [
-                "", // git status --porcelain (clean)
-                "", // Clean project
-                "", // Build arm64
-                "", // Strip arm64  
-                "", // Build x86_64
-                "", // Strip x86_64
-                "", // tar command for arm64
-                "abc123def456  /path/to/binary", // shasum for arm64
-                "", // tar command for x86_64
-                "abc123def456  /path/to/binary", // shasum for x86_64
-                "asset1.tar.gz\nasset2.tar.gz" // gh release view assets
-            ],
+            commandResults: commandResults,
             selectedItemIndices: [],
             inputResponses: [],
             permissionResponses: [false] // Don't commit formula to GitHub
@@ -93,20 +101,28 @@ extension PublishExecutionManagerTests {
     func successfullyExecutesPublishWithNewFormulaCreation() throws {
         try createPackageSwift()
         
+        let projectPath = projectFolder.path
+        let armBinaryPath = "\(projectPath).build/arm64-apple-macosx/release/\(executableName)"
+        let intelBinaryPath = "\(projectPath).build/x86_64-apple-macosx/release/\(executableName)"
+        let armArchivePath = "\(projectPath).build/arm64-apple-macosx/release/\(executableName)-arm64.tar.gz"
+        let intelArchivePath = "\(projectPath).build/x86_64-apple-macosx/release/\(executableName)-x86_64.tar.gz"
+        
+        let commandResults: [String: String] = [
+            "cd \"\(projectPath)\" && git status --porcelain": "",
+            "swift package clean --package-path \(projectPath)": "",
+            "swift build -c release --arch arm64 -Xswiftc -Osize -Xswiftc -wmo -Xswiftc -gnone -Xswiftc -cross-module-optimization -Xlinker -dead_strip_dylibs --package-path \(projectPath) ": "",
+            "strip -x \"\(armBinaryPath)\"": "",
+            "swift build -c release --arch x86_64 -Xswiftc -Osize -Xswiftc -wmo -Xswiftc -gnone -Xswiftc -cross-module-optimization -Xlinker -dead_strip_dylibs --package-path \(projectPath) ": "",
+            "strip -x \"\(intelBinaryPath)\"": "",
+            "cd \"\(projectPath).build/arm64-apple-macosx/release\" && tar -czf \"\(executableName)-arm64.tar.gz\" \"\(executableName)\"": "",
+            "shasum -a 256 \"\(armArchivePath)\"": "abc123def456  \(armArchivePath)",
+            "cd \"\(projectPath).build/x86_64-apple-macosx/release\" && tar -czf \"\(executableName)-x86_64.tar.gz\" \"\(executableName)\"": "",
+            "shasum -a 256 \"\(intelArchivePath)\"": "abc123def456  \(intelArchivePath)",
+            "gh release view --json assets": "asset1.tar.gz\nasset2.tar.gz"
+        ]
+        
         let factory = MockContextFactory(
-            runResults: [
-                "", // git status --porcelain (clean)
-                "", // Clean project
-                "", // Build arm64
-                "", // Strip arm64  
-                "", // Build x86_64
-                "", // Strip x86_64
-                "", // tar command for arm64
-                "abc123def456  /path/to/binary", // shasum for arm64
-                "", // tar command for x86_64
-                "abc123def456  /path/to/binary", // shasum for x86_64
-                "asset1.tar.gz\nasset2.tar.gz" // gh release view assets
-            ],
+            commandResults: commandResults,
             selectedItemIndices: [0, 0], // Select tap, select no tests
             inputResponses: ["Test formula description"], // Formula description
             permissionResponses: [true, false] // Create new formula, don't commit to GitHub
@@ -134,23 +150,29 @@ extension PublishExecutionManagerTests {
     func commitsAndPushesFormulaWhenUserChooses() throws {
         try createPackageSwift()
         
+        let projectPath = projectFolder.path
+        let armBinaryPath = "\(projectPath).build/arm64-apple-macosx/release/\(executableName)"
+        let intelBinaryPath = "\(projectPath).build/x86_64-apple-macosx/release/\(executableName)"
+        let armArchivePath = "\(projectPath).build/arm64-apple-macosx/release/\(executableName)-arm64.tar.gz"
+        let intelArchivePath = "\(projectPath).build/x86_64-apple-macosx/release/\(executableName)-x86_64.tar.gz"
+        
+        let commandResults: [String: String] = [
+            "cd \"\(projectPath)\" && git status --porcelain": "",
+            "swift package clean --package-path \(projectPath)": "",
+            "swift build -c release --arch arm64 -Xswiftc -Osize -Xswiftc -wmo -Xswiftc -gnone -Xswiftc -cross-module-optimization -Xlinker -dead_strip_dylibs --package-path \(projectPath) ": "",
+            "strip -x \"\(armBinaryPath)\"": "",
+            "swift build -c release --arch x86_64 -Xswiftc -Osize -Xswiftc -wmo -Xswiftc -gnone -Xswiftc -cross-module-optimization -Xlinker -dead_strip_dylibs --package-path \(projectPath) ": "",
+            "strip -x \"\(intelBinaryPath)\"": "",
+            "cd \"\(projectPath).build/arm64-apple-macosx/release\" && tar -czf \"\(executableName)-arm64.tar.gz\" \"\(executableName)\"": "",
+            "shasum -a 256 \"\(armArchivePath)\"": "abc123def456  \(armArchivePath)",
+            "cd \"\(projectPath).build/x86_64-apple-macosx/release\" && tar -czf \"\(executableName)-x86_64.tar.gz\" \"\(executableName)\"": "",
+            "shasum -a 256 \"\(intelArchivePath)\"": "abc123def456  \(intelArchivePath)",
+            "gh release view --json assets": "asset1.tar.gz\nasset2.tar.gz"
+            // Git commands will be handled by MockGitHandler, not shell commands
+        ]
+        
         let factory = MockContextFactory(
-            runResults: [
-                "", // git status --porcelain (clean)
-                "", // Clean project
-                "", // Build arm64
-                "", // Strip arm64  
-                "", // Build x86_64
-                "", // Strip x86_64
-                "", // tar command for arm64
-                "abc123def456  /path/to/binary", // shasum for arm64
-                "", // tar command for x86_64
-                "abc123def456  /path/to/binary", // shasum for x86_64
-                "asset1.tar.gz\nasset2.tar.gz", // gh release view assets
-                "", // git add
-                "", // git commit
-                "" // git push
-            ],
+            commandResults: commandResults,
             selectedItemIndices: [],
             inputResponses: ["Test commit message"], // Commit message
             permissionResponses: [true] // Commit and push to GitHub
@@ -189,20 +211,28 @@ extension PublishExecutionManagerTests {
     func usesProvidedCommitMessage() throws {
         try createPackageSwift()
         
+        let projectPath = projectFolder.path
+        let armBinaryPath = "\(projectPath).build/arm64-apple-macosx/release/\(executableName)"
+        let intelBinaryPath = "\(projectPath).build/x86_64-apple-macosx/release/\(executableName)"
+        let armArchivePath = "\(projectPath).build/arm64-apple-macosx/release/\(executableName)-arm64.tar.gz"
+        let intelArchivePath = "\(projectPath).build/x86_64-apple-macosx/release/\(executableName)-x86_64.tar.gz"
+        
+        let commandResults: [String: String] = [
+            "cd \"\(projectPath)\" && git status --porcelain": "",
+            "swift package clean --package-path \(projectPath)": "",
+            "swift build -c release --arch arm64 -Xswiftc -Osize -Xswiftc -wmo -Xswiftc -gnone -Xswiftc -cross-module-optimization -Xlinker -dead_strip_dylibs --package-path \(projectPath) ": "",
+            "strip -x \"\(armBinaryPath)\"": "",
+            "swift build -c release --arch x86_64 -Xswiftc -Osize -Xswiftc -wmo -Xswiftc -gnone -Xswiftc -cross-module-optimization -Xlinker -dead_strip_dylibs --package-path \(projectPath) ": "",
+            "strip -x \"\(intelBinaryPath)\"": "",
+            "cd \"\(projectPath).build/arm64-apple-macosx/release\" && tar -czf \"\(executableName)-arm64.tar.gz\" \"\(executableName)\"": "",
+            "shasum -a 256 \"\(armArchivePath)\"": "abc123def456  \(armArchivePath)",
+            "cd \"\(projectPath).build/x86_64-apple-macosx/release\" && tar -czf \"\(executableName)-x86_64.tar.gz\" \"\(executableName)\"": "",
+            "shasum -a 256 \"\(intelArchivePath)\"": "abc123def456  \(intelArchivePath)",
+            "gh release view --json assets": "asset1.tar.gz\nasset2.tar.gz"
+        ]
+        
         let factory = MockContextFactory(
-            runResults: [
-                "", // git status --porcelain (clean)
-                "", // Clean project
-                "", // Build arm64
-                "", // Strip arm64  
-                "", // Build x86_64
-                "", // Strip x86_64
-                "", // tar command for arm64
-                "abc123def456  /path/to/binary", // shasum for arm64
-                "", // tar command for x86_64
-                "abc123def456  /path/to/binary", // shasum for x86_64
-                "asset1.tar.gz\nasset2.tar.gz" // gh release view assets
-            ]
+            commandResults: commandResults
         )
         
         let context = try factory.makeContext()
@@ -242,8 +272,13 @@ extension PublishExecutionManagerTests {
     func throwsErrorWhenUncommittedChanges() throws {
         try createPackageSwift()
         
+        let projectPath = projectFolder.path
+        let commandResults: [String: String] = [
+            "cd \"\(projectPath)\" && git status --porcelain": "M modified_file.swift" // Uncommitted changes present
+        ]
+        
         let factory = MockContextFactory(
-            runResults: ["M modified_file.swift"] // Uncommitted changes present
+            commandResults: commandResults
         )
         
         let context = try factory.makeContext()
@@ -267,6 +302,7 @@ extension PublishExecutionManagerTests {
         try createPackageSwift()
         
         let factory = MockContextFactory(
+            commandResults: [:], // Empty since we'll fail before any commands are run
             gitHandler: MockGitHandler(ghIsInstalled: false)
         )
         
@@ -290,12 +326,14 @@ extension PublishExecutionManagerTests {
     func propagatesBuildErrors() throws {
         try createPackageSwift()
         
+        let projectPath = projectFolder.path
+        let commandResults: [String: String] = [
+            "cd \"\(projectPath)\" && git status --porcelain": "" // No uncommitted changes
+        ]
+        
         let factory = MockContextFactory(
-            runResults: [
-                "", // git status --porcelain (no uncommitted changes)
-                "v1.0.0\n", // git tag --list
-            ],
-            shell: MockShell(results: ["", ""], shouldThrowError: true) // Make build fail
+            commandResults: commandResults,
+            shell: MockShell(resultMap: [:], shouldThrowError: true) // Make build fail
         )
         
         let context = try factory.makeContext()

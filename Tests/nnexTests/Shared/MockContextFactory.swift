@@ -17,6 +17,7 @@ final class MockContextFactory {
     private let selectedItemIndices: [Int]
     private let tapListFolderPath: String?
     private let runResults: [String]
+    private let commandResults: [String: String]
     private let inputResponses: [String]
     private let permissionResponses: [Bool]
     private let gitHandler: MockGitHandler
@@ -28,6 +29,7 @@ final class MockContextFactory {
     init(
         tapListFolderPath: String? = nil,
         runResults: [String] = [],
+        commandResults: [String: String] = [:],
         selectedItemIndex: Int = 0,
         selectedItemIndices: [Int] = [],
         inputResponses: [String] = [],
@@ -38,6 +40,7 @@ final class MockContextFactory {
     ) {
         self.tapListFolderPath = tapListFolderPath
         self.runResults = runResults
+        self.commandResults = commandResults
         self.inputResponses = inputResponses
         self.permissionResponses = permissionResponses
         self.gitHandler = gitHandler
@@ -56,7 +59,12 @@ extension MockContextFactory: ContextFactory {
             return shell
         }
         
-        let newShell = MockShell(results: runResults)
+        let newShell: MockShell
+        if !commandResults.isEmpty {
+            newShell = MockShell(resultMap: commandResults)
+        } else {
+            newShell = MockShell(results: runResults)
+        }
         shell = newShell
         return newShell
     }
