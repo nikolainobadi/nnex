@@ -208,9 +208,9 @@ private extension AIChangeLogGenerator {
 
         let headerDirective: String
         if let ver = versionText, !ver.isEmpty {
-            headerDirective = "Produce a Keep a Changelog section for version \(ver) released on \(date)."
+            headerDirective = "Update the CHANGELOG.md file by inserting a Keep a Changelog section for version \(ver) released on \(date). If the file does not exist, create it following Keep a Changelog format."
         } else {
-            headerDirective = "Produce a Keep a Changelog section for [Unreleased]."
+            headerDirective = "Update the CHANGELOG.md file by inserting a Keep a Changelog section for [Unreleased]. If the file does not exist, create it following Keep a Changelog format."
         }
 
         return """
@@ -224,7 +224,7 @@ private extension AIChangeLogGenerator {
         - Group under: Added, Changed, Fixed, Removed, Deprecated, Security
         - Mark breaking changes with **Breaking** and include a 1-line migration tip
         - Imperative mood; concise, single-sentence bullets
-        - OUTPUT: Only the markdown for the requested section (no extra prose, no surrounding file)
+        - OUTPUT: The full updated CHANGELOG.md file contents including all previous content and the new section. If creating new, output a complete CHANGELOG.md file starting with '# Changelog' and an '[Unreleased]' section.
 
         """
     }

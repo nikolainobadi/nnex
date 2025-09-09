@@ -32,13 +32,7 @@ public extension ChangeLogInfoLoader {
         let changeStats = try getChangeStats(since: previousTag)
         let compactDiff = try getCompactDiff(since: previousTag)
         
-        return ChangeLogInfo(
-            previousTag: previousTag,
-            commits: commits,
-            filesChanged: filesChanged,
-            changeStats: changeStats,
-            compactDiff: compactDiff
-        )
+        return .init(previousTag: previousTag, commits: commits, filesChanged: filesChanged, changeStats: changeStats, compactDiff: compactDiff)
     }
 }
 
