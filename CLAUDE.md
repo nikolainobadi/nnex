@@ -10,15 +10,22 @@ swift build -c release
 ```
 
 ### Running Tests
+**Important**: Due to SwiftData compatibility issues, tests must be run using `xcodebuild` instead of `swift test`:
+
 ```bash
-swift test
+xcodebuild test -scheme nnex -destination 'platform=macOS'
+```
+
+For cleaner output, use with xcpretty:
+```bash
+xcodebuild test -scheme nnex -destination 'platform=macOS' | xcpretty
 ```
 
 ### Running Individual Tests
 ```bash
-swift test --filter BuildExecutableTests
-swift test --filter PublishTests
-swift test --filter CreateTapTests
+xcodebuild test -scheme nnex -destination 'platform=macOS' -only-testing:nnexTests/BuildExecutableTests
+xcodebuild test -scheme nnex -destination 'platform=macOS' -only-testing:nnexTests/PublishTests
+xcodebuild test -scheme nnex -destination 'platform=macOS' -only-testing:nnexTests/CreateTapTests
 ```
 
 ### Local Development Testing
@@ -120,8 +127,9 @@ The tool supports multiple build configurations:
 - All execution managers now have comprehensive unit test coverage
 
 ### Known Issues
-- SwiftData may show "Unable to determine Bundle Name" errors at the end of test runs in Xcode (tests still execute successfully)
+- SwiftData may show "Unable to determine Bundle Name" errors at the end of test runs (tests still execute successfully)
 - This is a known issue with SwiftData in test environments and doesn't affect functionality
+- Tests must be run using `xcodebuild` instead of `swift test` due to SwiftData compatibility requirements
 
 ## Code Style Preferences
 
