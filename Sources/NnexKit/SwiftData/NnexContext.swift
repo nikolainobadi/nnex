@@ -14,6 +14,7 @@ public final class NnexContext {
     private let defaults: UserDefaults
     private let defaultBuildTypeKey = "defaultBuildTypeKey"
     private let tapListFolderPathKey = "tapListFolderPathKey"
+    private let aiReleaseEnabledKey = "aiReleaseEnabledKey"
 
     /// The model context for interacting with SwiftData models.
     public let context: ModelContext
@@ -62,6 +63,18 @@ extension NnexContext {
     /// - Returns: The saved build type or a default value if not set.
     public func loadDefaultBuildType() -> BuildType {
         return defaults.object(forKey: defaultBuildTypeKey) as? BuildType ?? .universal
+    }
+    
+    /// Saves the AI release enabled flag.
+    /// - Parameter isEnabled: Whether AI release functionality is enabled.
+    public func saveAIReleaseEnabled(_ isEnabled: Bool) {
+        defaults.set(isEnabled, forKey: aiReleaseEnabledKey)
+    }
+    
+    /// Loads the AI release enabled flag.
+    /// - Returns: The saved flag value or false if not set.
+    public func loadAIReleaseEnabled() -> Bool {
+        return defaults.bool(forKey: aiReleaseEnabledKey)
     }
 }
 
