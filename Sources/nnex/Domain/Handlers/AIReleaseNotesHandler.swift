@@ -24,13 +24,13 @@ struct AIReleaseNotesHandler {
     ///   - projectName: The name of the project for generating release notes.
     ///   - shell: The shell instance for executing commands.
     ///   - picker: The picker for user interactions.
-    ///   - fileUtility: Optional file utility (defaults to new instance with picker).
-    init(projectName: String, shell: any Shell, picker: NnexPicker, fileUtility: ReleaseNotesFileUtility? = nil) {
+    ///   - fileUtility: The file utility for creating and validating files.
+    init(projectName: String, shell: any Shell, picker: NnexPicker, fileUtility: ReleaseNotesFileUtility) {
         self.projectName = projectName
         self.shell = shell
         self.picker = picker
         self.changeLogLoader = ChangeLogInfoLoader(shell: shell)
-        self.fileUtility = fileUtility ?? ReleaseNotesFileUtility(picker: picker)
+        self.fileUtility = fileUtility
     }
 }
 
@@ -163,5 +163,4 @@ private extension AIReleaseNotesHandler {
         Based on the above git history, generate professional release notes focusing on user-facing changes.
         """
     }
-    
 }
