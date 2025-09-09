@@ -17,14 +17,16 @@ struct PublishExecutionManager {
     private let publishInfoLoader: PublishInfoLoader
     private let context: NnexContext
     private let trashHandler: TrashHandler
+    private let aiReleaseEnabled: Bool
     
-    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, context: NnexContext, trashHandler: TrashHandler) {
+    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, context: NnexContext, trashHandler: TrashHandler, aiReleaseEnabled: Bool) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
         self.publishInfoLoader = publishInfoLoader
         self.context = context
         self.trashHandler = trashHandler
+        self.aiReleaseEnabled = aiReleaseEnabled
     }
 }
 
@@ -41,11 +43,13 @@ extension PublishExecutionManager {
         skipTests: Bool
     ) throws {
         try gitHandler.checkForGitHubCLI()
-        
         try ensureNoUncommittedChanges(at: projectFolder.path)
         
         let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell)
         let (resolvedVersionInfo, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: version, projectPath: projectFolder.path)
+        
+        // Handle changelog update if AI release is enabled
+        try handleChangelogUpdate(projectFolder: projectFolder, versionInfo: resolvedVersionInfo, previousVersion: previousVersion)
         
         let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType, skipTests: skipTests)
         let binaryOutput = try PublishUtilities.buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests, shell: shell)
@@ -146,6 +150,66 @@ private extension PublishExecutionManager {
 
         return try picker.getRequiredInput(prompt: "Enter your commit message.")
     }
+    
+    /// Handles changelog update/creation when AI release is enabled.
+    /// - Parameters:
+    ///   - projectFolder: The project folder.
+    ///   - versionInfo: The resolved version information.
+    ///   - previousVersion: The previous version string, if any.
+    /// - Throws: An error if the changelog update fails.
+    func handleChangelogUpdate(projectFolder: Folder, versionInfo: ReleaseVersionInfo, previousVersion: String?) throws {
+        guard aiReleaseEnabled else { return }
+        
+        let changelogPath = projectFolder.path + "/CHANGELOG.md"
+        let changelogExists = FileManager.default.fileExists(atPath: changelogPath)
+        
+        let prompt = changelogExists
+            ? "Would you like to update the CHANGELOG.md for this release?"
+            : "Would you like to create a CHANGELOG.md for this release?"
+        
+        guard picker.getPermission(prompt: prompt) else { return }
+        
+        // Get the actual version string
+        let versionString = try getVersionString(versionInfo: versionInfo, previousVersion: previousVersion, projectPath: projectFolder.path)
+        
+        // Generate/update changelog
+        let generator = AIChangeLogGenerator(shell: shell)
+        try generator.generateChangeLog(
+            projectPath: projectFolder.path,
+            version: versionString,
+            dryRun: false
+        )
+        
+        print("✅ CHANGELOG.md \(changelogExists ? "updated" : "created") for version \(versionString.green)")
+        
+        // Commit the changelog
+        if picker.getPermission(prompt: "Commit the CHANGELOG update?") {
+            let commitMessage = changelogExists
+                ? "Update CHANGELOG.md for version \(versionString)"
+                : "Add CHANGELOG.md for version \(versionString)"
+            try gitHandler.commitAndPush(message: commitMessage, path: projectFolder.path)
+            print("✅ CHANGELOG.md changes committed and pushed")
+        }
+    }
+    
+    /// Gets the actual version string from ReleaseVersionInfo.
+    /// - Parameters:
+    ///   - versionInfo: The release version information.
+    ///   - previousVersion: The previous version string, if any.
+    ///   - projectPath: The path to the project.
+    /// - Returns: The resolved version string.
+    /// - Throws: An error if the version cannot be determined.
+    func getVersionString(versionInfo: ReleaseVersionInfo, previousVersion: String?, projectPath: String) throws -> String {
+        switch versionInfo {
+        case .version(let versionString):
+            return versionString.trimmingCharacters(in: CharacterSet(charactersIn: "v"))
+        case .increment(let versionPart):
+            guard let previousVersion else {
+                throw PublishExecutionError.noPreviousVersionToIncrement
+            }
+            return try VersionHandler.incrementVersion(for: versionPart, path: projectPath, previousVersion: previousVersion)
+        }
+    }
 }
 
 
@@ -157,11 +221,14 @@ struct ReleaseNotesSource {
 
 enum PublishExecutionError: Error, LocalizedError {
     case uncommittedChanges
+    case noPreviousVersionToIncrement
     
     var errorDescription: String? {
         switch self {
         case .uncommittedChanges:
             return "Repository has uncommitted changes"
+        case .noPreviousVersionToIncrement:
+            return "No previous version found to increment"
         }
     }
 }

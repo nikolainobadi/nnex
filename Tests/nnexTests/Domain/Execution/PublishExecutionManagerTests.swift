@@ -353,7 +353,8 @@ private extension PublishExecutionManagerTests {
             gitHandler: gitHandler,
             publishInfoLoader: publishInfoLoader,
             context: context,
-            trashHandler: trashHandler
+            trashHandler: trashHandler,
+            aiReleaseEnabled: false
         )
     }
     

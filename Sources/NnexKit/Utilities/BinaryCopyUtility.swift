@@ -6,7 +6,6 @@
 //
 
 import Files
-import Foundation
 import NnShellKit
 
 public struct BinaryCopyUtility {
