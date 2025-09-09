@@ -129,30 +129,12 @@ extension ReleaseNotesHandlerTests {
 
 // MARK: - SUT
 private extension ReleaseNotesHandlerTests {
-    func makeSUT(
-        selectedOption: ReleaseNotesHandler.NoteContentType = .direct,
-        inputResponses: [String] = [],
-        permissionResponses: [Bool] = [],
-        fileContent: String = "",
-        shouldThrowPickerError: Bool = false
-    ) -> (sut: ReleaseNotesHandler, picker: MockPicker, fileSystem: MockFileSystemProvider) {
-        
-        let picker = MockPicker(
-            selectedItemIndices: [selectedOption.index],
-            inputResponses: inputResponses,
-            permissionResponses: permissionResponses,
-            shouldThrowError: shouldThrowPickerError
-        )
-        
+    func makeSUT(selectedOption: ReleaseNotesHandler.NoteContentType = .direct, inputResponses: [String] = [], permissionResponses: [Bool] = [], fileContent: String = "", shouldThrowPickerError: Bool = false) -> (sut: ReleaseNotesHandler, picker: MockPicker, fileSystem: MockFileSystemProvider) {
+        let picker = MockPicker(selectedItemIndices: [selectedOption.index], inputResponses: inputResponses, permissionResponses: permissionResponses, shouldThrowError: shouldThrowPickerError)
         let fileSystem = MockFileSystemProvider(fileContent: fileContent)
         let dateProvider = MockDateProvider(date: testDate)
-        
-        let sut = ReleaseNotesHandler(
-            picker: picker,
-            projectName: projectName,
-            fileSystem: fileSystem,
-            dateProvider: dateProvider
-        )
+        let fileUtility = ReleaseNotesFileUtility(picker: picker, fileSystem: fileSystem, dateProvider: dateProvider)
+        let sut = ReleaseNotesHandler(picker: picker, projectName: projectName, fileUtility: fileUtility)
         
         return (sut, picker, fileSystem)
     }

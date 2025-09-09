@@ -7,6 +7,7 @@
 
 import Files
 import Foundation
+import GitCommandGen
 import NnShellKit
 
 /// Generates or updates CHANGELOG.md files using Claude AI based on git history.
@@ -92,40 +93,40 @@ private extension AIChangeLogGenerator {
         return nil
     }
     
-    /// Updates an existing CHANGELOG.md file by inserting a new section.
+    /// Updates an existing CHANGELOG.md file with a new section.
     /// - Parameters:
     ///   - projectPath: The path to the project directory.
     ///   - changeLogPath: The path to the existing CHANGELOG.md file.
     ///   - version: Optional version number for the new changelog entry.
-    ///   - dryRun: If true, prints the new section without writing to disk.
+    ///   - dryRun: If true, prints the updated file without writing to disk.
     /// - Throws: An error if the update fails.
     func updateExistingChangeLog(projectPath: String, changeLogPath: String, version: String?, dryRun: Bool) throws {
         let changeLogInfo = try changeLogLoader.loadChangeLogInfo()
         let existingContent = try String(contentsOfFile: changeLogPath)
         let guidelines = readChangelogGuidelines(projectPath: projectPath)
 
-        // Ask Claude ONLY for the new version section, not the whole file
-        let prompt = buildSectionPrompt(
+        // Ask Claude for the complete updated file content
+        let prompt = buildCompleteFilePrompt(
             changeLogInfo: changeLogInfo,
             version: version,
-            guidelines: guidelines
+            guidelines: guidelines,
+            existingContent: existingContent
         )
 
-        let newSection = try executeClaudeCommand(prompt: prompt).trimmingCharacters(in: .whitespacesAndNewlines)
-        if newSection.isEmpty { throw AIChangeLogError.emptyClaudeResponse }
+        let updatedContent = try executeClaudeCommand(prompt: prompt, projectPath: projectPath).trimmingCharacters(in: .whitespacesAndNewlines)
+        if updatedContent.isEmpty { throw AIChangeLogError.emptyClaudeResponse }
 
         if dryRun {
-            print("----- Proposed CHANGELOG section -----")
-            print(newSection)
-            print("----- End section -----")
+            print("----- Proposed CHANGELOG.md -----")
+            print(updatedContent)
+            print("----- End file -----")
             return
         }
 
-        let updated = insertSection(newSection, into: existingContent)
-        try updated.write(toFile: changeLogPath, atomically: true, encoding: .utf8)
+        try updatedContent.write(toFile: changeLogPath, atomically: true, encoding: .utf8)
     }
 
-    /// Creates a new CHANGELOG.md file and inserts the initial section.
+    /// Creates a new CHANGELOG.md file with the initial section.
     /// - Parameters:
     ///   - projectPath: The path to the project directory.
     ///   - changeLogPath: The path where the new CHANGELOG.md file should be created.
@@ -136,38 +137,37 @@ private extension AIChangeLogGenerator {
         let changeLogInfo = try changeLogLoader.loadChangeLogInfo()
         let guidelines = readChangelogGuidelines(projectPath: projectPath)
 
-        // Ask Claude ONLY for the section
-        let section = try executeClaudeCommand(
-            prompt: buildSectionPrompt(changeLogInfo: changeLogInfo, version: version, guidelines: guidelines)
+        // Ask Claude for the complete new CHANGELOG.md file
+        let newContent = try executeClaudeCommand(
+            prompt: buildCompleteFilePrompt(changeLogInfo: changeLogInfo, version: version, guidelines: guidelines),
+            projectPath: projectPath
         ).trimmingCharacters(in: .whitespacesAndNewlines)
 
-        if section.isEmpty { throw AIChangeLogError.emptyClaudeResponse }
-
-        // Create a minimal, standard-compliant file and insert the section
-        var newFile = "# Changelog\n\n## [Unreleased]\n\n"
-        newFile = insertSection(section, into: newFile)
+        if newContent.isEmpty { throw AIChangeLogError.emptyClaudeResponse }
 
         if dryRun {
             print("----- Proposed CHANGELOG.md -----")
-            print(newFile)
+            print(newContent)
             print("----- End file -----")
             return
         }
 
-        try newFile.write(toFile: changeLogPath, atomically: true, encoding: .utf8)
+        try newContent.write(toFile: changeLogPath, atomically: true, encoding: .utf8)
     }
 
-    /// Executes a Claude CLI command with the given prompt.
-    /// - Parameter prompt: The prompt to send to Claude.
+    /// Executes a Claude CLI command with the given prompt and project context.
+    /// - Parameters:
+    ///   - prompt: The prompt to send to Claude.
+    ///   - projectPath: The path to the project directory for context.
     /// - Returns: The response from Claude.
     /// - Throws: An error if the command fails.
-    func executeClaudeCommand(prompt: String) throws -> String {
+    func executeClaudeCommand(prompt: String, projectPath: String) throws -> String {
         // Create a temporary file for the prompt to handle multiline content properly
         let tempFile = try createTempPromptFile(content: prompt)
         defer { try? FileManager.default.removeItem(atPath: tempFile) }
 
-        // Use file input to avoid shell quoting issues
-        let command = "claude --file \"\(tempFile)\""
+        // Use file input with project directory context
+        let command = "claude --file \"\(tempFile)\" --add-dir \"\(projectPath)\""
         let result = try shell.bash(command)
 
         if result.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -190,13 +190,14 @@ private extension AIChangeLogGenerator {
 
     // MARK: Prompts
 
-    /// Builds a prompt that requests ONLY the new changelog section (not the whole file).
+    /// Builds a prompt that requests the complete updated CHANGELOG.md file content.
     /// - Parameters:
     ///   - changeLogInfo: The changelog information from git.
     ///   - version: Optional version number; if nil, generate an `[Unreleased]` section.
     ///   - guidelines: Optional changelog guidelines content.
+    ///   - existingContent: Optional existing CHANGELOG.md content for updates.
     /// - Returns: A formatted prompt for Claude.
-    func buildSectionPrompt(changeLogInfo: ChangeLogInfo, version: String?, guidelines: String?) -> String {
+    func buildCompleteFilePrompt(changeLogInfo: ChangeLogInfo, version: String?, guidelines: String?, existingContent: String? = nil) -> String {
         let versionText = version?.trimmingCharacters(in: .whitespacesAndNewlines)
         let date = formatDateForChangelog()
         let contextSection = formatChangeLogContext(changeLogInfo)
@@ -206,15 +207,21 @@ private extension AIChangeLogGenerator {
         \($0)
         """ } ?? ""
 
+        let existingSection = existingContent.map { """
+        
+        EXISTING CHANGELOG.MD CONTENT:
+        \($0)
+        """ } ?? ""
+
         let headerDirective: String
         if let ver = versionText, !ver.isEmpty {
-            headerDirective = "Update the CHANGELOG.md file by inserting a Keep a Changelog section for version \(ver) released on \(date). If the file does not exist, create it following Keep a Changelog format."
+            headerDirective = "Update the CHANGELOG.md file by adding a Keep a Changelog section for version \(ver) released on \(date)."
         } else {
-            headerDirective = "Update the CHANGELOG.md file by inserting a Keep a Changelog section for [Unreleased]. If the file does not exist, create it following Keep a Changelog format."
+            headerDirective = "Update the CHANGELOG.md file by adding a Keep a Changelog section for [Unreleased]."
         }
 
         return """
-        \(headerDirective)
+        \(headerDirective)\(existingSection)
         \(guidelinesSection)
 
         \(contextSection)
@@ -224,7 +231,8 @@ private extension AIChangeLogGenerator {
         - Group under: Added, Changed, Fixed, Removed, Deprecated, Security
         - Mark breaking changes with **Breaking** and include a 1-line migration tip
         - Imperative mood; concise, single-sentence bullets
-        - OUTPUT: The full updated CHANGELOG.md file contents including all previous content and the new section. If creating new, output a complete CHANGELOG.md file starting with '# Changelog' and an '[Unreleased]' section.
+        - Keep a Changelog format with proper headers and structure
+        - OUTPUT: The complete updated CHANGELOG.md file contents. Include all existing content and add the new section appropriately positioned.
 
         """
     }
@@ -253,50 +261,6 @@ private extension AIChangeLogGenerator {
         """
     }
 
-    /// Inserts a new section into an existing CHANGELOG content.
-    /// - Strategy:
-    ///   - If `## [Unreleased]` exists, insert the section immediately after that header.
-    ///   - Otherwise, insert after the first line (commonly `# Changelog`), or prepend if missing.
-    /// - Parameters:
-    ///   - section: The markdown section to insert.
-    ///   - existing: The current CHANGELOG content.
-    /// - Returns: Updated content.
-    func insertSection(_ section: String, into existing: String) -> String {
-        let lines = existing.components(separatedBy: .newlines)
-        var out = [String]()
-        var inserted = false
-
-        // Regex for Unreleased header
-        let unreleasedRegex = try? NSRegularExpression(pattern: #"^##\s*\[Unreleased\]\s*$"#, options: [])
-        for (idx, line) in lines.enumerated() {
-            out.append(line)
-            if !inserted,
-               let re = unreleasedRegex,
-               re.firstMatch(in: line, options: [], range: NSRange(location: 0, length: (line as NSString).length)) != nil {
-                // Insert a blank line + section right after Unreleased header
-                out.append("")
-                out.append(section)
-                inserted = true
-                // If there is not already a trailing blank line, add one for spacing
-                if idx + 1 < lines.count, !lines[idx + 1].isEmpty { out.append("") }
-            }
-        }
-
-        if !inserted {
-            // Try to put after the first line (e.g., after "# Changelog")
-            if !lines.isEmpty {
-                var new = lines
-                new.insert("", at: min(1, new.count))
-                new.insert(section, at: min(2, new.count))
-                return new.joined(separator: "\n")
-            } else {
-                // Empty file edge case
-                return "# Changelog\n\n## [Unreleased]\n\n\(section)\n"
-            }
-        }
-
-        return out.joined(separator: "\n")
-    }
 
     /// Formats the current date in YYYY-MM-DD format for changelog entries.
     /// - Returns: A date string in ISO 8601 format.
