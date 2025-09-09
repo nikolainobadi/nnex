@@ -20,37 +20,6 @@ public struct AIChangeLogGenerator {
         self.shell = shell
         self.changeLogLoader = ChangeLogInfoLoader(shell: shell)
     }
-
-    /// Reads the changelog guidelines from the project or global locations if available.
-    /// Search order:
-    /// 1) <projectPath>/docs/changelog-guidelines.md
-    /// 2) $NNEX_CHANGELOG_GUIDELINES (path)
-    /// 3) ~/.claude/guidelines/changelog-guidelines.md
-    /// - Parameter projectPath: The path to the project directory.
-    /// - Returns: The content of the guidelines file, or nil if not found.
-    private func readChangelogGuidelines(projectPath: String) -> String? {
-        let projectGuidelines = projectPath + "/docs/changelog-guidelines.md"
-        if FileManager.default.fileExists(atPath: projectGuidelines),
-           let contents = try? String(contentsOfFile: projectGuidelines) {
-            return contents
-        }
-
-        if let envPath = ProcessInfo.processInfo.environment["NNEX_CHANGELOG_GUIDELINES"],
-           !envPath.isEmpty,
-           FileManager.default.fileExists(atPath: envPath),
-           let contents = try? String(contentsOfFile: envPath) {
-            return contents
-        }
-
-        let home = FileManager.default.homeDirectoryForCurrentUser.path
-        let defaultGlobal = home + "/.claude/guidelines/changelog-guidelines.md"
-        if FileManager.default.fileExists(atPath: defaultGlobal),
-           let contents = try? String(contentsOfFile: defaultGlobal) {
-            return contents
-        }
-
-        return nil
-    }
 }
 
 
@@ -92,6 +61,37 @@ public extension AIChangeLogGenerator {
 
 // MARK: - Private Methods
 private extension AIChangeLogGenerator {
+    /// Reads the changelog guidelines from the project or global locations if available.
+    /// Search order:
+    /// 1) <projectPath>/docs/changelog-guidelines.md
+    /// 2) $NNEX_CHANGELOG_GUIDELINES (path)
+    /// 3) ~/.claude/guidelines/changelog-guidelines.md
+    /// - Parameter projectPath: The path to the project directory.
+    /// - Returns: The content of the guidelines file, or nil if not found.
+    func readChangelogGuidelines(projectPath: String) -> String? {
+        let projectGuidelines = projectPath + "/docs/changelog-guidelines.md"
+        if FileManager.default.fileExists(atPath: projectGuidelines),
+           let contents = try? String(contentsOfFile: projectGuidelines) {
+            return contents
+        }
+
+        if let envPath = ProcessInfo.processInfo.environment["NNEX_CHANGELOG_GUIDELINES"],
+           !envPath.isEmpty,
+           FileManager.default.fileExists(atPath: envPath),
+           let contents = try? String(contentsOfFile: envPath) {
+            return contents
+        }
+
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let defaultGlobal = home + "/.claude/guidelines/changelog-guidelines.md"
+        if FileManager.default.fileExists(atPath: defaultGlobal),
+           let contents = try? String(contentsOfFile: defaultGlobal) {
+            return contents
+        }
+
+        return nil
+    }
+    
     /// Updates an existing CHANGELOG.md file by inserting a new section.
     /// - Parameters:
     ///   - projectPath: The path to the project directory.
