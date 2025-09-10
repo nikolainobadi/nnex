@@ -7,56 +7,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.10.0] - 2025-09-10
+## [0.9.2] - 2025-09-10
 
 ### Added
-- AI-powered release notes generation using Claude Code CLI
-- Configuration option to enable/disable AI release functionality
-- Comprehensive test suite reorganization and base classes for shared folder management
-- New `nnex config set-ai-release-enabled` and `nnex config show-ai-release-enabled` commands
-- Changelog guidelines documentation for consistent release notes
-
-### Changed  
-- Test infrastructure improved to use `xcodebuild` instead of `swift test` for SwiftData compatibility
-- Publish workflow now includes optional AI-generated release notes as fourth option
-- Test suite architecture consolidated with shared patterns and utilities
-- Enhanced mock shell command mapping for better test reliability
+- Project changelog documentation
 
 ### Fixed
-- Flaky tests related to temporary folder cleanup in publish tests
-- Formula path update restored in PublishInfoLoader for proper Homebrew integration
-- Test environment issues with proper mock factory parameter passing
-
-### Security
-- Removed unused AI changelog generator functionality to reduce attack surface
+- Formula path update in publish workflow for proper Homebrew integration
 
 ## [0.9.1] - 2025-09-02
 
 ### Fixed
-- Test hang bug with comprehensive error handling improvements in ProjectBuilder
+- Application hang during project building operations
 
 ## [0.9.0] - 2025-08-26
 
 ### Added
 - Binary archiving with tar.gz compression for releases
 - Binary stripping functionality to reduce executable size
-- Comprehensive execution manager architecture for build, publish, and create-tap operations
-- Executable name resolution service for automatic binary naming
 - Binary copy utilities with desktop and custom output location support
-- Enhanced SwiftData test isolation with unique stores per test
-
-### Changed
-- Major folder reorganization with improved separation between Commands, Core, Domain, and Infrastructure layers
-- Build command moved from `BuildExecutable/` to `BuildCommand/` folder structure
-- All helper classes reorganized into appropriate domain layers (Handlers, Services, Utilities)
-- Consistent manager pattern implementation across all major commands
-- Enhanced test architecture with better mock factory support
 
 ### Fixed
 - Binary uploading to ensure consistent SHA256 between formula and GitHub releases
 - GitHub release creation workflow with proper tar.gz asset handling
-- Test suite reliability with improved SwiftData context management
-- CreateTap command functionality and associated test coverage
+- CreateTap command functionality
 
-### Security  
+### Security
 - Binary stripping removes debug symbols reducing attack surface
+
+## [0.8.12] - 2025-08-25
+
+### Added
+- Binary stripping functionality to reduce executable size
+
+## [0.8.11] - 2025-08-25
+
+### Fixed
+- Binary uploading to ensure consistent SHA256 between formula and GitHub releases
+
+## [0.8.10] - 2025-08-25
+
+### Added
+- Binary archiving with tar.gz compression format
+
+## [0.8.9] - 2025-08-25
+
+### Fixed
+- GitHub release creation workflow with proper binary uploading
+
+## [0.8.8] - 2025-08-25
+
+### Added
+- Support for uploading multiple binaries in single GitHub release
+
+## [0.8.7] - 2025-08-16
+
+### Fixed
+- Auto version incrementing bug
+
+## [0.8.6] - 2025-08-16
+
+### Added
+- Auto version incrementing with commit and push during publish workflow
+
+## [0.8.5] - 2025-08-11
+
+### Added
+- Automatic version incrementing functionality
+
+## [0.8.4] - 2025-08-11
+
+### Added
+- Archive command for macOS binary packaging
+- Formula name sanitation for proper Homebrew formula generation
+
+## [0.8.3] - 2025-07-13
+
+### Added
+- Version command to display current tool version
+- Enhanced build command with improved error handling
+
+## [0.8.2] - 2025-04-27
+
+### Fixed
+- Formula path synchronization bug during publish workflow
+
+## [0.8.1] - 2025-04-27
+
+### Fixed
+- Project folder path consistency issues
+
+## [0.8.0] - 2025-04-21
+
+### Added
+- Enhanced build command functionality
