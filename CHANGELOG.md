@@ -34,3 +34,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 - Binary stripping removes debug symbols reducing attack surface
+
+## [0.8.12] - 2025-08-25
+
+### Added
+- Binary stripping functionality to reduce executable size
+
+## [0.8.11] - 2025-08-25
+
+### Fixed
+- Binary uploading to ensure consistent SHA256 between formula and GitHub releases
+
+## [0.8.10] - 2025-08-25
+
+### Added
+- Binary archiving with tar.gz compression format
+
+## [0.8.9] - 2025-08-25
+
+### Fixed
+- GitHub release creation workflow with proper binary uploading
+
+## [0.8.8] - 2025-08-25
+
+### Added
+- Support for uploading multiple binaries in single GitHub release
+
+## [0.8.7] - 2025-08-16
+
+### Fixed
+- Auto version incrementing bug
+
+## [0.8.6] - 2025-08-16
+
+### Added
+- Auto version incrementing with commit and push during publish workflow
+
+## [0.8.5] - 2025-08-11
+
+### Added
+- Automatic version incrementing functionality
+
+## [0.8.4] - 2025-08-11
+
+### Added
+- Archive command for macOS binary packaging
+- Formula name sanitation for proper Homebrew formula generation
+
+## [0.8.3] - 2025-07-13
+
+### Added
+- Version command to display current tool version
+- Enhanced build command with improved error handling
+
+## [0.8.2] - 2025-04-27
+
+### Fixed
+- Formula path synchronization bug during publish workflow
+
+## [0.8.1] - 2025-04-27
+
+### Fixed
+- Project folder path consistency issues
+
+## [0.8.0] - 2025-04-21
+
+### Added
+- Enhanced build command functionality
