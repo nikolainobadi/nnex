@@ -16,15 +16,13 @@ struct PublishExecutionManager {
     private let gitHandler: GitHandler
     private let publishInfoLoader: PublishInfoLoader
     private let trashHandler: TrashHandler
-    private let aiReleaseEnabled: Bool
     
-    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, trashHandler: TrashHandler, aiReleaseEnabled: Bool) {
+    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, publishInfoLoader: PublishInfoLoader, trashHandler: TrashHandler) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
         self.publishInfoLoader = publishInfoLoader
         self.trashHandler = trashHandler
-        self.aiReleaseEnabled = aiReleaseEnabled
     }
 }
 
@@ -103,7 +101,7 @@ private extension PublishExecutionManager {
     /// - Returns: An array of asset URLs from the GitHub release.
     /// - Throws: An error if the upload fails.
     func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
-        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler, aiReleaseEnabled: aiReleaseEnabled, shell: shell)
+        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler)
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
 
