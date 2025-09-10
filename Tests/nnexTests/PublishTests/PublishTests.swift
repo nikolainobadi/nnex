@@ -13,9 +13,7 @@ import NnexSharedTestHelpers
 @preconcurrency import Files
 
 @MainActor // needs to be MainActor to ensure proper interactions with SwiftData
-final class PublishTests {
-    private let tapFolder: Folder
-    private let projectFolder: Folder
+final class PublishTests: BasePublishTestSuite {
     private let tapName = "testTap"
     private let assetURL = "assetURL"
     private let sha256 = "abc123def456"  // Just the hash value
@@ -30,14 +28,7 @@ final class PublishTests {
     }
     
     init() throws {
-        let tempFolder = Folder.temporary
-        self.projectFolder = try tempFolder.createSubfolder(named: projectName)
-        self.tapFolder = try tempFolder.createSubfolder(named: "homebrew-\(tapName)")
-    }
-    
-    deinit {
-        deleteFolderContents(tapFolder)
-        deleteFolderContents(projectFolder)
+        try super.init(tapName: tapName, projectName: projectName)
     }
 }
 
