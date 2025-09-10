@@ -17,6 +17,10 @@ import NnexSharedTestHelpers
 final class PublishInfoLoaderTests: MainActorTempFolderDatasourceTestSuite {
     private let tapName = "testTap"
     private let projectName = "testProject-publishInfoLoader"
+    
+    init() throws {
+        try super.init(projectName: projectName)
+    }
 }
 
 
@@ -31,7 +35,7 @@ extension PublishInfoLoaderTests {
         
         try context.saveNewTap(existingTap)
         
-        let (sut, projectFolder) = try makeSUT(
+        let sut = try makeSUT(
             context: context,
             inputResponses: ["Test formula description"],
             permissionResponses: [true],
@@ -43,7 +47,7 @@ extension PublishInfoLoaderTests {
         let (tap, formula) = try sut.loadPublishInfo()
         
         #expect(tap.name == tapName)
-        #expect(formula.name == projectFolder.name)
+        #expect(formula.name == projectName)
     }
     
     @Test("Updates formula localProjectPath when it doesn't match current project folder")
@@ -67,7 +71,7 @@ extension PublishInfoLoaderTests {
         
         try context.saveNewTap(existingTap, formulas: [existingFormula])
         
-        let (sut, projectFolder) = try makeSUT(context: context)
+        let sut = try makeSUT(context: context)
         
         // Create Package.swift file
         try createPackageSwift(projectFolder: projectFolder)
@@ -86,7 +90,7 @@ extension PublishInfoLoaderTests {
         let context = try factory.makeContext()
         let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
         
-        let (sut, projectFolder) = try makeSUT(context: context)
+        let sut = try makeSUT(context: context)
         
         // Create Package.swift file
         try createPackageSwift(projectFolder: projectFolder)
@@ -116,10 +120,9 @@ extension PublishInfoLoaderTests {
 
 // MARK: - SUT
 private extension PublishInfoLoaderTests {
-    func makeSUT(context: NnexContext, skipTests: Bool = false, inputResponses: [String] = [], permissionResponses: [Bool] = [], selectedItemIndices: [Int] = []) throws -> (sut: PublishInfoLoader, projectFolder: Folder) {
+    func makeSUT(context: NnexContext, skipTests: Bool = false, inputResponses: [String] = [], permissionResponses: [Bool] = [], selectedItemIndices: [Int] = []) throws -> PublishInfoLoader {
         let shell = MockShell()
         let gitHandler = MockGitHandler()
-        let projectFolder = try tempFolder.createSubfolder(named: projectName)
         let picker = MockPicker(selectedItemIndices: selectedItemIndices, inputResponses: inputResponses, permissionResponses: permissionResponses)
         let sut = PublishInfoLoader(
             shell: shell,
@@ -130,7 +133,7 @@ private extension PublishInfoLoaderTests {
             skipTests: skipTests
         )
         
-        return (sut, projectFolder)
+        return sut
     }
     
     func createTapFolder() throws -> Folder {

@@ -13,8 +13,9 @@ import NnexSharedTestHelpers
 @MainActor
 class MainActorTempFolderDatasourceTestSuite {
     let tempFolder: Folder
+    let projectFolder: Folder
     
-    init(testFolder: TestFolder = .init(name: "nnexTempSubFolder", subFolders: [])) throws {
+    init(testFolder: TestFolder = .init(name: "nnexTempSubFolder", subFolders: []), projectName: String = "testProject") throws {
         // Ensure SIGPIPE is ignored during tests.
         // By default, Darwin/Linux will terminate a process with exit code 13 if it writes
         // to a closed stdout/stderr pipe. Since our code and tests use `print`, the test
@@ -28,6 +29,9 @@ class MainActorTempFolderDatasourceTestSuite {
         )
         
         try createSubfolders(in: tempFolder, subFolders: testFolder.subFolders)
+        
+        // Create project folder
+        self.projectFolder = try tempFolder.createSubfolder(named: projectName)
     }
     
     deinit {
