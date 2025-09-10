@@ -13,24 +13,14 @@ import NnexKit
 @testable import nnex
 @preconcurrency import Files
 
-final class PublishExecutionManagerTests {
-    private let projectFolder: Folder
-    private let tapFolder: Folder
+@MainActor
+final class PublishExecutionManagerTests: BasePublishTestSuite {
     private let projectName = "testProject-publishManager"
     private let tapName = "testTap"
     private let executableName = "testExecutable"
     
     init() throws {
-        let tempFolder = Folder.temporary
-        self.projectFolder = try tempFolder.createSubfolder(named: "\(projectName)-\(UUID().uuidString)")
-        self.tapFolder = try tempFolder.createSubfolder(named: "homebrew-\(tapName)-\(UUID().uuidString)")
-    }
-    
-    deinit {
-        deleteFolderContents(projectFolder)
-        deleteFolderContents(tapFolder)
-        try? projectFolder.delete()
-        try? tapFolder.delete()
+        try super.init(tapName: tapName, projectName: projectName)
     }
 }
 
@@ -352,21 +342,6 @@ private extension PublishExecutionManagerTests {
     }
     
     func createPackageSwift() throws {
-        let packageContent = """
-        // swift-tools-version: 6.0
-        import PackageDescription
-        
-        let package = Package(
-            name: "\(projectName)",
-            platforms: [.macOS(.v14)],
-            products: [
-                .executable(name: "\(executableName)", targets: ["\(executableName)"])
-            ],
-            targets: [
-                .executableTarget(name: "\(executableName)")
-            ]
-        )
-        """
-        try projectFolder.createFile(named: "Package.swift", contents: packageContent.data(using: .utf8)!)
+        try super.createPackageSwift(packageName: projectName, executableName: executableName)
     }
 }

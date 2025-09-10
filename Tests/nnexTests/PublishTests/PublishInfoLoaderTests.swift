@@ -14,12 +14,12 @@ import NnexSharedTestHelpers
 @preconcurrency import Files
 
 @MainActor
-final class PublishInfoLoaderTests: MainActorTempFolderDatasourceTestSuite {
+final class PublishInfoLoaderTests: BasePublishTestSuite {
     private let tapName = "testTap"
     private let projectName = "testProject-publishInfoLoader"
     
     init() throws {
-        try super.init(projectName: projectName)
+        try super.init(tapName: tapName, projectName: projectName)
     }
 }
 
@@ -28,7 +28,6 @@ final class PublishInfoLoaderTests: MainActorTempFolderDatasourceTestSuite {
 extension PublishInfoLoaderTests {
     @Test("Creates new formula when project has no existing formula")
     func createsNewFormula() throws {
-        let tapFolder = try createTapFolder()
         let factory = MockContextFactory()
         let context = try factory.makeContext()
         let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
@@ -42,7 +41,7 @@ extension PublishInfoLoaderTests {
             selectedItemIndices: [0, 2] // Index 0 for tap selection, index 2 for FormulaTestType.noTests
         )
         
-        try createPackageSwift(projectFolder: projectFolder)
+        try createPackageSwift()
         
         let (tap, formula) = try sut.loadPublishInfo()
         
@@ -52,7 +51,6 @@ extension PublishInfoLoaderTests {
     
     @Test("Updates formula localProjectPath when it doesn't match current project folder")
     func updatesFormulaProjectPath() throws {
-        let tapFolder = try createTapFolder()
         let factory = MockContextFactory()
         let context = try factory.makeContext()
         let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
@@ -74,7 +72,7 @@ extension PublishInfoLoaderTests {
         let sut = try makeSUT(context: context)
         
         // Create Package.swift file
-        try createPackageSwift(projectFolder: projectFolder)
+        try createPackageSwift()
         
         let (tap, formula) = try sut.loadPublishInfo()
         
@@ -85,7 +83,6 @@ extension PublishInfoLoaderTests {
     
     @Test("Preserves formula localProjectPath when it matches current project folder")
     func preservesMatchingProjectPath() throws {
-        let tapFolder = try createTapFolder()
         let factory = MockContextFactory()
         let context = try factory.makeContext()
         let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
@@ -93,7 +90,7 @@ extension PublishInfoLoaderTests {
         let sut = try makeSUT(context: context)
         
         // Create Package.swift file
-        try createPackageSwift(projectFolder: projectFolder)
+        try createPackageSwift()
         
         // Create a formula with the same project path
         let existingFormula = SwiftDataFormula(
@@ -134,33 +131,5 @@ private extension PublishInfoLoaderTests {
         )
         
         return sut
-    }
-    
-    func createTapFolder() throws -> Folder {
-        return try tempFolder.createSubfolder(named: "\(UUID().uuidString)_homebrew-\(tapName)-publishInfoLoader")
-    }
-    
-    func createPackageSwift(name: String? = nil, targetName: String? = nil, projectFolder: Folder) throws {
-        let packageContent = """
-// swift-tools-version: 6.0
-import PackageDescription
-
-let package = Package(
-    name: "\(name ?? projectName)",
-    platforms: [
-        .macOS(.v14)
-    ],
-    products: [
-        .executable(name: "\(name ?? projectName)", targets: ["\(targetName ?? projectName)"])
-    ],
-    targets: [
-        .executableTarget(
-            name: "\(targetName ?? projectName)",
-            path: "Sources"
-        )
-    ]
-)
-"""
-        try projectFolder.createFile(named: "Package.swift", contents: packageContent.data(using: .utf8)!)
     }
 }

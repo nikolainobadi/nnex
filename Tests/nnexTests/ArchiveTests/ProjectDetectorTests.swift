@@ -14,7 +14,7 @@ import NnexSharedTestHelpers
 @preconcurrency import Files
 
 @MainActor
-final class ProjectDetectorTests: MainActorTempFolderDatasourceTestSuite {
+final class ProjectDetectorTests: BaseTempFolderTestSuite {
     private let testProjectPath = "/test/project"
     private let testProjectName = "TestApp"
     private let testWorkspacePath = "/test/project/TestApp.xcworkspace"
@@ -40,7 +40,7 @@ final class ProjectDetectorTests: MainActorTempFolderDatasourceTestSuite {
     """
     
     init() throws {
-        try super.init(projectName: "ProjectDetectorTestProject")
+        try super.init(name: "ProjectDetectorTestProject")
     }
 }
 
