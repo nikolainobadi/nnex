@@ -112,39 +112,13 @@ The tool supports multiple build configurations:
 - macOS 14+ minimum deployment target
 - Swift 6.0+ required
 - Requires Homebrew and GitHub CLI (`gh`) for full functionality
-- Optional: Claude Code CLI for AI release notes generation
-
-## AI Integration
-
-### AI Release Notes
-The publish workflow includes optional AI-powered release notes generation using Claude Code:
-
-- **Enable AI**: Configure `aiReleaseEnabled` in app settings to show AI option
-- **Automatic generation**: AI analyzes git history and project context to create release notes
-- **Integration**: Uses `claude code edit` command to generate markdown files
-- **Conditional UI**: AI option only appears in picker when feature is enabled
-- **Fallback handling**: Graceful degradation when Claude Code CLI unavailable
-
-### AI Architecture
-- `AIReleaseNotesHandler`: Core AI functionality for release notes generation
-- `ReleaseNotesHandler`: Orchestrates all release notes options including AI
-- Conditional enum cases: `NoteContentType.aiGenerated` only available when enabled
-- Error handling: `ReleaseNotesError.missingAIRequirements` for validation
-- Testing: Comprehensive coverage of AI scenarios in `ReleaseNotesHandlerTests`
 
 ## Recent Improvements
 
-### September 2025 - AI Release Notes Integration
-- **AI-powered release notes**: Integrated AI release notes generation into the publish workflow
-- **Conditional feature availability**: AI options only appear when `aiReleaseEnabled` is configured
-- **Comprehensive testing**: Added complete test coverage for AI functionality scenarios
-- **Clean architecture**: AI integration follows existing dependency injection patterns
-
-### Key AI Features
-- Four release notes options: Direct input, file path, create new file, and AI generation
-- AI option uses Claude Code to generate release notes from git history and project context
-- Backward compatibility maintained - existing workflows unchanged when AI disabled
-- Error handling for missing AI requirements (release number, project path, shell)
+### September 2025 - Documentation and Maintenance
+- **Project changelog**: Added comprehensive changelog documentation with complete project history
+- **Test infrastructure**: Improved test suite reliability and organization
+- **Documentation updates**: Updated project documentation and removed unused features
 
 ### August 2024 - Architecture Refactoring
 - **Improved folder organization**: Clear separation between Commands, Core, Domain, and Infrastructure layers
@@ -156,7 +130,6 @@ The publish workflow includes optional AI-powered release notes generation using
 - Test infrastructure improved with `@MainActor` pattern for SwiftData compatibility
 - Fixed test environment issues with proper mock factory parameter passing
 - All execution managers now have comprehensive unit test coverage
-- Removed legacy `AIChangeLogGenerator` functionality from publish workflow
 
 ### Known Issues
 - SwiftData may show "Unable to determine Bundle Name" errors at the end of test runs (tests still execute successfully)

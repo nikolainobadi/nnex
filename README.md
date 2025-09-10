@@ -13,16 +13,13 @@ With a single command, **nnex** handles it all:
 - ✅ Create a new Homebrew tap if needed.
 - ✅ Create a GitHub release and attach the binary asset.
 - ✅ Generate and upload a Homebrew formula to your Homebrew tap.
-- ✅ AI-powered release notes generation (optional).
 
 Instead of manually managing taps and formulae, let **nnex** do the heavy lifting for you.
 **nnex** also supports importing your own Homebrew taps to leverage existing setups.
 
 **nnex** requires both **Homebrew** and the **GitHub CLI (gh)** to function properly. Please ensure they are installed and configured on your system before using **nnex** (you'll be prompted to install them if you use **nnex** without them).
 
-For AI-powered release notes generation, **Claude Code CLI** is also required and can be enabled in app settings.
-
-**Stability Notice (v0.9.1)**  
+**Stability Notice (v0.9.2)**  
 `nnex` is functional and ready to use, but its features and API may evolve as it becomes more flexible and robust.  
 Breaking changes are possible before reaching v1.0.0.  
 Your feedback and suggestions are welcome as the project continues to improve!  
@@ -85,19 +82,6 @@ If a required option is not specified, `nnex` will prompt you to enter it intera
 
 If both `--notes` and `--notes-file` are provided, the command will throw an error since they are mutually exclusive.
 
-#### AI Release Notes
-When enabled in app settings, the publish command offers an additional AI-powered option for generating release notes:
-
-- **Automatic Generation**: AI analyzes git history, commits, and project context
-- **Claude Code Integration**: Uses the Claude Code CLI to create comprehensive release notes
-- **Smart Parsing**: Can extract existing release notes from CHANGELOG.md if available
-- **Fallback Support**: Gracefully handles missing dependencies or configuration
-
-To enable AI release notes:
-1. Install Claude Code CLI
-2. Configure `aiReleaseEnabled` setting in the app
-3. During publish, select "Generate with AI" from the release notes options
-
 For more details and advanced usage, refer to the [Command Reference](./docs/COMMANDS.md).
 
 ## Config Commands
@@ -119,16 +103,6 @@ nnex config open-list-folder
 To set the default binary build type:
 ```bash
 nnex config set-build-type release
-```
-
-To enable AI-powered release notes generation:
-```bash
-nnex config set-ai-release-enabled true
-```
-
-To check if AI release notes are enabled:
-```bash
-nnex config show-ai-release-enabled
 ```
 
 ## Contributing
