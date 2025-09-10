@@ -9,10 +9,12 @@ import Testing
 import Foundation
 import NnexKit
 import NnShellKit
+import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
 
-struct ProjectDetectorTests {
+@MainActor
+final class ProjectDetectorTests: BaseTempFolderTestSuite {
     private let testProjectPath = "/test/project"
     private let testProjectName = "TestApp"
     private let testWorkspacePath = "/test/project/TestApp.xcworkspace"
@@ -36,6 +38,10 @@ struct ProjectDetectorTests {
             TestApp-macOS
             TestApp-iOS
     """
+    
+    init() throws {
+        try super.init(name: "ProjectDetectorTestProject")
+    }
 }
 
 
@@ -43,7 +49,7 @@ struct ProjectDetectorTests {
 extension ProjectDetectorTests {
     @Test("Detects workspace when both workspace and project exist")
     func detectsWorkspaceWhenBothExist() throws {
-        let (sut, tempFolder) = try makeSUT()
+        let sut = makeSUT()
         
         // Create both workspace and project files
         try tempFolder.createFile(named: "TestApp.xcworkspace")
@@ -59,7 +65,7 @@ extension ProjectDetectorTests {
     
     @Test("Detects project when only xcodeproj exists")
     func detectsProjectWhenOnlyXcodeprojExists() throws {
-        let (sut, tempFolder) = try makeSUT()
+        let sut = makeSUT()
         
         try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         
@@ -72,7 +78,7 @@ extension ProjectDetectorTests {
     
     @Test("Throws error when no Xcode project exists")
     func throwsErrorWhenNoXcodeProjectExists() throws {
-        let (sut, tempFolder) = try makeSUT()
+        let sut = makeSUT()
         
         // Create some non-Xcode files
         try tempFolder.createFile(named: "README.md")
@@ -85,7 +91,7 @@ extension ProjectDetectorTests {
     
     @Test("Detects schemes successfully from xcodebuild output")
     func detectsSchemesSuccessfullyFromXcodebuildOutput() throws {
-        let (sut, tempFolder) = try makeSUT(
+        let sut = makeSUT(
             shellOutputs: [xcodebuildListOutput]
         )
         
@@ -109,7 +115,7 @@ extension ProjectDetectorTests {
                 Release
         """
         
-        let (sut, tempFolder) = try makeSUT(
+        let sut = makeSUT(
             shellOutputs: [emptyOutput]
         )
         
@@ -147,7 +153,7 @@ extension ProjectDetectorTests {
                 ComplexApp Tests
         """
         
-        let (sut, tempFolder) = try makeSUT(
+        let sut = makeSUT(
             shellOutputs: [complexOutput]
         )
         
@@ -164,7 +170,7 @@ extension ProjectDetectorTests {
     
     @Test("Validates platform support successfully for supported platform")
     func validatesPlatformSupportSuccessfullyForSupportedPlatform() throws {
-        let (sut, tempFolder) = try makeSUT()
+        let sut = makeSUT()
         
         try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
@@ -176,7 +182,7 @@ extension ProjectDetectorTests {
     
     @Test("Throws error when validating unsupported platform")
     func throwsErrorWhenValidatingUnsupportedPlatform() throws {
-        let (sut, tempFolder) = try makeSUT()
+        let sut = makeSUT()
         
         try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         var projectInfo = try sut.detectProject(at: tempFolder.path)
@@ -195,7 +201,7 @@ extension ProjectDetectorTests {
     
     @Test("Extracts correct project name from xcodeproj path")
     func extractsCorrectProjectNameFromXcodeprojPath() throws {
-        let (sut, tempFolder) = try makeSUT()
+        let sut = makeSUT()
         
         try tempFolder.createSubfolder(named: "MyAwesomeApp.xcodeproj")
         
@@ -206,7 +212,7 @@ extension ProjectDetectorTests {
     
     @Test("Extracts correct project name from xcworkspace path")
     func extractsCorrectProjectNameFromXcworkspacePath() throws {
-        let (sut, tempFolder) = try makeSUT()
+        let sut = makeSUT()
         
         try tempFolder.createFile(named: "SuperCoolWorkspace.xcworkspace")
         
@@ -225,7 +231,7 @@ extension ProjectDetectorTests {
             Schemes:
         """
         
-        let (sut, tempFolder) = try makeSUT(shellOutputs: [outputWithEmptySchemes])
+        let sut = makeSUT(shellOutputs: [outputWithEmptySchemes])
         
         try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
@@ -237,7 +243,7 @@ extension ProjectDetectorTests {
     
     @Test("Handles xcodebuild command failure")
     func handlesXcodebuildCommandFailure() throws {
-        let (sut, tempFolder) = try makeSUT(shouldThrowShellError: true)
+        let sut = makeSUT(shouldThrowShellError: true)
         try tempFolder.createSubfolder(named: "TestApp.xcodeproj")
         let projectInfo = try sut.detectProject(at: tempFolder.path)
         
@@ -250,12 +256,10 @@ extension ProjectDetectorTests {
 
 // MARK: - SUT
 private extension ProjectDetectorTests {
-    func makeSUT(shellOutputs: [String] = [], shouldThrowShellError: Bool = false) throws -> (sut: DefaultProjectDetector, tempFolder: Folder) {
+    func makeSUT(shellOutputs: [String] = [], shouldThrowShellError: Bool = false) -> DefaultProjectDetector {
         let shell = MockShell(results: shellOutputs, shouldThrowError: shouldThrowShellError)
-        let sut = DefaultProjectDetector(shell: shell)
-        let tempFolder = try Folder.temporary.createSubfolder(named: "ProjectDetectorTest-\(UUID().uuidString)")
         
-        return (sut, tempFolder)
+        return .init(shell: shell)
     }
 }
 
