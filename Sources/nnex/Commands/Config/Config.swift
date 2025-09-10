@@ -15,7 +15,7 @@ extension Nnex {
             abstract: "Manage configuration settings for Nnex.",
             subcommands: [
                 SetListPath.self, ShowListPath.self, OpenListFolder.self,
-                SetBuildType.self, ShowBuildType.self, EnableAIRelease.self
+                SetBuildType.self, ShowBuildType.self
             ]
         )
     }
@@ -105,28 +105,6 @@ extension Nnex.Config {
             let context = try Nnex.makeContext()
             let buildType = context.loadDefaultBuildType()
             print("Current Default Build Type: \(buildType.rawValue)")
-        }
-    }
-}
-
-
-// MARK: - EnableAIRelease
-extension Nnex.Config {
-    struct EnableAIRelease: ParsableCommand {
-        static let configuration = CommandConfiguration(abstract: "Toggle AI release functionality.")
-
-        func run() throws {
-            let picker = Nnex.makePicker()
-            let context = try Nnex.makeContext()
-            let currentSetting = context.loadAIReleaseEnabled()
-            
-            print("Current AI Release Setting: \(currentSetting ? "Enabled" : "Disabled")")
-            
-            try picker.requiredPermission(prompt: "Would you like to toggle this setting?")
-            
-            let newSetting = !currentSetting
-            context.saveAIReleaseEnabled(newSetting)
-            print("AI Release functionality is now: \(newSetting ? "Enabled" : "Disabled")")
         }
     }
 }
