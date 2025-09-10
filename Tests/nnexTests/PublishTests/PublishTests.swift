@@ -74,20 +74,10 @@ extension PublishTests {
     func publishCommandWithDashesInName() throws {
         let projectWithDashes = "test-project-with-dashes"
         let expectedClassName = "TestProjectWithDashes"
-        let tempFolder = Folder.temporary
         let projectFolderWithDashes = try tempFolder.createSubfolder(named: projectWithDashes)
         let formulaFileNameWithDashes = "\(projectWithDashes).rb"
-        
-        defer {
-            deleteFolderContents(projectFolderWithDashes)
-        }
-        
         let gitHandler = MockGitHandler(assetURL: assetURL)
-        let commandResults: [String: String] = [
-            "shasum -a 256 \"\(projectFolderWithDashes.path).build/arm64-apple-macosx/release/\(projectWithDashes)-arm64.tar.gz\"": sha256Output,
-            "shasum -a 256 \"\(projectFolderWithDashes.path).build/x86_64-apple-macosx/release/\(projectWithDashes)-x86_64.tar.gz\"": sha256Output
-        ]
-        let shell = MockShell(resultMap: commandResults)
+        let shell = createMockShell(projectName: projectWithDashes, projectPath: projectFolderWithDashes.path)
         let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
         
         try createTestTapAndFormula(factory: factory, projectName: projectWithDashes, projectFolder: projectFolderWithDashes)
@@ -334,11 +324,11 @@ private extension PublishTests {
 
 // MARK: - Helpers
 private extension PublishTests {
-    func createMockShell(includeTestCommand: Bool = false, shouldThrowError: Bool = false) -> MockShell {
-        let projectPath = projectFolder.path
+    func createMockShell(projectName: String? = nil, projectPath: String? = nil, includeTestCommand: Bool = false, shouldThrowError: Bool = false) -> MockShell {
+        let projectPath = projectPath ?? projectFolder.path
         let commandResults: [String: String] = [
-            "shasum -a 256 \"\(projectPath).build/arm64-apple-macosx/release/\(projectName)-arm64.tar.gz\"": sha256Output,
-            "shasum -a 256 \"\(projectPath).build/x86_64-apple-macosx/release/\(projectName)-x86_64.tar.gz\"": sha256Output
+            "shasum -a 256 \"\(projectPath).build/arm64-apple-macosx/release/\(projectName ?? self.projectName)-arm64.tar.gz\"": sha256Output,
+            "shasum -a 256 \"\(projectPath).build/x86_64-apple-macosx/release/\(projectName ?? self.projectName)-x86_64.tar.gz\"": sha256Output
         ]
         return MockShell(resultMap: commandResults, shouldThrowError: shouldThrowError)
     }
@@ -356,7 +346,7 @@ private extension PublishTests {
 
 
 // MARK: - Extension Dependencies
-fileprivate extension ReleaseVersionInfo {
+private extension ReleaseVersionInfo {
     var arg: String {
         switch self {
         case .version(let number):
