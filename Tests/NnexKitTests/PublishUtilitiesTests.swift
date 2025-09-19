@@ -155,7 +155,7 @@ extension PublishUtilitiesTests {
         let binaryFile = try tempFolder.createFile(named: "testBinary")
         try binaryFile.write("fake binary content")
         
-        let shell = MockShell(results: [], shouldThrowError: true)
+        let shell = MockShell(shouldThrowErrorOnFinal: true)
         let binaryOutput = BinaryOutput.single(.init(path: binaryFile.path))
         
         #expect(throws: (any Error).self) {

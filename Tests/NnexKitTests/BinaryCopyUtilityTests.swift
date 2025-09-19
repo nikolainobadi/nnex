@@ -24,8 +24,7 @@ struct BinaryCopyUtilityTests {
 extension BinaryCopyUtilityTests {
     @Test("Returns original binary when output location is current directory")
     func returnsOriginalBinaryForCurrentDirectory() throws {
-        let shell = MockShell()
-        let sut = makeSUT(shell: shell)
+        let (sut, shell) = makeSUT()
         let originalBinary = BinaryOutput.single(.init(path: sourcePath))
         let outputLocation = BuildOutputLocation.currentDirectory(.universal)
 
@@ -41,8 +40,7 @@ extension BinaryCopyUtilityTests {
     
     @Test("Copies single binary to desktop")
     func copiesSingleBinaryToDesktop() throws {
-        let shell = MockShell()
-        let sut = makeSUT(shell: shell)
+        let (sut, shell) = makeSUT()
         let originalBinary = BinaryOutput.single(.init(path: sourcePath))
         let outputLocation = BuildOutputLocation.desktop
         
@@ -57,8 +55,7 @@ extension BinaryCopyUtilityTests {
     
     @Test("Copies single binary to custom location")
     func copiesSingleBinaryToCustomLocation() throws {
-        let shell = MockShell()
-        let sut = makeSUT(shell: shell)
+        let (sut, shell) = makeSUT()
         let originalBinary = BinaryOutput.single(.init(path: sourcePath))
         let outputLocation = BuildOutputLocation.custom(customPath)
         
@@ -76,8 +73,7 @@ extension BinaryCopyUtilityTests {
     
     @Test("Copies multiple binaries to desktop with architecture suffixes")
     func copiesMultipleBinariesToDesktop() throws {
-        let shell = MockShell()
-        let sut = makeSUT(shell: shell)
+        let (sut, shell) = makeSUT()
         let armBinary = BinaryInfo(path: "/source/arm64")
         let intelBinary = BinaryInfo(path: "/source/x86_64")
         let originalBinary = BinaryOutput.multiple([
@@ -97,8 +93,7 @@ extension BinaryCopyUtilityTests {
     
     @Test("Copies multiple binaries to custom location with architecture suffixes")
     func copiesMultipleBinariesToCustomLocation() throws {
-        let shell = MockShell()
-        let sut = makeSUT(shell: shell)
+        let (sut, shell) = makeSUT()
         let armBinary = BinaryInfo(path: "/source/arm64")
         let intelBinary = BinaryInfo(path: "/source/x86_64")
         let originalBinary = BinaryOutput.multiple([
@@ -121,8 +116,7 @@ extension BinaryCopyUtilityTests {
     
     @Test("Preserves paths with spaces using proper quoting")
     func preservesPathsWithSpaces() throws {
-        let shell = MockShell()
-        let sut = makeSUT(shell: shell)
+        let (sut, shell) = makeSUT()
         let sourceWithSpaces = "/path with/spaces/binary"
         let destinationWithSpaces = "/destination with/spaces"
         let originalBinary = BinaryOutput.single(.init(path: sourceWithSpaces))
@@ -136,8 +130,7 @@ extension BinaryCopyUtilityTests {
     
     @Test("Throws error when shell command fails")
     func throwsErrorWhenShellCommandFails() throws {
-        let shell = MockShell(results: [], shouldThrowError: true)
-        let sut = makeSUT(shell: shell)
+        let (sut, shell) = makeSUT(throwError: true)
         let originalBinary = BinaryOutput.single(.init(path: sourcePath))
         let outputLocation = BuildOutputLocation.desktop
         
@@ -152,5 +145,12 @@ extension BinaryCopyUtilityTests {
 private extension BinaryCopyUtilityTests {
     func makeSUT(shell: MockShell) -> BinaryCopyUtility {
         return BinaryCopyUtility(shell: shell)
+    }
+    
+    func makeSUT(throwError: Bool = false) -> (sut: BinaryCopyUtility, shell: MockShell) {
+        let shell = MockShell(shouldThrowErrorOnFinal: throwError)
+        let sut = BinaryCopyUtility(shell: shell)
+        
+        return (sut, shell)
     }
 }

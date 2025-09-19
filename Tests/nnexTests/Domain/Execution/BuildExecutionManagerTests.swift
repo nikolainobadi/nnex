@@ -13,6 +13,7 @@ import NnexKit
 @testable import nnex
 @preconcurrency import Files
 
+// TODO: - 
 final class BuildExecutionManagerTests {
     private let projectFolder: Folder
     private let projectName = "testProject-buildManager"
@@ -36,7 +37,7 @@ extension BuildExecutionManagerTests {
     func successfullyExecutesBuildWithSingleExecutable() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell(results: ["", "", "", "sha256hash /path/to/binary", "sha256hash /path/to/binary"])
+        let shell = MockShell()
         let picker = MockPicker(selectedItemIndices: [0]) // Select current directory
         
         let sut = makeSUT(shell: shell, picker: picker)
@@ -51,7 +52,7 @@ extension BuildExecutionManagerTests {
     func successfullyExecutesBuildWithMultipleExecutables() throws {
         try createPackageSwiftWithMultipleExecutables()
         
-        let shell = MockShell(results: ["", "", "", "sha256hash /path/to/binary", "sha256hash /path/to/binary"])
+        let shell = MockShell()
         let picker = MockPicker(selectedItemIndices: [0, 0]) // Select first executable, then current directory
         
         let sut = makeSUT(shell: shell, picker: picker)
@@ -67,7 +68,7 @@ extension BuildExecutionManagerTests {
     func executesBuildAndOpensInFinderWhenFlagSet() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell(results: ["", "", "", "sha256hash /path/to/binary", "sha256hash /path/to/binary"])
+        let shell = MockShell()
         let picker = MockPicker(selectedItemIndices: [0]) // Select current directory
         
         let sut = makeSUT(shell: shell, picker: picker)
@@ -82,7 +83,7 @@ extension BuildExecutionManagerTests {
     func executesBuildWithCustomOutputLocation() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell(results: ["", "", "", "sha256hash /path/to/binary", "sha256hash /path/to/binary"])
+        let shell = MockShell()
         let picker = MockPicker(
             selectedItemIndices: [2], // Select custom location
             inputResponses: ["/tmp"], // Custom path
@@ -101,7 +102,7 @@ extension BuildExecutionManagerTests {
     func usesDefaultBuildTypeWhenNoneProvided() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell(results: ["", "", "", "sha256hash /path/to/binary", "sha256hash /path/to/binary"])
+        let shell = MockShell()
         let picker = MockPicker(selectedItemIndices: [0]) // Select current directory
         
         let sut = makeSUT(shell: shell, picker: picker)
@@ -116,7 +117,7 @@ extension BuildExecutionManagerTests {
     func skipsCleanWhenCleanFlagFalse() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell(results: ["", "", "sha256hash /path/to/binary", "sha256hash /path/to/binary"])
+        let shell = MockShell()
         let picker = MockPicker(selectedItemIndices: [0]) // Select current directory
         
         let sut = makeSUT(shell: shell, picker: picker)
@@ -149,7 +150,7 @@ extension BuildExecutionManagerTests {
     func throwsErrorWhenCustomPathIsInvalid() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell(results: ["", "", "", "sha256hash /path/to/binary", "sha256hash /path/to/binary"])
+        let shell = MockShell()
         let picker = MockPicker(
             selectedItemIndices: [2], // Select custom location
             inputResponses: ["/nonexistent/path"] // Invalid path
@@ -198,9 +199,8 @@ extension BuildExecutionManagerTests {
     func propagatesBuildErrorsFromProjectBuilder() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell(results: [], shouldThrowError: true) // Make shell commands fail
+        let shell = MockShell(shouldThrowErrorOnFinal: true)
         let picker = MockPicker(selectedItemIndices: [0])
-        
         let sut = makeSUT(shell: shell, picker: picker)
         
         #expect(throws: (any Error).self) {
@@ -212,6 +212,7 @@ extension BuildExecutionManagerTests {
 
 // MARK: - Private Methods
 private extension BuildExecutionManagerTests {
+    // TODO: -
     func makeSUT(shell: MockShell, picker: MockPicker) -> BuildExecutionManager {
         return BuildExecutionManager(shell: shell, picker: picker)
     }

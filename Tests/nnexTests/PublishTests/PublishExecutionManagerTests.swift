@@ -278,10 +278,7 @@ extension PublishExecutionManagerTests {
     func propagatesBuildErrors() throws {
         try createPackageSwift()
         
-        let factory = MockContextFactory(
-            shell: MockShell(resultMap: [:], shouldThrowError: true) // Make build fail
-        )
-        
+        let factory = MockContextFactory(shell: MockShell(shouldThrowErrorOnFinal: true))
         let context = try factory.makeContext()
         let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
         let existingFormula = SwiftDataFormula(
