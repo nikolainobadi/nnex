@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2025-09-19
+
+### Changed
+- Updated NnShellKit dependency to version 2.0.0 from preview branch
+- Simplified test helper method structure for improved maintainability
+
 ## [0.9.2] - 2025-09-10
 
 ### Added
