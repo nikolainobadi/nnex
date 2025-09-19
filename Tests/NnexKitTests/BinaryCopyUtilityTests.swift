@@ -130,7 +130,7 @@ extension BinaryCopyUtilityTests {
     
     @Test("Throws error when shell command fails")
     func throwsErrorWhenShellCommandFails() throws {
-        let (sut, shell) = makeSUT(throwError: true)
+        let sut = makeSUT(throwError: true).sut
         let originalBinary = BinaryOutput.single(.init(path: sourcePath))
         let outputLocation = BuildOutputLocation.desktop
         

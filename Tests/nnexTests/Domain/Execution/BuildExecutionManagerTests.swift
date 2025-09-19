@@ -13,7 +13,6 @@ import NnexKit
 @testable import nnex
 @preconcurrency import Files
 
-// TODO: - 
 final class BuildExecutionManagerTests {
     private let projectFolder: Folder
     private let projectName = "testProject-buildManager"
@@ -37,10 +36,7 @@ extension BuildExecutionManagerTests {
     func successfullyExecutesBuildWithSingleExecutable() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell()
-        let picker = MockPicker(selectedItemIndices: [0]) // Select current directory
-        
-        let sut = makeSUT(shell: shell, picker: picker)
+        let (sut, shell) = makeSUT(selectedItemIndices: [0])
         
         try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
         
@@ -52,10 +48,7 @@ extension BuildExecutionManagerTests {
     func successfullyExecutesBuildWithMultipleExecutables() throws {
         try createPackageSwiftWithMultipleExecutables()
         
-        let shell = MockShell()
-        let picker = MockPicker(selectedItemIndices: [0, 0]) // Select first executable, then current directory
-        
-        let sut = makeSUT(shell: shell, picker: picker)
+        let sut = makeSUT(selectedItemIndices: [0, 0]).sut
         
         #expect(throws: Never.self) {
             try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
@@ -68,10 +61,7 @@ extension BuildExecutionManagerTests {
     func executesBuildAndOpensInFinderWhenFlagSet() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell()
-        let picker = MockPicker(selectedItemIndices: [0]) // Select current directory
-        
-        let sut = makeSUT(shell: shell, picker: picker)
+        let (sut, shell) = makeSUT(selectedItemIndices: [0])
         
         try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: true)
         
@@ -83,14 +73,11 @@ extension BuildExecutionManagerTests {
     func executesBuildWithCustomOutputLocation() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell()
-        let picker = MockPicker(
+        let (sut, shell) = makeSUT(
             selectedItemIndices: [2], // Select custom location
             inputResponses: ["/tmp"], // Custom path
             permissionResponses: [true] // Confirm path
         )
-        
-        let sut = makeSUT(shell: shell, picker: picker)
         
         try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
         
@@ -102,10 +89,7 @@ extension BuildExecutionManagerTests {
     func usesDefaultBuildTypeWhenNoneProvided() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell()
-        let picker = MockPicker(selectedItemIndices: [0]) // Select current directory
-        
-        let sut = makeSUT(shell: shell, picker: picker)
+        let (sut, shell) = makeSUT(selectedItemIndices: [0])
         
         try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
         
@@ -117,10 +101,7 @@ extension BuildExecutionManagerTests {
     func skipsCleanWhenCleanFlagFalse() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell()
-        let picker = MockPicker(selectedItemIndices: [0]) // Select current directory
-        
-        let sut = makeSUT(shell: shell, picker: picker)
+        let (sut, shell) = makeSUT(selectedItemIndices: [0])
         
         try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: false, openInFinder: false)
         
@@ -136,10 +117,7 @@ extension BuildExecutionManagerTests {
     func throwsErrorWhenPickerFailsToSelectExecutable() throws {
         try createPackageSwiftWithMultipleExecutables()
         
-        let shell = MockShell()
-        let picker = MockPicker(shouldThrowError: true)
-        
-        let sut = makeSUT(shell: shell, picker: picker)
+        let sut = makeSUT(throwPickerError: true).sut
         
         #expect(throws: BuildExecutionError.failedToSelectExecutable(reason: "MockPicker error")) {
             try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
@@ -150,13 +128,10 @@ extension BuildExecutionManagerTests {
     func throwsErrorWhenCustomPathIsInvalid() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell()
-        let picker = MockPicker(
+        let (sut, _) = makeSUT(
             selectedItemIndices: [2], // Select custom location
             inputResponses: ["/nonexistent/path"] // Invalid path
         )
-        
-        let sut = makeSUT(shell: shell, picker: picker)
         
         #expect(throws: BuildExecutionError.invalidCustomPath(path: "/nonexistent/path")) {
             try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
@@ -167,14 +142,11 @@ extension BuildExecutionManagerTests {
     func throwsErrorWhenUserCancelsCustomPathConfirmation() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell(results: ["", "", "", "sha256hash /path/to/binary", "sha256hash /path/to/binary"])
-        let picker = MockPicker(
+        let (sut, _) = makeSUT(
             selectedItemIndices: [2], // Select custom location
             inputResponses: ["/tmp"], // Valid path
             permissionResponses: [false] // Cancel confirmation
         )
-        
-        let sut = makeSUT(shell: shell, picker: picker)
         
         #expect(throws: BuildExecutionError.buildCancelledByUser) {
             try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
@@ -183,12 +155,7 @@ extension BuildExecutionManagerTests {
     
     @Test("Propagates ExecutableNameResolver errors")
     func propagatesExecutableNameResolverErrors() throws {
-        // Don't create Package.swift to trigger missing package error
-        
-        let shell = MockShell()
-        let picker = MockPicker()
-        
-        let sut = makeSUT(shell: shell, picker: picker)
+        let sut = makeSUT().sut
         
         #expect(throws: ExecutableNameResolverError.missingPackageSwift(path: projectFolder.path)) {
             try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
@@ -199,9 +166,7 @@ extension BuildExecutionManagerTests {
     func propagatesBuildErrorsFromProjectBuilder() throws {
         try createPackageSwift(executableName: executableName)
         
-        let shell = MockShell(shouldThrowErrorOnFinal: true)
-        let picker = MockPicker(selectedItemIndices: [0])
-        let sut = makeSUT(shell: shell, picker: picker)
+        let sut = makeSUT(selectedItemIndices: [0], throwShellError: true).sut
         
         #expect(throws: (any Error).self) {
             try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
@@ -212,9 +177,12 @@ extension BuildExecutionManagerTests {
 
 // MARK: - Private Methods
 private extension BuildExecutionManagerTests {
-    // TODO: -
-    func makeSUT(shell: MockShell, picker: MockPicker) -> BuildExecutionManager {
-        return BuildExecutionManager(shell: shell, picker: picker)
+    func makeSUT(selectedItemIndices: [Int] = [], inputResponses: [String] = [], permissionResponses: [Bool] = [], throwShellError: Bool = false, throwPickerError: Bool = false) -> (sut: BuildExecutionManager, shell: MockShell) {
+        let shell = MockShell(shouldThrowErrorOnFinal: throwShellError)
+        let picker = MockPicker(selectedItemIndices: selectedItemIndices, inputResponses: inputResponses, permissionResponses: permissionResponses, shouldThrowError: throwPickerError)
+        let sut = BuildExecutionManager(shell: shell, picker: picker)
+        
+        return (sut, shell)
     }
     
     func createPackageSwift(executableName: String) throws {
