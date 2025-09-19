@@ -235,10 +235,6 @@ extension PublishTests {
         #expect(throws: (any Error).self) {
             try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
         }
-        
-        withKnownIssue("Determining which shell command fails is currently unreliable") {
-            #expect(shell.executedCommands.contains { $0.contains("swift test") })
-        }
     }
 }
 
@@ -325,12 +321,17 @@ private extension PublishTests {
 // MARK: - Helpers
 private extension PublishTests {
     func createMockShell(projectName: String? = nil, projectPath: String? = nil, includeTestCommand: Bool = false, shouldThrowError: Bool = false) -> MockShell {
+        if shouldThrowError {
+            return .init(shouldThrowErrorOnFinal: true)
+        }
+        
         let projectPath = projectPath ?? projectFolder.path
         let commandResults: [String: String] = [
             "shasum -a 256 \"\(projectPath).build/arm64-apple-macosx/release/\(projectName ?? self.projectName)-arm64.tar.gz\"": sha256Output,
             "shasum -a 256 \"\(projectPath).build/x86_64-apple-macosx/release/\(projectName ?? self.projectName)-x86_64.tar.gz\"": sha256Output
         ]
-        return MockShell(resultMap: commandResults, shouldThrowError: shouldThrowError)
+        
+        return .init(commands: commandResults.map({ .init(command: $0, output: $1) }))
     }
     
     func createTestTapAndFormula(factory: MockContextFactory, formulaPath: String? = nil, testCommand: TestCommand? = nil, extraBuildArgs: [String] = [], projectName: String? = nil, projectFolder: Folder? = nil) throws {

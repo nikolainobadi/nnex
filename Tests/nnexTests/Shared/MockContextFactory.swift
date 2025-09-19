@@ -61,7 +61,7 @@ extension MockContextFactory: ContextFactory {
         
         let newShell: MockShell
         if !commandResults.isEmpty {
-            newShell = MockShell(resultMap: commandResults)
+            newShell = .init(commands: commandResults.map({ .init(command: $0, output: $1) }))
         } else {
             newShell = MockShell(results: runResults)
         }

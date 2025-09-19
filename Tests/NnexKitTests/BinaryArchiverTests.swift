@@ -362,9 +362,10 @@ private extension BinaryArchiverTests {
         let shell: MockShell
         
         if !commandResults.isEmpty {
-            shell = MockShell(resultMap: commandResults, shouldThrowError: throwError)
+            shell = throwError ? .init(shouldThrowErrorOnFinal: true) :  .init(commands: commandResults.map({ .init(command: $0, output: $1) }))
         } else {
-            shell = MockShell(results: runResults, shouldThrowError: throwError)
+
+            shell = .init(results: runResults, shouldThrowErrorOnFinal: throwError)
         }
         
         let sut = BinaryArchiver(shell: shell)

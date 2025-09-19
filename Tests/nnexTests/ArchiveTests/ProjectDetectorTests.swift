@@ -257,7 +257,7 @@ extension ProjectDetectorTests {
 // MARK: - SUT
 private extension ProjectDetectorTests {
     func makeSUT(shellOutputs: [String] = [], shouldThrowShellError: Bool = false) -> DefaultProjectDetector {
-        let shell = MockShell(results: shellOutputs, shouldThrowError: shouldThrowShellError)
+        let shell = MockShell(results: shellOutputs, shouldThrowErrorOnFinal: shouldThrowShellError)
         
         return .init(shell: shell)
     }
