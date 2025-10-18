@@ -31,12 +31,13 @@ public extension FormulaPublisher {
     func publishFormula(_ content: String, formulaName: String, commitMessage: String?, tapFolderPath: String) throws -> String {
         let fileName = "\(formulaName).rb"
         let tapFolder = try Folder(path: tapFolderPath)
+        let formulaFolder = try tapFolder.createSubfolderIfNeeded(withName: "Formula")
 
-        if tapFolder.containsFile(named: fileName) {
-            try tapFolder.file(named: fileName).delete()
+        if formulaFolder.containsFile(named: fileName) {
+            try formulaFolder.file(named: fileName).delete()
         }
 
-        let newFile = try tapFolder.createFile(named: fileName)
+        let newFile = try formulaFolder.createFile(named: fileName)
         try newFile.write(content)
 
         if let commitMessage {

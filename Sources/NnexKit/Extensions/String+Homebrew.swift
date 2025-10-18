@@ -20,4 +20,12 @@ public extension String {
         
         return String(self.dropFirst("homebrew-".count))
     }
+    
+    func appendingPathComponent(_ path: String) -> String {
+        if self.hasSuffix("/") {
+            return self + path
+        }
+        
+        return self + "/" + path
+    }
 }
