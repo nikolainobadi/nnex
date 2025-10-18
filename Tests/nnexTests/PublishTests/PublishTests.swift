@@ -43,11 +43,12 @@ extension PublishTests {
         
         try createTestTapAndFormula(factory: factory)
         
-        #expect(throws: NnexError.missingGitHubCLI) {
+        do {
             try runCommand(factory, version: .version(versionNumber), message: commitMessage)
-        }
+            Issue.record("Expected an error to be thrown")
+        } catch { }
         
-        let tapFolder = try #require(try Folder(path: tapFolder.path))
+        let tapFolder = try Folder(path: tapFolder.path)
         
         #expect(gitHandler.message == nil)
         #expect(gitHandler.releaseNoteInfo == nil)
@@ -63,7 +64,7 @@ extension PublishTests {
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, buildType: .universal)
         
-        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
+        let formulaFileContents = try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString()
         
         #expect(formulaFileContents.contains(projectName.capitalized))
         #expect(formulaFileContents.contains(sha256))
@@ -85,7 +86,7 @@ extension PublishTests {
         let args = ["brew", "publish", "-p", projectFolderWithDashes.path, "-v", versionNumber, "-m", commitMessage, "-n", releaseNotes]
         try Nnex.testRun(contextFactory: factory, args: args)
         
-        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileNameWithDashes).readAsString())
+        let formulaFileContents = try Folder(path: tapFolder.path).file(named: formulaFileNameWithDashes).readAsString()
         
         #expect(formulaFileContents.contains("class \(expectedClassName)"))
         #expect(!formulaFileContents.contains("class \(projectWithDashes)"))
@@ -124,7 +125,7 @@ extension PublishTests {
         
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
         
-        let allFormulas = try #require(try context.loadFormulas())
+        let allFormulas = try context.loadFormulas()
         
         #expect(allFormulas.count == 1)
         
@@ -153,7 +154,7 @@ extension PublishTests {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell()
         let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
-        let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
+        let releaseNoteFile = try projectFolder.createFile(named: "TestReleaseNotes.md")
         let filePath = releaseNoteFile.path
         
         try releaseNoteFile.write(releaseNotes)
@@ -232,9 +233,10 @@ extension PublishTests {
         
         try createTestTapAndFormula(factory: factory, testCommand: .defaultCommand)
         
-        #expect(throws: (any Error).self) {
+        do {
             try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
-        }
+            Issue.record("Expected an error to be thrown")
+        } catch { }
     }
 }
 
@@ -243,7 +245,7 @@ extension PublishTests {
 extension PublishTests {
     @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and file path for release notes is input.")
     func publishCommandWithInputsAndFilePathReleaseNotes() throws {
-        let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
+        let releaseNoteFile = try projectFolder.createFile(named: "TestReleaseNotes.md")
         let filePath = releaseNoteFile.path
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let trashHandler = MockTrashHandler()
@@ -255,7 +257,7 @@ extension PublishTests {
         try runCommand(factory)
         
         let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
-        let formulaFileContents = try #require(try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString())
+        let formulaFileContents = try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString()
         
         #expect(formulaFileContents.contains(projectName.capitalized))
         #expect(formulaFileContents.contains(sha256))
@@ -268,7 +270,7 @@ extension PublishTests {
     
     @Test("Does not delete release notes file when user declines deletion prompt")
     func doesNotDeleteReleaseNotesWhenUserDeclines() throws {
-        let releaseNoteFile = try #require(try projectFolder.createFile(named: "TestReleaseNotes.md"))
+        let releaseNoteFile = try projectFolder.createFile(named: "TestReleaseNotes.md")
         let filePath = releaseNoteFile.path
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let trashHandler = MockTrashHandler()

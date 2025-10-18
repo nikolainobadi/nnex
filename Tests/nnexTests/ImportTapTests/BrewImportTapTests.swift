@@ -60,7 +60,7 @@ extension BrewImportTapTests {
         let formulaContent = FormulaContentGenerator.makeFormulaFileContent(name: name, details: details, homepage: homepage, license: license, assetURL: "assetURL", sha256: "sha256")
 
         let formulaFolder = try tapFolder.createSubfolder(named: "Formula")
-        let formulaFile = try #require(try formulaFolder.createFile(named: "\(name).rb"))
+        let formulaFile = try formulaFolder.createFile(named: "\(name).rb")
         try formulaFile.write(formulaContent)
         
         try runCommand(testFactory, path: tapFolder.path)
