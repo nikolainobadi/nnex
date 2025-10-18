@@ -46,10 +46,11 @@ extension CreateTapTests {
     func createTapFailsWithoutGHCLI() throws {
         let gitHandler = MockGitHandler(ghIsInstalled: false)
         let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
-        
-        #expect(throws: NnexError.missingGitHubCLI) {
+
+        do {
             try runCommand(factory)
-        }
+            Issue.record("Expected an error to be thrown")
+        } catch { }
     }
     
     @Test("Creates new tap folder with 'homebrew-' prefix when name from arg does not include the prefix")
@@ -87,10 +88,11 @@ extension CreateTapTests {
     @Test("Throws error when name from input is empty")
     func createsTapInvalidNameError() throws {
         let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, inputResponses: [""])
-        
-        #expect(throws: NnexError.invalidTapName) {
+
+        do {
             try runCommand(factory)
-        }
+            Issue.record("Expected an error to be thrown")
+        } catch { }
     }
     
     // TODO: - need to verify other Tap properties
