@@ -36,7 +36,7 @@ extension FormulaPublisherTests {
     func createsNewFormulaFile() throws {
         let sut = makeSUT().sut
         let formulaFile = try requireFormulaFile(sut: sut)
-        let savedContents = try #require(try formulaFile.readAsString())
+        let savedContents = try formulaFile.readAsString()
         
         #expect(savedContents == content)
         #expect(formulaFile.name == formulaFileName)
@@ -47,12 +47,12 @@ extension FormulaPublisherTests {
     func overwritesExistingFormulaFile() throws {
         let sut = makeSUT().sut
         let previousContent = "previous content"
-        let previousFile = try #require(try tapFolder.createFile(named: formulaFileName))
+        let previousFile = try tapFolder.createFile(named: formulaFileName)
         
         try previousFile.write(previousContent)
         
         let formulaFile = try requireFormulaFile(sut: sut)
-        let savedContents = try #require(try formulaFile.readAsString())
+        let savedContents = try formulaFile.readAsString()
         
         #expect(savedContents == content)
         #expect(formulaFile.name == formulaFileName)
@@ -97,8 +97,8 @@ private extension FormulaPublisherTests {
 private extension FormulaPublisherTests {
     @discardableResult
     func requireFormulaFile(sut: FormulaPublisher, commitMessage: String? = nil) throws -> File {
-        let path = try #require(try sut.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tapFolder.path))
-        let file = try #require(try File(path: path))
+        let path = try sut.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tapFolder.path)
+        let file = try File(path: path)
         
         return file
     }

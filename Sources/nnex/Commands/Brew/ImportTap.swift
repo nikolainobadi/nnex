@@ -23,8 +23,17 @@ extension Nnex.Brew {
             let path = try path ?? Nnex.makePicker().getRequiredInput(prompt: "Enter the local path to your Homebrew tap folder.")
             let folder = try Folder(path: path)
             let tapName = folder.name.removingHomebrewPrefix
-            let formulaFiles = folder.files.filter({ $0.extension == "rb" })
             let remotePath = try Nnex.makeGitHandler().getRemoteURL(path: folder.path)
+
+            let formulaFiles: [File]
+            if folder.containsSubfolder(named: "Formula") {
+                let formulaFolder = try folder.subfolder(named: "Formula")
+                formulaFiles = formulaFolder.files.filter({ $0.extension == "rb" })
+            } else {
+                print("⚠️ Warning: No 'Formula' folder found in tap directory. Skipping formula import.".red)
+                formulaFiles = []
+            }
+
             let tap = SwiftDataTap(name: tapName, localPath: folder.path, remotePath: remotePath)
             
             var formulas: [SwiftDataFormula] = []

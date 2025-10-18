@@ -79,13 +79,14 @@ extension ProjectDetectorTests {
     @Test("Throws error when no Xcode project exists")
     func throwsErrorWhenNoXcodeProjectExists() throws {
         let sut = makeSUT()
+        let tempFolderPath = tempFolder.path
         
         // Create some non-Xcode files
         try tempFolder.createFile(named: "README.md")
         try tempFolder.createFile(named: "Package.swift")
         
         #expect(throws: ArchiveError.self) {
-            try sut.detectProject(at: tempFolder.path)
+            try sut.detectProject(at: tempFolderPath)
         }
     }
     

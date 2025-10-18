@@ -58,8 +58,9 @@ extension BrewImportTapTests {
         let testFactory = MockContextFactory()
         let context = try testFactory.makeContext()
         let formulaContent = FormulaContentGenerator.makeFormulaFileContent(name: name, details: details, homepage: homepage, license: license, assetURL: "assetURL", sha256: "sha256")
-        
-        let formulaFile = try #require(try tapFolder.createFile(named: "\(name).rb"))
+
+        let formulaFolder = try tapFolder.createSubfolder(named: "Formula")
+        let formulaFile = try #require(try formulaFolder.createFile(named: "\(name).rb"))
         try formulaFile.write(formulaContent)
         
         try runCommand(testFactory, path: tapFolder.path)
@@ -75,6 +76,19 @@ extension BrewImportTapTests {
         #expect(newFormula.details == details)
         #expect(newFormula.homepage == homepage)
         #expect(newFormula.license == license)
+    }
+
+    @Test("Imports tap without Formula folder and shows warning")
+    func importsTapWithoutFormulaFolder() throws {
+        let testFactory = MockContextFactory()
+        let context = try testFactory.makeContext()
+
+        try runCommand(testFactory, path: tapFolder.path)
+
+        let newTap = try #require(try context.loadTaps().first)
+
+        #expect(newTap.name == tapName)
+        #expect(newTap.formulas.isEmpty)
     }
 }
 
