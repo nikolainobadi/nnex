@@ -33,9 +33,11 @@ extension ExecutableNameResolverTests {
     @Test("Throws error when Package.swift is missing")
     func throwsErrorWhenPackageSwiftMissing() throws {
         let sut = makeSUT()
-        
-        #expect(throws: ExecutableNameResolverError.missingPackageSwift(path: projectFolder.path)) {
-            try sut.getExecutableNames(from: projectFolder)
+        let folder = projectFolder
+        let path = projectFolder.path
+
+        #expect(throws: ExecutableNameResolverError.missingPackageSwift(path: path)) {
+            try sut.getExecutableNames(from: folder)
         }
     }
     
@@ -43,13 +45,14 @@ extension ExecutableNameResolverTests {
     func throwsErrorWhenPackageSwiftCannotBeRead() throws {
         // Create a Package.swift file but make it unreadable by creating it as a directory
         try projectFolder.createSubfolder(named: "Package.swift")
-        
+
         let sut = makeSUT()
-        
+        let folder = projectFolder
+
         #expect(throws: (any Error).self) {
-            try sut.getExecutableNames(from: projectFolder)
+            try sut.getExecutableNames(from: folder)
         }
-        
+
         // Clean up
         try projectFolder.subfolder(named: "Package.swift").delete()
     }
@@ -57,22 +60,24 @@ extension ExecutableNameResolverTests {
     @Test("Throws error when Package.swift is empty")
     func throwsErrorWhenPackageSwiftIsEmpty() throws {
         try projectFolder.createFile(named: "Package.swift", contents: "".data(using: .utf8)!)
-        
+
         let sut = makeSUT()
-        
+        let folder = projectFolder
+
         #expect(throws: ExecutableNameResolverError.emptyPackageSwift) {
-            try sut.getExecutableNames(from: projectFolder)
+            try sut.getExecutableNames(from: folder)
         }
     }
     
     @Test("Throws error when Package.swift contains only whitespace")
     func throwsErrorWhenPackageSwiftContainsOnlyWhitespace() throws {
         try projectFolder.createFile(named: "Package.swift", contents: "   \n\t  \n   ".data(using: .utf8)!)
-        
+
         let sut = makeSUT()
-        
+        let folder = projectFolder
+
         #expect(throws: ExecutableNameResolverError.emptyPackageSwift) {
-            try sut.getExecutableNames(from: projectFolder)
+            try sut.getExecutableNames(from: folder)
         }
     }
     
@@ -93,12 +98,13 @@ extension ExecutableNameResolverTests {
         )
         """
         try projectFolder.createFile(named: "Package.swift", contents: packageContent.data(using: .utf8)!)
-        
+
         let sut = makeSUT()
-        
+        let folder = projectFolder
+
         // The error is wrapped, so we check for any ExecutableNameResolverError
         #expect(throws: (any Error).self) {
-            try sut.getExecutableNames(from: projectFolder)
+            try sut.getExecutableNames(from: folder)
         }
     }
     
