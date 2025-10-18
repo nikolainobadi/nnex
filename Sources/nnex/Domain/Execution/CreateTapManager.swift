@@ -35,7 +35,8 @@ extension CreateTapManager {
         let tapListFolder = try getTapListFolder()
         let homebrewTapName = tapName.homebrewTapName
         let tapFolder = try tapListFolder.createSubfolder(named: homebrewTapName)
-        
+        try tapFolder.createSubfolder(named: "Formula")
+
         print("Created folder for new tap named \(tapName) at \(tapFolder.path)")
         
         let projectDetails = try details ?? picker.getRequiredInput(prompt: "Enter the details for this new tap")

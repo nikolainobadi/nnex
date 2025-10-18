@@ -60,13 +60,30 @@ extension CreateTapTests {
         let remoteURL = "remoteURL"
         let gitHandler = MockGitHandler(remoteURL: remoteURL)
         let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
-        
+
         try runCommand(factory, name: name)
-        
+
         let updatedTapListFolder = try Folder(path: tapListFolder.path)
         let tapFolder = try updatedTapListFolder.subfolder(named: tapName)
-        
+
         #expect(tapFolder.name == tapName)
+    }
+
+    @Test("Creates Formula subfolder in new tap folder")
+    func createsFormulaSubfolder() throws {
+        let name = "myNewTap"
+        let tapName = name.homebrewTapName
+        let remoteURL = "remoteURL"
+        let gitHandler = MockGitHandler(remoteURL: remoteURL)
+        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
+
+        try runCommand(factory, name: name)
+
+        let updatedTapListFolder = try Folder(path: tapListFolder.path)
+        let tapFolder = try updatedTapListFolder.subfolder(named: tapName)
+        let formulaFolder = try tapFolder.subfolder(named: "Formula")
+
+        #expect(formulaFolder.name == "Formula")
     }
     
     @Test("Creates new tap folder with 'homebrew-' prefix when name from input does not include the prefix")
