@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.4] - 2025-10-18
+
+### Fixed
+- Create-tap command now creates Formula subfolder for proper Homebrew tap structure
+- Import-tap command handles errors gracefully when brew info cannot access local formulas
+- Import-tap command handles taps without Formula folder
+
 ## [0.9.3] - 2025-09-19
 
 ### Changed
