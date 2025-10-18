@@ -58,8 +58,13 @@ private extension Nnex.Brew.ImportTap {
     /// - Returns: A BrewFormula instance if decoding is successful, or nil otherwise.
     /// - Throws: An error if the decoding process fails.
     func decodeBrewFormula(_ file: File) throws -> BrewFormula? {
-        let output = try makeBrewOutput(filePath: file.path)
-        
+        let output: String
+        do {
+            output = try makeBrewOutput(filePath: file.path)
+        } catch {
+            output = ""
+        }
+
         if output.isEmpty || output.contains("⚠️⚠️⚠️") {
             let formulaContent = try file.readAsString()
             let name = extractField(from: formulaContent, pattern: #"class (\w+) < Formula"#) ?? "Unknown"
