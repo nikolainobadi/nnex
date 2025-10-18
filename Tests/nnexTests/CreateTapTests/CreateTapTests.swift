@@ -64,7 +64,7 @@ extension CreateTapTests {
         try runCommand(factory, name: name)
         
         let updatedTapListFolder = try Folder(path: tapListFolder.path)
-        let tapFolder = try #require(try updatedTapListFolder.subfolder(named: tapName))
+        let tapFolder = try updatedTapListFolder.subfolder(named: tapName)
         
         #expect(tapFolder.name == tapName)
     }
@@ -78,10 +78,10 @@ extension CreateTapTests {
         let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, inputResponses: [name], gitHandler: gitHandler)
         
         try runCommand(factory)
-        
+
         let updatedTapListFolder = try Folder(path: tapListFolder.path)
-        let tapFolder = try #require(try updatedTapListFolder.subfolder(named: tapName))
-        
+        let tapFolder = try updatedTapListFolder.subfolder(named: tapName)
+
         #expect(tapFolder.name == tapName)
     }
     
@@ -116,9 +116,9 @@ extension CreateTapTests {
         let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
         
         try runCommand(factory, name: name)
-        
-        let tapFolder = try #require(try Folder(path: tapListFolder.path).subfolder(named: tapName))
-        
+
+        let tapFolder = try Folder(path: tapListFolder.path).subfolder(named: tapName)
+
         #expect(gitHandler.gitInitPath == tapFolder.path)
         #expect(gitHandler.remoteTapName == tapName)
         #expect(gitHandler.remoteTapPath == tapFolder.path)

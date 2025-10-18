@@ -47,13 +47,14 @@ extension BuildExecutionManagerTests {
     @Test("Successfully executes build with multiple executables requiring selection")
     func successfullyExecutesBuildWithMultipleExecutables() throws {
         try createPackageSwiftWithMultipleExecutables()
-        
+
         let sut = makeSUT(selectedItemIndices: [0, 0]).sut
-        
+        let path = projectFolder.path
+
         #expect(throws: Never.self) {
-            try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
+            try sut.executeBuild(projectPath: path, buildType: .universal, clean: true, openInFinder: false)
         }
-        
+
         // Build should complete successfully with multiple executables
     }
     
@@ -116,60 +117,65 @@ extension BuildExecutionManagerTests {
     @Test("Throws error when picker fails to select executable")
     func throwsErrorWhenPickerFailsToSelectExecutable() throws {
         try createPackageSwiftWithMultipleExecutables()
-        
+
         let sut = makeSUT(throwPickerError: true).sut
-        
+        let path = projectFolder.path
+
         #expect(throws: BuildExecutionError.failedToSelectExecutable(reason: "MockPicker error")) {
-            try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
+            try sut.executeBuild(projectPath: path, buildType: .universal, clean: true, openInFinder: false)
         }
     }
     
     @Test("Throws error when custom path is invalid")
     func throwsErrorWhenCustomPathIsInvalid() throws {
         try createPackageSwift(executableName: executableName)
-        
+
         let (sut, _) = makeSUT(
             selectedItemIndices: [2], // Select custom location
             inputResponses: ["/nonexistent/path"] // Invalid path
         )
-        
+        let path = projectFolder.path
+
         #expect(throws: BuildExecutionError.invalidCustomPath(path: "/nonexistent/path")) {
-            try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
+            try sut.executeBuild(projectPath: path, buildType: .universal, clean: true, openInFinder: false)
         }
     }
     
     @Test("Throws error when user cancels custom path confirmation")
     func throwsErrorWhenUserCancelsCustomPathConfirmation() throws {
         try createPackageSwift(executableName: executableName)
-        
+
         let (sut, _) = makeSUT(
             selectedItemIndices: [2], // Select custom location
             inputResponses: ["/tmp"], // Valid path
             permissionResponses: [false] // Cancel confirmation
         )
-        
+        let path = projectFolder.path
+
         #expect(throws: BuildExecutionError.buildCancelledByUser) {
-            try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
+            try sut.executeBuild(projectPath: path, buildType: .universal, clean: true, openInFinder: false)
         }
     }
     
     @Test("Propagates ExecutableNameResolver errors")
     func propagatesExecutableNameResolverErrors() throws {
         let sut = makeSUT().sut
-        
-        #expect(throws: ExecutableNameResolverError.missingPackageSwift(path: projectFolder.path)) {
-            try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
+        let path = projectFolder.path
+
+        #expect(throws: ExecutableNameResolverError.missingPackageSwift(path: path)) {
+            try sut.executeBuild(projectPath: path, buildType: .universal, clean: true, openInFinder: false)
         }
     }
     
     @Test("Propagates build errors from ProjectBuilder")
     func propagatesBuildErrorsFromProjectBuilder() throws {
         try createPackageSwift(executableName: executableName)
-        
+
         let sut = makeSUT(selectedItemIndices: [0], throwShellError: true).sut
-        
+        let path = projectFolder.path
+
         #expect(throws: (any Error).self) {
-            try sut.executeBuild(projectPath: projectFolder.path, buildType: .universal, clean: true, openInFinder: false)
+            try sut.executeBuild(projectPath: path, buildType: .universal, clean: true, openInFinder: false)
         }
     }
 }
