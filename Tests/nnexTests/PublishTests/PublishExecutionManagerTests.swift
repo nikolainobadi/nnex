@@ -234,12 +234,13 @@ extension PublishExecutionManagerTests {
             commandResults: commandResults
         )
         
+        let folder = projectFolder
         let context = try factory.makeContext()
         let sut = try makeSUT(factory: factory, context: context)
         
         #expect(throws: PublishExecutionError.uncommittedChanges) {
             try sut.executePublish(
-                projectFolder: projectFolder,
+                projectFolder: folder,
                 version: .version("2.0.0"),
                 buildType: BuildType.universal,
                 notes: nil,
@@ -258,12 +259,13 @@ extension PublishExecutionManagerTests {
             gitHandler: MockGitHandler(ghIsInstalled: false)
         )
         
+        let folder = projectFolder
         let context = try factory.makeContext()
         let sut = try makeSUT(factory: factory, context: context)
         
         #expect(throws: (any Error).self) {
             try sut.executePublish(
-                projectFolder: projectFolder,
+                projectFolder: folder,
                 version: nil as ReleaseVersionInfo?,
                 buildType: BuildType.universal,
                 notes: nil as String?,
@@ -295,11 +297,12 @@ extension PublishExecutionManagerTests {
         try context.saveNewTap(existingTap)
         try context.saveNewFormula(existingFormula, in: existingTap)
         
+        let folder = projectFolder
         let sut = try makeSUT(factory: factory, context: context)
         
         #expect(throws: (any Error).self) {
             try sut.executePublish(
-                projectFolder: projectFolder,
+                projectFolder: folder,
                 version: nil as ReleaseVersionInfo?,
                 buildType: BuildType.universal,
                 notes: nil as String?,

@@ -63,9 +63,10 @@ extension BuildTests {
     func failsWithoutPackageManifest() throws {
         let factory = MockContextFactory()
 
-        #expect(throws: (any Error).self) {
+        do {
             try runCommand(factory)
-        }
+            Issue.record("Expected an error to be thrown")
+        } catch { }
     }
     
     @Test("Clean flag defaults to true and sets skipClean to false")
@@ -173,9 +174,10 @@ extension BuildTests {
         
         try createPackageManifest(name: executableName)
         
-        #expect(throws: (any Error).self) {
+        do {
             try runCommand(factory)
-        }
+            Issue.record("Expected an error to be thrown")
+        } catch { }
     }
     
     @Test("Copies binary to selected output location")
@@ -214,6 +216,7 @@ extension BuildTests {
 
 // MARK: - Helpers
 private extension BuildTests {
+    @discardableResult
     func runCommand(_ factory: MockContextFactory, openInFinder: Bool = false, clean: Bool = true) throws -> String {
         var args = ["build", "-p", projectFolder.path]
         if openInFinder {
