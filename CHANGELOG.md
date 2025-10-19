@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.5] - 2025-10-19
+
+### Fixed
+- Formula files are now correctly published to Formula subfolder within tap directory
+- Remove-formula command now properly deletes formula files from Formula subfolder
+
 ## [0.9.4] - 2025-10-18
 
 ### Fixed

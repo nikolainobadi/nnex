@@ -64,7 +64,7 @@ extension PublishTests {
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, buildType: .universal)
         
-        let formulaFileContents = try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString()
+        let formulaFileContents = try getFormulaFolder().file(named: formulaFileName).readAsString()
         
         #expect(formulaFileContents.contains(projectName.capitalized))
         #expect(formulaFileContents.contains(sha256))
@@ -86,7 +86,7 @@ extension PublishTests {
         let args = ["brew", "publish", "-p", projectFolderWithDashes.path, "-v", versionNumber, "-m", commitMessage, "-n", releaseNotes]
         try Nnex.testRun(contextFactory: factory, args: args)
         
-        let formulaFileContents = try Folder(path: tapFolder.path).file(named: formulaFileNameWithDashes).readAsString()
+        let formulaFileContents = try getFormulaFolder().file(named: formulaFileNameWithDashes).readAsString()
         
         #expect(formulaFileContents.contains("class \(expectedClassName)"))
         #expect(!formulaFileContents.contains("class \(projectWithDashes)"))
@@ -243,7 +243,7 @@ extension PublishTests {
 
 // MARK: - Input Provided from User
 extension PublishTests {
-    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and file path for release notes is input.")
+    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and file path for release notes is input.") 
     func publishCommandWithInputsAndFilePathReleaseNotes() throws {
         let releaseNoteFile = try projectFolder.createFile(named: "TestReleaseNotes.md")
         let filePath = releaseNoteFile.path
@@ -257,7 +257,7 @@ extension PublishTests {
         try runCommand(factory)
         
         let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
-        let formulaFileContents = try Folder(path: tapFolder.path).file(named: formulaFileName).readAsString()
+        let formulaFileContents = try getFormulaFolder().file(named: formulaFileName).readAsString()
         
         #expect(formulaFileContents.contains(projectName.capitalized))
         #expect(formulaFileContents.contains(sha256))
@@ -322,6 +322,10 @@ private extension PublishTests {
 
 // MARK: - Helpers
 private extension PublishTests {
+    func getFormulaFolder() throws -> Folder {
+        return try tapFolder.subfolder(named: "Formula")
+    }
+    
     func createMockShell(projectName: String? = nil, projectPath: String? = nil, includeTestCommand: Bool = false, shouldThrowError: Bool = false) -> MockShell {
         if shouldThrowError {
             return .init(shouldThrowErrorOnFinal: true)

@@ -37,10 +37,11 @@ extension FormulaPublisherTests {
         let sut = makeSUT().sut
         let formulaFile = try requireFormulaFile(sut: sut)
         let savedContents = try formulaFile.readAsString()
+        let formulaFolder = try getFormulaFolder()
         
         #expect(savedContents == content)
         #expect(formulaFile.name == formulaFileName)
-        #expect(tapFolder.containsFile(named: formulaFileName))
+        #expect(formulaFolder.containsFile(named: formulaFileName))
     }
     
     @Test("Overwrites existing formula file")
@@ -65,8 +66,10 @@ extension FormulaPublisherTests {
         
         try requireFormulaFile(sut: sut)
         
+        let formulaFolder = try getFormulaFolder()
+        
         #expect(gitHandler.message == nil)
-        #expect(tapFolder.files.count() == 1)
+        #expect(formulaFolder.files.count() == 1)
     }
     
     @Test("Commits changes and pushes tap folder when a commit message is provided")
@@ -76,8 +79,10 @@ extension FormulaPublisherTests {
         
         try requireFormulaFile(sut: sut, commitMessage: commitMessage)
         
+        let formulaFolder = try getFormulaFolder()
+        
         #expect(gitHandler.message == commitMessage)
-        #expect(tapFolder.files.count() == 1)
+        #expect(formulaFolder.files.count() == 1)
     }
 }
 
@@ -95,11 +100,14 @@ private extension FormulaPublisherTests {
 
 // MARK: - Helpers
 private extension FormulaPublisherTests {
+    func getFormulaFolder() throws -> Folder {
+        return try tapFolder.subfolder(named: "Formula")
+    }
+    
     @discardableResult
     func requireFormulaFile(sut: FormulaPublisher, commitMessage: String? = nil) throws -> File {
         let path = try sut.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tapFolder.path)
-        let file = try File(path: path)
         
-        return file
+        return try .init(path: path)
     }
 }
