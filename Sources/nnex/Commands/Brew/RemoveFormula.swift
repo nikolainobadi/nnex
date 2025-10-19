@@ -19,8 +19,8 @@ extension Nnex.Brew {
             let formulas = try context.loadFormulas()
             let selection = try picker.requiredSingleSelection(title: "Select a formula to remove", items: formulas)
             
-            if let tap = selection.tap, let tapFolder = try? Folder(path: tap.localPath), let formulaFile = try? tapFolder.file(named: "\(selection.name).rb"), picker.getPermission(prompt: "Would you also like to delete the formula file for \(selection.name)?") {
-                
+            if let tap = selection.tap, let tapFolder = try? Folder(path: tap.localPath), let formulaFolder = try? tapFolder.subfolder(named: "Formula"), let formulaFile = try? formulaFolder.file(named: "\(selection.name).rb"), picker.getPermission(prompt: "Would you also like to delete the formula file for \(selection.name)?") {
+
                 try formulaFile.delete()
             }
             
