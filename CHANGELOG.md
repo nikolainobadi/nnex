@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.7] - 2025-11-08
+
+### Fixed
+- Version numbers in formulas now strip "v" prefix for proper Homebrew compliance
+
 ## [0.9.6] - 2025-11-08
 
 ### Added

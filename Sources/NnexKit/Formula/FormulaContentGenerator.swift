@@ -15,13 +15,14 @@ public enum FormulaContentGenerator {
         assetURL: String,
         sha256: String
     ) -> String {
+        let sanitizedVersion = sanitizeVersion(version)
         return """
         class \(FormulaNameSanitizer.sanitizeFormulaName(name)) < Formula
             desc "\(details)"
             homepage "\(homepage)"
             url "\(assetURL)"
             sha256 "\(sha256)"
-            version "\(version)"
+            version "\(sanitizedVersion)"
             license "\(license)"
 
             def install
@@ -50,11 +51,12 @@ public enum FormulaContentGenerator {
         let hasIntel = (intelURL?.isEmpty == false) && (intelSHA256?.isEmpty == false)
 
         if hasArm && hasIntel {
+            let sanitizedVersion = sanitizeVersion(version)
             return """
             class \(FormulaNameSanitizer.sanitizeFormulaName(name)) < Formula
                 desc "\(details)"
                 homepage "\(homepage)"
-                version "\(version)"
+                version "\(sanitizedVersion)"
                 license "\(license)"
 
                 on_macos do
@@ -109,5 +111,13 @@ public enum FormulaContentGenerator {
                 sha256: ""
             )
         }
+    }
+}
+
+
+// MARK: - Private Methods
+private extension FormulaContentGenerator {
+    static func sanitizeVersion(_ version: String) -> String {
+        version.hasPrefix("v") ? String(version.dropFirst()) : version
     }
 }
