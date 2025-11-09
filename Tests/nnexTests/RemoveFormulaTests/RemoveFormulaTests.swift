@@ -130,7 +130,7 @@ private extension RemoveFormulaTests {
 
         if createFormulaFile {
             let formulaFolder = try tapFolder.createSubfolderIfNeeded(withName: "Formula")
-            let formulaContent = FormulaContentGenerator.makeFormulaFileContent(name: formulaName, details: "formula details", homepage: "https://github.com/user/\(formulaName)", license: "MIT", assetURL: "https://example.com/asset", sha256: "abc123")
+            let formulaContent = FormulaContentGenerator.makeFormulaFileContent(name: formulaName, details: "formula details", homepage: "https://github.com/user/\(formulaName)", license: "MIT", version: "1.0.0", assetURL: "https://example.com/asset", sha256: "abc123")
             let formulaFile = try formulaFolder.createFile(named: "\(formulaName).rb")
             try formulaFile.write(formulaContent)
         }

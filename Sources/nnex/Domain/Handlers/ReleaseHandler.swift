@@ -25,7 +25,7 @@ struct ReleaseHandler {
 
 // MARK: - Action
 extension ReleaseHandler {
-    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
+    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
         let releaseNumber = extractVersionString(from: versionInfo)
         let noteInfo = try getReleaseNoteInfo(projectName: folder.name, releaseNotesSource: releaseNotesSource, releaseNumber: releaseNumber, projectPath: folder.path)
         let store = ReleaseStore(gitHandler: gitHandler)
@@ -40,7 +40,7 @@ extension ReleaseHandler {
         let (assetURLs, versionNumber) = try store.uploadRelease(info: releaseInfo, archivedBinaries: archivedBinaries)
         try maybeTrashReleaseNotes(noteInfo)
         let primaryAssetURL = assetURLs.first ?? ""
-        
+
         if archivedBinaries.count == 1 {
             print("GitHub release \(versionNumber) created and binary uploaded to \(primaryAssetURL)")
         } else {
@@ -52,8 +52,8 @@ extension ReleaseHandler {
                 }
             }
         }
-        
-        return assetURLs
+
+        return (assetURLs, versionNumber)
     }
 }
 

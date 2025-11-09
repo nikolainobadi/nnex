@@ -48,11 +48,12 @@ public struct PublishUtilities {
     /// Creates formula content based on the archived binaries and asset URLs.
     /// - Parameters:
     ///   - formula: The Homebrew formula.
+    ///   - version: The version number for the release.
     ///   - archivedBinaries: The archived binaries with their SHA256 values.
     ///   - assetURLs: The asset URLs from the GitHub release.
     /// - Returns: The formula content as a string.
     /// - Throws: An error if formula generation fails.
-    public static func makeFormulaContent(formula: SwiftDataFormula, archivedBinaries: [ArchivedBinary], assetURLs: [String]) throws -> String {
+    public static func makeFormulaContent(formula: SwiftDataFormula, version: String, archivedBinaries: [ArchivedBinary], assetURLs: [String]) throws -> String {
         let formulaName = formula.name
         
         if archivedBinaries.count == 1 {
@@ -65,6 +66,7 @@ public struct PublishUtilities {
                 details: formula.details,
                 homepage: formula.homepage,
                 license: formula.license,
+                version: version,
                 assetURL: assetURL,
                 sha256: archivedBinaries[0].sha256
             )
@@ -99,6 +101,7 @@ public struct PublishUtilities {
                 details: formula.details,
                 homepage: formula.homepage,
                 license: formula.license,
+                version: version,
                 armURL: armURL,
                 armSHA256: armArchive?.sha256,
                 intelURL: intelURL,

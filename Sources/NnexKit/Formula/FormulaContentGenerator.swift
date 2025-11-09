@@ -11,6 +11,7 @@ public enum FormulaContentGenerator {
         details: String,
         homepage: String,
         license: String,
+        version: String,
         assetURL: String,
         sha256: String
     ) -> String {
@@ -20,6 +21,7 @@ public enum FormulaContentGenerator {
             homepage "\(homepage)"
             url "\(assetURL)"
             sha256 "\(sha256)"
+            version "\(version)"
             license "\(license)"
 
             def install
@@ -38,6 +40,7 @@ public enum FormulaContentGenerator {
         details: String,
         homepage: String,
         license: String,
+        version: String,
         armURL: String?,
         armSHA256: String?,
         intelURL: String?,
@@ -51,6 +54,7 @@ public enum FormulaContentGenerator {
             class \(FormulaNameSanitizer.sanitizeFormulaName(name)) < Formula
                 desc "\(details)"
                 homepage "\(homepage)"
+                version "\(version)"
                 license "\(license)"
 
                 on_macos do
@@ -80,6 +84,7 @@ public enum FormulaContentGenerator {
                 details: details,
                 homepage: homepage,
                 license: license,
+                version: version,
                 assetURL: armURL!,
                 sha256: armSHA256!
             )
@@ -89,6 +94,7 @@ public enum FormulaContentGenerator {
                 details: details,
                 homepage: homepage,
                 license: license,
+                version: version,
                 assetURL: intelURL!,
                 sha256: intelSHA256!
             )
@@ -98,6 +104,7 @@ public enum FormulaContentGenerator {
                 details: details,
                 homepage: homepage,
                 license: license,
+                version: version,
                 assetURL: "",
                 sha256: ""
             )
