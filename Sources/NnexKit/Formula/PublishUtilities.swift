@@ -9,7 +9,7 @@ import Files
 import Foundation
 import NnShellKit
 
-public struct PublishUtilities {
+public enum PublishUtilities {
     /// Builds the binary for the given project and formula.
     /// - Parameters:
     ///   - formula: The Homebrew formula associated with the project.
