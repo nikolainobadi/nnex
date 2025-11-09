@@ -360,3 +360,73 @@ extension FormulaContentGeneratorTests {
         #expect(urlLine?.starts(with: "    url") == true)
     }
 }
+
+
+// MARK: - Version Sanitization Tests
+extension FormulaContentGeneratorTests {
+    @Test("Strips v prefix from version in single binary formula")
+    func stripsVPrefixFromVersionInSingleBinary() {
+        let content = FormulaContentGenerator.makeFormulaFileContent(
+            name: testName,
+            details: testDetails,
+            homepage: testHomepage,
+            license: testLicense,
+            version: "v1.0.0",
+            assetURL: testAssetURL,
+            sha256: testSHA256
+        )
+
+        #expect(content.contains("version \"1.0.0\""))
+        #expect(!content.contains("version \"v1.0.0\""))
+    }
+
+    @Test("Strips v prefix from version in multi-arch formula")
+    func stripsVPrefixFromVersionInMultiArch() {
+        let content = FormulaContentGenerator.makeFormulaFileContent(
+            name: testName,
+            details: testDetails,
+            homepage: testHomepage,
+            license: testLicense,
+            version: "v2.5.3",
+            armURL: testArmURL,
+            armSHA256: testArmSHA256,
+            intelURL: testIntelURL,
+            intelSHA256: testIntelSHA256
+        )
+
+        #expect(content.contains("version \"2.5.3\""))
+        #expect(!content.contains("version \"v2.5.3\""))
+    }
+
+    @Test("Preserves version without v prefix in single binary formula")
+    func preservesVersionWithoutVPrefixInSingleBinary() {
+        let content = FormulaContentGenerator.makeFormulaFileContent(
+            name: testName,
+            details: testDetails,
+            homepage: testHomepage,
+            license: testLicense,
+            version: "3.0.0",
+            assetURL: testAssetURL,
+            sha256: testSHA256
+        )
+
+        #expect(content.contains("version \"3.0.0\""))
+    }
+
+    @Test("Preserves version without v prefix in multi-arch formula")
+    func preservesVersionWithoutVPrefixInMultiArch() {
+        let content = FormulaContentGenerator.makeFormulaFileContent(
+            name: testName,
+            details: testDetails,
+            homepage: testHomepage,
+            license: testLicense,
+            version: "4.2.1",
+            armURL: testArmURL,
+            armSHA256: testArmSHA256,
+            intelURL: testIntelURL,
+            intelSHA256: testIntelSHA256
+        )
+
+        #expect(content.contains("version \"4.2.1\""))
+    }
+}
