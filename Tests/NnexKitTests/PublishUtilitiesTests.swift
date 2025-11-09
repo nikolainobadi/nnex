@@ -18,6 +18,7 @@ struct PublishUtilitiesTests {
     private let homepage = "https://github.com/user/testproject"
     private let license = "MIT"
     private let details = "A test project for unit testing"
+    private let version = "1.0.0"
     private let sha256Output = "abc123def456  /path/to/binary"  // Shasum command output format
     private let sha256Value = "abc123def456"  // Just the hash value
     private let assetURL1 = "https://github.com/releases/download/v1.0.0/binary-universal.tar.gz"
@@ -174,10 +175,11 @@ extension PublishUtilitiesTests {
             details: details,
             homepage: homepage,
             license: license,
+            version: version,
             assetURL: assetURL1,
             sha256: sha256Value
         )
-        
+
         #expect(content.contains(projectName.capitalized))
         #expect(content.contains(homepage))
         #expect(content.contains(license))
@@ -185,7 +187,7 @@ extension PublishUtilitiesTests {
         #expect(content.contains(sha256Value))
         #expect(content.contains(assetURL1))
     }
-    
+
     @Test("Creates formula content for multiple binaries with ARM and Intel")
     func createsFormulaContentForMultipleBinaries() throws {
         let content = FormulaContentGenerator.makeFormulaFileContent(
@@ -193,19 +195,20 @@ extension PublishUtilitiesTests {
             details: details,
             homepage: homepage,
             license: license,
+            version: version,
             armURL: assetURL1,
             armSHA256: "arm_sha256",
             intelURL: assetURL2,
             intelSHA256: "intel_sha256"
         )
-        
+
         #expect(content.contains(projectName.capitalized))
         #expect(content.contains("arm_sha256"))
         #expect(content.contains("intel_sha256"))
         #expect(content.contains(assetURL1))
         #expect(content.contains(assetURL2))
     }
-    
+
     @Test("Creates formula content for ARM-only binary")
     func createsFormulaContentForArmOnly() throws {
         let content = FormulaContentGenerator.makeFormulaFileContent(
@@ -213,19 +216,20 @@ extension PublishUtilitiesTests {
             details: details,
             homepage: homepage,
             license: license,
+            version: version,
             armURL: assetURL1,
             armSHA256: "arm_sha256",
             intelURL: nil,
             intelSHA256: nil
         )
-        
+
         #expect(content.contains(projectName.capitalized))
         #expect(content.contains("arm_sha256"))
         #expect(content.contains(assetURL1))
         // Should handle single ARM architecture case
         #expect(!content.contains("intel"))
     }
-    
+
     @Test("Creates formula content for Intel-only binary")
     func createsFormulaContentForIntelOnly() throws {
         let content = FormulaContentGenerator.makeFormulaFileContent(
@@ -233,12 +237,13 @@ extension PublishUtilitiesTests {
             details: details,
             homepage: homepage,
             license: license,
+            version: version,
             armURL: nil,
             armSHA256: nil,
             intelURL: assetURL1,
             intelSHA256: "intel_sha256"
         )
-        
+
         #expect(content.contains(projectName.capitalized))
         #expect(content.contains("intel_sha256"))
         #expect(content.contains(assetURL1))

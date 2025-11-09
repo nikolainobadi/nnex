@@ -47,9 +47,9 @@ extension PublishExecutionManager {
         let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType, skipTests: skipTests)
         let binaryOutput = try PublishUtilities.buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests, shell: shell)
         let archivedBinaries = try PublishUtilities.createArchives(from: binaryOutput, shell: shell)
-        let assetURLs = try uploadRelease(folder: projectFolder, archivedBinaries: archivedBinaries, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
-        
-        let formulaContent = try PublishUtilities.makeFormulaContent(formula: formula, archivedBinaries: archivedBinaries, assetURLs: assetURLs)
+        let (assetURLs, versionNumber) = try uploadRelease(folder: projectFolder, archivedBinaries: archivedBinaries, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
+
+        let formulaContent = try PublishUtilities.makeFormulaContent(formula: formula, version: versionNumber, archivedBinaries: archivedBinaries, assetURLs: assetURLs)
         
         try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
     }
@@ -91,16 +91,16 @@ private extension PublishExecutionManager {
         return (tap, formula, buildType)
     }
 
-    /// Uploads a release to GitHub and returns the asset URLs.
+    /// Uploads a release to GitHub and returns the asset URLs and version number.
     /// - Parameters:
     ///   - folder: The project folder.
     ///   - archivedBinaries: The archived binaries to upload.
     ///   - versionInfo: The version information for the release.
     ///   - previousVersion: The previous version, if any.
     ///   - releaseNotesSource: The source of release notes.
-    /// - Returns: An array of asset URLs from the GitHub release.
+    /// - Returns: A tuple containing an array of asset URLs and the version number from the GitHub release.
     /// - Throws: An error if the upload fails.
-    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> [String] {
+    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
         let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler)
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }

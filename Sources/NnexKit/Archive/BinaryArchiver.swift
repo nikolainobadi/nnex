@@ -14,8 +14,12 @@ public struct BinaryArchiver {
     public init(shell: any Shell) {
         self.shell = shell
     }
-    
-    public func createArchives(from binaryPaths: [String]) throws -> [ArchivedBinary] {
+}
+
+
+// MARK: - Actions
+public extension BinaryArchiver {
+    func createArchives(from binaryPaths: [String]) throws -> [ArchivedBinary] {
         var archivedBinaries: [ArchivedBinary] = []
         
         for binaryPath in binaryPaths {
@@ -26,7 +30,7 @@ public struct BinaryArchiver {
         return archivedBinaries
     }
     
-    public func cleanup(_ archivedBinaries: [ArchivedBinary]) throws {
+    func cleanup(_ archivedBinaries: [ArchivedBinary]) throws {
         for archived in archivedBinaries {
             let url = URL(fileURLWithPath: archived.archivePath)
             let fileName = url.lastPathComponent

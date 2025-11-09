@@ -45,7 +45,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseVersion == testVersionNumber)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == false)
@@ -72,7 +72,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
     }
     
@@ -97,7 +97,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseVersion == testVersionNumber)
     }
     
@@ -119,7 +119,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotesFile)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == true)
     }
@@ -142,7 +142,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == false)
     }
@@ -167,7 +167,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == false)
     }
@@ -193,7 +193,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
     }
     
     @Test("Handles version input with specific version number")
@@ -217,7 +217,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseVersion == "2.1.0")
     }
     
@@ -242,7 +242,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseVersion == "1.5.0")
     }
     
@@ -267,7 +267,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseVersion == "1.0.0")
     }
     
@@ -327,7 +327,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotesFile)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == true)
         #expect(trashHandler.moveToTrashCalled == true)
@@ -353,7 +353,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotesFile)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == true)
         #expect(trashHandler.moveToTrashCalled == false)
@@ -379,7 +379,7 @@ extension ReleaseHandlerTests {
             releaseNotesSource: releaseNotesSource
         )
         
-        #expect(results.first == testAssetURL)
+        #expect(results.assetURLs.first == testAssetURL)
         #expect(gitHandler.releaseNoteInfo?.content == testReleaseNotes)
         #expect(gitHandler.releaseNoteInfo?.isFromFile == false)
         #expect(trashHandler.moveToTrashCalled == false)
