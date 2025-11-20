@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2025-11-20
+
+### Added
+- Folder browsing interface for ImportTap command allowing visual selection of Homebrew tap folders
+- Folder browsing interface for CreateTap command for selecting tap locations
+- File selection option for release notes in publish workflow
+
+### Changed
+- Updated to SwiftPickerKit package for improved interactive selection interfaces
+
 ## [0.9.7] - 2025-11-08
 
 ### Fixed
