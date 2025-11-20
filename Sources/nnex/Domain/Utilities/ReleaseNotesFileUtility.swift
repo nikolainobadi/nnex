@@ -34,7 +34,7 @@ extension ReleaseNotesFileUtility {
     /// - Parameter projectName: The name of the project for the filename.
     /// - Returns: A FileProtocol instance representing the created file.
     /// - Throws: An error if file creation fails.
-    func createAndOpenNewNoteFile(projectName: String) throws -> FileProtocol {
+    func createAndOpenNewNoteFile(projectName: String) throws -> any FileProtocol {
         let desktopPath = try Folder.home.subfolder(named: "Desktop").path
         let fileName = "\(projectName)-releaseNotes-\(dateProvider.currentDate.shortFormat).md"
         return try fileSystem.createFile(in: desktopPath, named: fileName)
@@ -46,7 +46,7 @@ extension ReleaseNotesFileUtility {
     ///   - version: The version number for the filename.
     /// - Returns: A FileProtocol instance representing the created file.
     /// - Throws: An error if file creation fails.
-    func createVersionedNoteFile(projectName: String, version: String) throws -> FileProtocol {
+    func createVersionedNoteFile(projectName: String, version: String) throws -> any FileProtocol {
         let desktopPath = try Folder.home.subfolder(named: "Desktop").path
         let fileName = "\(projectName)-releaseNotes-v\(version).md"
         return try fileSystem.createFile(in: desktopPath, named: fileName)
@@ -87,7 +87,7 @@ protocol FileProtocol {
 }
 
 protocol FileSystemProvider {
-    func createFile(in folderPath: String, named: String) throws -> FileProtocol
+    func createFile(in folderPath: String, named: String) throws -> any FileProtocol
 }
 
 
