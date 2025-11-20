@@ -195,7 +195,7 @@ extension ExecutableNameResolverTests {
 // MARK: - Private Methods
 private extension ExecutableNameResolverTests {
     func makeSUT() -> ExecutableNameResolver {
-        return ExecutableNameResolver()
+        return .init()
     }
     
     func createPackageSwift(executableName: String) throws {

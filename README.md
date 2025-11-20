@@ -50,12 +50,11 @@ brew install nikolainobadi/tap/nnex
 ```
 
 ## Commands
-**nnex** utilizes four subcommands: `Brew`, `Build`, `Config`, and `Archive`.
+**nnex** utilizes four subcommands: `Brew`, `Build`, and `Config`.
 
 - **Brew commands** are used to interact with Homebrew and GitHub
 - **Build commands** handle local binary building 
 - **Config commands** are used to set preferences
-- **Archive commands** provide archiving and packaging functionality
 
 The tool follows a clean architecture with separation of concerns between command parsing, business logic, and infrastructure.
 
@@ -120,7 +119,7 @@ Issues and suggestions are also welcome via [GitHub Issues](https://github.com/n
 ### Third-Party Libraries
 
 #### My Libraries
-- [SwiftPicker](https://github.com/nikolainobadi/SwiftPicker) - Interactive command-line selection interfaces
+- [SwiftPickerKit](https://github.com/nikolainobadi/SwiftPickerKit) - Interactive command-line selection interfaces
 - [NnGitKit](https://github.com/nikolainobadi/NnGitKit) - Git operations wrapper (GitShellKit)
 - [NnShellKit](https://github.com/nikolainobadi/NnShellKit) - Shell command execution utilities
 - [NnSwiftDataKit](https://github.com/nikolainobadi/NnSwiftDataKit) - SwiftData utilities and extensions

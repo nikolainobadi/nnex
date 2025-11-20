@@ -1,5 +1,5 @@
 {
-  "originHash" : "e11edd7aa56fc2fbaebedd3c2ac4c52892162e12fda1d1fe809f4da7476ca2e9",
+  "originHash" : "9e7ba982b32ec6fa9013c964f2e4ab02134e947d1477fe5270cbec777f0974b1",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -51,17 +51,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-argument-parser.git",
       "state" : {
-        "revision" : "309a47b2b1d9b5e991f36961c983ecec72275be3",
-        "version" : "1.6.1"
+        "revision" : "cdd0ef3755280949551dc26dee5de9ddeda89f54",
+        "version" : "1.6.2"
       }
     },
     {
-      "identity" : "swiftpicker",
+      "identity" : "swiftpickerkit",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/nikolainobadi/SwiftPicker.git",
+      "location" : "https://github.com/nikolainobadi/SwiftPickerKit.git",
       "state" : {
-        "revision" : "4071f15d77b87c32a33b7ae7ac5dc789a59169c3",
-        "version" : "1.0.0"
+        "revision" : "aad25168e13c27c67f5d73f8e9bb217ce208aae5",
+        "version" : "0.6.0"
       }
     }
   ],

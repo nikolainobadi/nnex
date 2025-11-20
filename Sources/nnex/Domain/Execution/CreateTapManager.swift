@@ -13,11 +13,11 @@ import Foundation
 
 struct CreateTapManager {
     private let shell: any Shell
-    private let picker: NnexPicker
-    private let gitHandler: GitHandler
+    private let picker: any NnexPicker
+    private let gitHandler: any GitHandler
     private let context: NnexContext
     
-    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, context: NnexContext) {
+    init(shell: any Shell, picker: any NnexPicker, gitHandler: any GitHandler, context: NnexContext) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
@@ -113,8 +113,7 @@ private extension CreateTapManager {
 
         var tapListFolder: Folder
         if selection == addNewPath {
-            let newPath = try picker.getRequiredInput(prompt: "Enter the path where your Homebrew Taps should be created.")
-            tapListFolder = try Folder(path: newPath)
+            tapListFolder = try picker.requiredFolderSelection(prompt: "Select the folder where your Homebrew Taps should be created")
         } else {
             tapListFolder = try homeFolder.createSubfolder(named: defaultTapFolderName)
         }
@@ -126,3 +125,5 @@ private extension CreateTapManager {
         return tapListFolder
     }
 }
+
+

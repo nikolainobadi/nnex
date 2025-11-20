@@ -47,8 +47,14 @@ extension PublishExecutionManagerTests {
         let factory = MockContextFactory(
             commandResults: commandResults,
             selectedItemIndices: [],
-            inputResponses: [],
-            permissionResponses: [false] // Don't commit formula to GitHub
+            inputResponses: [
+                "formula details",
+                "release notes"
+            ],
+            permissionResponses: [
+                true, // create a new formula
+                false // Don't commit formula to GitHub
+            ]
         )
         
         let context = try factory.makeContext()
@@ -97,8 +103,14 @@ extension PublishExecutionManagerTests {
         let factory = MockContextFactory(
             commandResults: commandResults,
             selectedItemIndices: [0, 0], // Select tap, select no tests
-            inputResponses: ["Test formula description"], // Formula description
-            permissionResponses: [true, false] // Create new formula, don't commit to GitHub
+            inputResponses: [
+                "formula details",
+                "release notes"
+            ],
+            permissionResponses: [
+                true, // create a new formula
+                false // Don't commit formula to GitHub
+            ]
         )
         
         let context = try factory.makeContext()
@@ -137,7 +149,10 @@ extension PublishExecutionManagerTests {
         let factory = MockContextFactory(
             commandResults: commandResults,
             selectedItemIndices: [],
-            inputResponses: ["Test commit message"], // Commit message
+            inputResponses: [
+                "release notes",
+                "Test commit message" // Commit message
+            ],
             permissionResponses: [true] // Commit and push to GitHub
         )
         
@@ -185,7 +200,14 @@ extension PublishExecutionManagerTests {
         ]
         
         let factory = MockContextFactory(
-            commandResults: commandResults
+            commandResults: commandResults,
+            inputResponses: [
+                "formula details",
+                "release notes"
+            ],
+            permissionResponses: [
+                true // create new formula
+            ]
         )
         
         let context = try factory.makeContext()

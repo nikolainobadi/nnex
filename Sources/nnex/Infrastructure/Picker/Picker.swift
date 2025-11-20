@@ -5,7 +5,9 @@
 //  Created by Nikolai Nobadi on 3/23/25.
 //
 
-import SwiftPicker
+import Files
+import NnexKit
+import SwiftPickerKit
 
 /// A protocol defining methods for user interaction and input retrieval.
 protocol NnexPicker {
@@ -32,4 +34,23 @@ protocol NnexPicker {
     /// - Returns: The item selected by the user.
     /// - Throws: An error if the selection could not be made.
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item
+    
+    func browseSelection(prompt: String, allowSelectingFolders: Bool) -> FileSystemNode?
+}
+
+extension NnexPicker {
+    func requiredBrowseSelection(prompt: String, allowSelectingFolders: Bool = true) throws -> FileSystemNode {
+        guard let folder = browseSelection(prompt: prompt, allowSelectingFolders: allowSelectingFolders) else {
+            throw NnexError.selectionRequired
+        }
+        
+        return folder
+    }
+    
+    func requiredFolderSelection(prompt: String) throws -> Folder {
+        let folder = try requiredBrowseSelection(prompt: prompt)
+        
+        // TODO: - this may need to be adjusted
+        return try .init(path: folder.url.path())
+    }
 }

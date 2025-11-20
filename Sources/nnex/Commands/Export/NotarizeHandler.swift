@@ -9,7 +9,6 @@ import Files
 import NnexKit
 import NnShellKit
 import Foundation
-import SwiftPicker
 
 protocol NotarizeHandler {
     func isArchiveNotarized(_ archivePath: String) throws -> Bool
@@ -18,9 +17,9 @@ protocol NotarizeHandler {
 
 struct DefaultNotarizeHandler: NotarizeHandler {
     private let shell: any Shell
-    private let picker: NnexPicker
+    private let picker: any NnexPicker
     
-    init(shell: any Shell, picker: NnexPicker) {
+    init(shell: any Shell, picker: any NnexPicker) {
         self.shell = shell
         self.picker = picker
     }

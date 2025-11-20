@@ -251,7 +251,7 @@ extension PublishTests {
         let trashHandler = MockTrashHandler()
         let inputs = [versionNumber, filePath, commitMessage]
         let shell = createMockShell()
-        let factory = MockContextFactory(selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [true, true], gitHandler: gitHandler, shell: shell, trashHandler: trashHandler)
+        let factory = MockContextFactory(selectedItemIndex: 2, inputResponses: inputs, permissionResponses: [true, true], gitHandler: gitHandler, shell: shell, trashHandler: trashHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory)
@@ -276,7 +276,7 @@ extension PublishTests {
         let trashHandler = MockTrashHandler()
         let inputs = [versionNumber, filePath, commitMessage]
         let shell = createMockShell()
-        let factory = MockContextFactory(selectedItemIndex: 1, inputResponses: inputs, permissionResponses: [false, true], gitHandler: gitHandler, shell: shell, trashHandler: trashHandler)
+        let factory = MockContextFactory(selectedItemIndex: 2, inputResponses: inputs, permissionResponses: [false, true], gitHandler: gitHandler, shell: shell, trashHandler: trashHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory)

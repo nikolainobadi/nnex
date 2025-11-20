@@ -11,14 +11,14 @@ import GitCommandGen
 import NnShellKit
 
 struct ReleaseNotesHandler {
-    private let picker: NnexPicker
+    private let picker: any NnexPicker
     private let projectName: String
     private let fileUtility: ReleaseNotesFileUtility
     
-    init(picker: NnexPicker, projectName: String, fileUtility: ReleaseNotesFileUtility? = nil) {
+    init(picker: any NnexPicker, projectName: String, fileUtility: ReleaseNotesFileUtility) {
         self.picker = picker
         self.projectName = projectName
-        self.fileUtility = fileUtility ?? ReleaseNotesFileUtility(picker: picker)
+        self.fileUtility = fileUtility
     }
 }
 
@@ -31,6 +31,10 @@ extension ReleaseNotesHandler {
             let notes = try picker.getRequiredInput(prompt: "Enter your release notes.")
             
             return .init(content: notes, isFromFile: false)
+        case .selectFile:
+            let selection = try picker.requiredBrowseSelection(prompt: "Select the file containing your release notes", allowSelectingFolders: false)
+            
+            return .init(content: selection.url.path(), isFromFile: true)
         case .fromPath:
             let filePath = try picker.getRequiredInput(prompt: "Enter the path to the file for the \(projectName) release notes.")
             
@@ -44,9 +48,9 @@ extension ReleaseNotesHandler {
 }
 
 
+// MARK: - Dependencies
 extension ReleaseNotesHandler {
     enum NoteContentType: CaseIterable {
-        case direct, fromPath, createFile
+        case direct, selectFile, fromPath, createFile
     }
 }
-

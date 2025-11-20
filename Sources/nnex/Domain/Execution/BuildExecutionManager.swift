@@ -12,10 +12,10 @@ import Foundation
 
 struct BuildExecutionManager {
     private let shell: any Shell
-    private let picker: NnexPicker
+    private let picker: any NnexPicker
     private let copyUtility: BinaryCopyUtility
     
-    init(shell: any Shell, picker: NnexPicker) {
+    init(shell: any Shell, picker: any NnexPicker) {
         self.shell = shell
         self.picker = picker
         self.copyUtility = BinaryCopyUtility(shell: shell)

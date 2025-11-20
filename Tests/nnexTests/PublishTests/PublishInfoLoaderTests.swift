@@ -9,6 +9,7 @@ import NnexKit
 import Testing
 import NnShellKit
 import Foundation
+import SwiftPickerTesting
 import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
@@ -120,7 +121,11 @@ private extension PublishInfoLoaderTests {
     func makeSUT(context: NnexContext, skipTests: Bool = false, inputResponses: [String] = [], permissionResponses: [Bool] = [], selectedItemIndices: [Int] = []) throws -> PublishInfoLoader {
         let shell = MockShell()
         let gitHandler = MockGitHandler()
-        let picker = MockPicker(selectedItemIndices: selectedItemIndices, inputResponses: inputResponses, permissionResponses: permissionResponses)
+        let picker = MockSwiftPicker(
+            inputResult: .init(type: .ordered(inputResponses)),
+            permissionResult: .init(type: .ordered(permissionResponses)),
+            selectionResult: .init(singleType: .ordered(selectedItemIndices.map({ .index($0) })))
+        ) 
         let sut = PublishInfoLoader(
             shell: shell,
             picker: picker,
