@@ -20,7 +20,7 @@ struct ReleaseNotesFileUtility {
     ///   - picker: The picker for user interactions.
     ///   - fileSystem: The file system provider.
     ///   - dateProvider: The date provider.
-    init(picker: any NnexPicker, fileSystem: any FileSystemProvider = DefaultFileSystemProvider(), dateProvider: any DateProvider = DefaultDateProvider()) {
+    init(picker: any NnexPicker, fileSystem: any FileSystemProvider, dateProvider: any DateProvider) {
         self.picker = picker
         self.fileSystem = fileSystem
         self.dateProvider = dateProvider

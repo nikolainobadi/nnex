@@ -25,7 +25,13 @@ struct ReleaseHandler {
 
 // MARK: - Action
 extension ReleaseHandler {
-    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
+    func uploadRelease(
+        folder: Folder,
+        archivedBinaries: [ArchivedBinary],
+        versionInfo: ReleaseVersionInfo,
+        previousVersion: String?,
+        releaseNotesSource: ReleaseNotesSource
+    ) throws -> (assetURLs: [String], versionNumber: String) {
         let releaseNumber = extractVersionString(from: versionInfo)
         let noteInfo = try getReleaseNoteInfo(projectName: folder.name, releaseNotesSource: releaseNotesSource, releaseNumber: releaseNumber, projectPath: folder.path)
         let store = ReleaseStore(gitHandler: gitHandler)
@@ -59,14 +65,20 @@ extension ReleaseHandler {
 
 // MARK: - Private
 private extension ReleaseHandler {
-    func getReleaseNoteInfo(projectName: String, releaseNotesSource: ReleaseNotesSource, releaseNumber: String, projectPath: String) throws -> ReleaseNoteInfo {
+    func getReleaseNoteInfo(
+        projectName: String,
+        releaseNotesSource: ReleaseNotesSource,
+        releaseNumber: String,
+        projectPath: String
+    ) throws -> ReleaseNoteInfo {
         if let notesFile = releaseNotesSource.notesFile {
             return .init(content: notesFile, isFromFile: true)
         }
         if let notes = releaseNotesSource.notes {
             return .init(content: notes, isFromFile: false)
         }
-        return try ReleaseNotesHandler(picker: picker, projectName: projectName).getReleaseNoteInfo()
+        let fileUtility = ReleaseNotesFileUtility(picker: picker, fileSystem: DefaultFileSystemProvider(), dateProvider: DefaultDateProvider())
+        return try ReleaseNotesHandler(picker: picker, projectName: projectName, fileUtility: fileUtility).getReleaseNoteInfo()
     }
     
     func maybeTrashReleaseNotes(_ info: ReleaseNoteInfo) throws {

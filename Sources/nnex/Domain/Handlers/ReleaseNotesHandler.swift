@@ -15,10 +15,10 @@ struct ReleaseNotesHandler {
     private let projectName: String
     private let fileUtility: ReleaseNotesFileUtility
     
-    init(picker: any NnexPicker, projectName: String, fileUtility: ReleaseNotesFileUtility? = nil) {
+    init(picker: any NnexPicker, projectName: String, fileUtility: ReleaseNotesFileUtility) {
         self.picker = picker
         self.projectName = projectName
-        self.fileUtility = fileUtility ?? ReleaseNotesFileUtility(picker: picker)
+        self.fileUtility = fileUtility
     }
 }
 

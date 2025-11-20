@@ -7,10 +7,10 @@
 
 import Files
 import NnexKit
-import NnShellKit
-import ArgumentParser
 import Foundation
-import SwiftPicker
+import NnShellKit
+import SwiftPickerKit
+import ArgumentParser
 
 extension Nnex.Archive {
     struct MacOS: ParsableCommand {
