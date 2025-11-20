@@ -5,6 +5,7 @@
 //  Created by Nikolai Nobadi on 3/23/25.
 //
 
+import Files
 import SwiftPickerKit
 
 /// A protocol defining methods for user interaction and input retrieval.
@@ -32,4 +33,6 @@ protocol NnexPicker {
     /// - Returns: The item selected by the user.
     /// - Throws: An error if the selection could not be made.
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item
+    
+    func browseFolders(prompt: String) -> Folder?
 }

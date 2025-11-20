@@ -5,6 +5,7 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
+import Files
 import NnexKit
 import SwiftPickerKit
 
@@ -46,5 +47,29 @@ extension DefaultPicker: NnexPicker {
     /// - Throws: An error if the selection could not be made.
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
         return try picker.requiredSingleSelection(title, items: items)
+    }
+    
+    func browseFolders(prompt: String) -> Folder? {
+        return picker.treeNavigation(prompt, rootItems: [Folder.home], startInsideFirstRoot: true)
+    }
+}
+
+
+// MARK: - Extension Dependencies
+extension Folder: @retroactive TreeNodePickerItem {
+    public var displayName: String {
+        return name
+    }
+    
+    public var hasChildren: Bool {
+        return subfolders.count() > 0
+    }
+    
+    public var metadata: TreeNodeMetadata? {
+        return nil
+    }
+    
+    public func loadChildren() -> [Folder] {
+        return subfolders.map({ $0 })
     }
 }
