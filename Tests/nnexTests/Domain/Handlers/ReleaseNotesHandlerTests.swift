@@ -32,6 +32,17 @@ extension ReleaseNotesHandlerTests {
         #expect(result.isFromFile == false)
     }
     
+    @Test("Returns selected file path from browsing")
+    func returnsSelectedFilePath() throws {
+        MockSwiftPicker.fileToReturn = .init(url: .init(string: testFilePath)!)
+        
+        let sut = makeSUT(selectedOption: .selectFile).sut
+        let result = try sut.getReleaseNoteInfo()
+        
+        #expect(result.content == testFilePath)
+        #expect(result.isFromFile == true)
+    }
+    
     @Test("Returns file path when user provides existing file path")
     func returnsFilePathInput() throws {
         let sut = makeSUT(selectedOption: .fromPath, inputResponses: [testFilePath]).sut

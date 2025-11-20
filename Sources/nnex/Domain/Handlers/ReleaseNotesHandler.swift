@@ -32,7 +32,9 @@ extension ReleaseNotesHandler {
             
             return .init(content: notes, isFromFile: false)
         case .selectFile:
-            fatalError() // TODO: - 
+            let selection = try picker.requiredBrowseSelection(prompt: "Select the file containing your release notes", allowSelectingFolders: false)
+            
+            return .init(content: selection.url.path(), isFromFile: true)
         case .fromPath:
             let filePath = try picker.getRequiredInput(prompt: "Enter the path to the file for the \(projectName) release notes.")
             
@@ -46,9 +48,9 @@ extension ReleaseNotesHandler {
 }
 
 
+// MARK: - Dependencies
 extension ReleaseNotesHandler {
     enum NoteContentType: CaseIterable {
         case direct, selectFile, fromPath, createFile
     }
 }
-
