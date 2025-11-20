@@ -19,9 +19,9 @@ extension Nnex.Brew {
         var path: String?
         
         func run() throws {
+            let picker = Nnex.makePicker()
             let context = try Nnex.makeContext()
-            let path = try path ?? Nnex.makePicker().getRequiredInput(prompt: "Enter the local path to your Homebrew tap folder.")
-            let folder = try Folder(path: path)
+            let folder = try selectHomebrewFolder(path: path, picker: picker)
             let tapName = folder.name.removingHomebrewPrefix
             let remotePath = try Nnex.makeGitHandler().getRemoteURL(path: folder.path)
 
@@ -53,6 +53,13 @@ extension Nnex.Brew {
 
 // MARK: - Private Methods
 private extension Nnex.Brew.ImportTap {
+    func selectHomebrewFolder(path: String?, picker: any NnexPicker) throws -> Folder {
+        if let path {
+            return try Folder(path: path)
+        }
+        
+        return try picker.requiredFolderSelection(prompt: "Select the Homebrew Tap folder you would like to import.")
+    }
     /// Decodes a Homebrew formula from a file.
     /// - Parameter file: The file containing the formula.
     /// - Returns: A BrewFormula instance if decoding is successful, or nil otherwise.

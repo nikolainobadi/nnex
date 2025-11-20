@@ -7,6 +7,7 @@
 
 import NnexKit
 import Testing
+import SwiftPickerTesting
 import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
@@ -36,7 +37,7 @@ extension BrewImportTapTests {
         #expect(try context.loadTaps().isEmpty)
     }
     
-    @Test("Imports empty tap from existing folder")
+    @Test("Imports empty tap from existing folder when path is passed as arg")
     func importsEmptyTap() throws {
         let testFactory = MockContextFactory()
         let context = try testFactory.makeContext()
@@ -49,7 +50,24 @@ extension BrewImportTapTests {
         #expect(newTap.formulas.isEmpty)
     }
     
-    @Test("Imports tap from existing folder and decodes existing formula")
+    @Test("Imports empty tap from existing folder from selection")
+    func importsEmptyTapFromSelection() throws {
+        MockSwiftPicker.folderToReturn = tapFolder
+        
+        let testFactory = MockContextFactory()
+        let context = try testFactory.makeContext()
+        
+        try runCommand(testFactory)
+        
+        let newTap = try #require(try context.loadTaps().first)
+        
+        #expect(newTap.name == tapName)
+        #expect(newTap.formulas.isEmpty)
+    }
+    
+    
+    
+    @Test("Imports tap from existing folder and decodes existing formula when path is passed as arg")
     func importTapWithFormula() throws {
         let name = "testFormula"
         let details = "formula details"
@@ -78,7 +96,7 @@ extension BrewImportTapTests {
         #expect(newFormula.license == license)
     }
 
-    @Test("Imports tap without Formula folder and shows warning")
+    @Test("Imports tap without Formula folder and shows warning when path is passed as arg")
     func importsTapWithoutFormulaFolder() throws {
         let testFactory = MockContextFactory()
         let context = try testFactory.makeContext()

@@ -6,6 +6,7 @@
 //
 
 import Files
+import NnexKit
 import SwiftPickerKit
 
 /// A protocol defining methods for user interaction and input retrieval.
@@ -35,4 +36,14 @@ protocol NnexPicker {
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item
     
     func browseFolders(prompt: String) -> Folder?
+}
+
+extension NnexPicker {
+    func requiredFolderSelection(prompt: String) throws -> Folder {
+        guard let folder = browseFolders(prompt: prompt) else {
+            throw NnexError.selectionRequired
+        }
+        
+        return folder
+    }
 }

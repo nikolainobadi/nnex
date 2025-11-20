@@ -31,4 +31,5 @@ public enum NnexError: Error {
     case noPreviousVersionToIncrement
     
     case missingExecutable
+    case selectionRequired
 }

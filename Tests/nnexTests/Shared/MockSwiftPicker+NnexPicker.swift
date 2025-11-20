@@ -11,8 +11,10 @@ import SwiftPickerTesting
 @testable import nnex
 
 extension MockSwiftPicker: NnexPicker {
+    nonisolated(unsafe) static var folderToReturn: Folder?
+    
     public func browseFolders(prompt: String) -> Folder? {
-        return nil // TODO: - 
+        return MockSwiftPicker.folderToReturn
     }
     
     public func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
