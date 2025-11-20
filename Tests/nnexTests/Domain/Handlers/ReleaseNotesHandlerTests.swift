@@ -140,10 +140,12 @@ private extension ReleaseNotesHandler.NoteContentType {
         switch self {
         case .direct:
             return 0
-        case .fromPath:
+        case .selectFile:
             return 1
-        case .createFile:
+        case .fromPath:
             return 2
+        case .createFile:
+            return 3
         }
     }
 }

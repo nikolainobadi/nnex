@@ -13,6 +13,18 @@ import SwiftPickerTesting
 extension MockSwiftPicker: NnexPicker {
     nonisolated(unsafe) static var folderToReturn: Folder?
     
+    public func browseSelection(prompt: String, allowSelectingFolders: Bool) -> FileSystemNode? {
+        if allowSelectingFolders {
+            guard let folderToReturn = MockSwiftPicker.folderToReturn else {
+                return nil
+            }
+            
+            return .init(url: folderToReturn.url)
+        }
+        
+        fatalError()
+    }
+    
     public func browseFolders(prompt: String) -> Folder? {
         return MockSwiftPicker.folderToReturn
     }

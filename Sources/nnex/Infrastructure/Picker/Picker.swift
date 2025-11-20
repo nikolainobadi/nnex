@@ -35,15 +35,22 @@ protocol NnexPicker {
     /// - Throws: An error if the selection could not be made.
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item
     
-    func browseFolders(prompt: String) -> Folder?
+    func browseSelection(prompt: String, allowSelectingFolders: Bool) -> FileSystemNode?
 }
 
 extension NnexPicker {
-    func requiredFolderSelection(prompt: String) throws -> Folder {
-        guard let folder = browseFolders(prompt: prompt) else {
+    func requiredBrowseSelection(prompt: String, allowSelectingFolders: Bool = true) throws -> FileSystemNode {
+        guard let folder = browseSelection(prompt: prompt, allowSelectingFolders: allowSelectingFolders) else {
             throw NnexError.selectionRequired
         }
         
         return folder
+    }
+    
+    func requiredFolderSelection(prompt: String) throws -> Folder {
+        let folder = try requiredBrowseSelection(prompt: prompt)
+        
+        // TODO: - this may need to be adjusted
+        return try .init(path: folder.url.path())
     }
 }
