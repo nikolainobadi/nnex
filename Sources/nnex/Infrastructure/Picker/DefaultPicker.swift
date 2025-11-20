@@ -46,7 +46,7 @@ extension DefaultPicker: NnexPicker {
     /// - Returns: The item selected by the user.
     /// - Throws: An error if the selection could not be made.
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
-        return try picker.requiredSingleSelection(title, items: items)
+        return try picker.requiredSingleSelection(title, items: items, showSelectedItemText: false)
     }
     
     func browseSelection(prompt: String, allowSelectingFolders: Bool) -> FileSystemNode? {

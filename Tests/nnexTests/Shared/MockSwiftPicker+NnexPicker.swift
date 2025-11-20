@@ -35,6 +35,6 @@ extension MockSwiftPicker: NnexPicker {
     }
     
     public func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
-        return try requiredSingleSelection(prompt: title, items: items, layout: .singleColumn, newScreen: true)
+        return try requiredSingleSelection(prompt: title, items: items, layout: .singleColumn, newScreen: true, showSelectedItemText: false)
     }
 }
