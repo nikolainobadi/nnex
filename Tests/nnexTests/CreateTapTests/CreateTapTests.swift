@@ -7,6 +7,7 @@
 
 import NnexKit
 import Testing
+import SwiftPickerTesting
 import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
@@ -116,8 +117,10 @@ extension CreateTapTests {
     // TODO: - need to verify other Tap properties
     @Test("Saves the newly created tap in SwiftData database") 
     func savesCreatedTap() throws {
+        MockSwiftPicker.folderToReturn = tapListFolder
+        
         let name = "myNewTap"
-        let factory = MockContextFactory(inputResponses: [tapListFolder.path, tapDetails])
+        let factory = MockContextFactory(inputResponses: [tapDetails])
         let context = try factory.makeContext()
         
         try runCommand(factory, name: name)

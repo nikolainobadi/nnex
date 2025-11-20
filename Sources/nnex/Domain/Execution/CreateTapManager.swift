@@ -113,8 +113,7 @@ private extension CreateTapManager {
 
         var tapListFolder: Folder
         if selection == addNewPath {
-            let newPath = try picker.getRequiredInput(prompt: "Enter the path where your Homebrew Taps should be created.")
-            tapListFolder = try Folder(path: newPath)
+            tapListFolder = try picker.requiredFolderSelection(prompt: "Select the folder where your Homebrew Taps should be created")
         } else {
             tapListFolder = try homeFolder.createSubfolder(named: defaultTapFolderName)
         }
