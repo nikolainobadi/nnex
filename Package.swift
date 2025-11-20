@@ -27,15 +27,15 @@ let package = Package(
         .package(url: "https://github.com/nikolainobadi/NnGitKit.git", from: "0.6.0"),
         .package(url: "https://github.com/nikolainobadi/NnShellKit.git", from: "2.0.0"),
         .package(url: "https://github.com/nikolainobadi/NnSwiftDataKit", from: "0.5.0"),
-        .package(url: "https://github.com/nikolainobadi/SwiftPicker.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
+        .package(url: "https://github.com/nikolainobadi/SwiftPickerKit.git", from: "0.5.0")
     ],
     targets: [
         .executableTarget(
             name: "nnex",
             dependencies: [
                 "NnexKit",
-                "SwiftPicker",
+                .product(name: "SwiftPickerKit", package: "SwiftPickerKit"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             linkerSettings: [
@@ -66,7 +66,8 @@ let package = Package(
             name: "nnexTests",
             dependencies: [
                 "nnex",
-                "NnexSharedTestHelpers"
+                "NnexSharedTestHelpers",
+                .product(name: "SwiftPickerTesting", package: "SwiftPickerKit")
             ]
         ),
         .testTarget(

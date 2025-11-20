@@ -6,11 +6,11 @@
 //
 
 import NnexKit
-import SwiftPicker
+import SwiftPickerKit
 
 /// A default implementation of the `Picker` protocol that utilizes `SwiftPicker`.
 struct DefaultPicker {
-    private let picker = InteractivePicker()
+    private let picker = SwiftPicker()
 }
 
 
@@ -45,6 +45,6 @@ extension DefaultPicker: NnexPicker {
     /// - Returns: The item selected by the user.
     /// - Throws: An error if the selection could not be made.
     func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
-        return try picker.requiredSingleSelection(title: title, items: items)
+        return try picker.requiredSingleSelection(title, items: items)
     }
 }

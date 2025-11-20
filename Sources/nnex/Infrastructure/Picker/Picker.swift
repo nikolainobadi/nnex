@@ -5,7 +5,7 @@
 //  Created by Nikolai Nobadi on 3/23/25.
 //
 
-import SwiftPicker
+import SwiftPickerKit
 
 /// A protocol defining methods for user interaction and input retrieval.
 protocol NnexPicker {

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftPicker
+import SwiftPickerKit
 @testable import nnex
 
 final class MockPicker {
