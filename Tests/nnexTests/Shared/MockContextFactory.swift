@@ -9,6 +9,7 @@ import NnexKit
 import NnShellKit
 import SwiftData
 import Foundation
+import SwiftPickerTesting
 import NnexSharedTestHelpers
 @testable import nnex
 
@@ -22,7 +23,7 @@ final class MockContextFactory {
     private let permissionResponses: [Bool]
     private let gitHandler: MockGitHandler
     private var shell: MockShell?
-    private var picker: MockPicker?
+    private var picker: MockSwiftPicker?
     private var context: NnexContext?
     private var trashHandler: MockTrashHandler?
     
@@ -74,7 +75,12 @@ extension MockContextFactory: ContextFactory {
             return picker
         }
         
-        let newPicker = MockPicker(selectedItemIndex: selectedItemIndex, selectedItemIndices: selectedItemIndices, inputResponses: inputResponses, permissionResponses: permissionResponses)
+        let newPicker = MockSwiftPicker(
+            inputResult: .init(type: .ordered(inputResponses)),
+            permissionResult: .init(type: .ordered(permissionResponses)),
+            selectionResult: .init(defaultSingle: .index(selectedItemIndex), singleType: .ordered(selectedItemIndices.map({ .index($0) })))
+        )
+        
         picker = newPicker
         return newPicker
     }

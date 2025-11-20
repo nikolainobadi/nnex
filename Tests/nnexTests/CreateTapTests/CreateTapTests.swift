@@ -14,6 +14,7 @@ import NnexSharedTestHelpers
 @MainActor // needs to be MainActor to ensure proper interactions with SwiftData
 final class CreateTapTests {
     private let tapListFolder: Folder
+    private let tapDetails = "new tap details"
     
     init() throws {
         self.tapListFolder = try Folder.temporary.createSubfolder(named: "tapListFolder")
@@ -59,7 +60,7 @@ extension CreateTapTests {
         let tapName = name.homebrewTapName
         let remoteURL = "remoteURL"
         let gitHandler = MockGitHandler(remoteURL: remoteURL)
-        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
+        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, inputResponses: [tapDetails], gitHandler: gitHandler)
 
         try runCommand(factory, name: name)
 
@@ -75,7 +76,7 @@ extension CreateTapTests {
         let tapName = name.homebrewTapName
         let remoteURL = "remoteURL"
         let gitHandler = MockGitHandler(remoteURL: remoteURL)
-        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
+        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, inputResponses: [tapDetails], gitHandler: gitHandler)
 
         try runCommand(factory, name: name)
 
@@ -92,7 +93,7 @@ extension CreateTapTests {
         let tapName = name.homebrewTapName
         let remoteURL = "remoteURL"
         let gitHandler = MockGitHandler(remoteURL: remoteURL)
-        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, inputResponses: [name], gitHandler: gitHandler)
+        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, inputResponses: [name, tapDetails], gitHandler: gitHandler)
         
         try runCommand(factory)
 
@@ -113,10 +114,10 @@ extension CreateTapTests {
     }
     
     // TODO: - need to verify other Tap properties
-    @Test("Saves the newly created tap in SwiftData database")
+    @Test("Saves the newly created tap in SwiftData database") 
     func savesCreatedTap() throws {
         let name = "myNewTap"
-        let factory = MockContextFactory()
+        let factory = MockContextFactory(inputResponses: [tapListFolder.path, tapDetails])
         let context = try factory.makeContext()
         
         try runCommand(factory, name: name)
@@ -130,7 +131,7 @@ extension CreateTapTests {
         let tapName = name.homebrewTapName
         let remoteURL = "remoteURL"
         let gitHandler = MockGitHandler(remoteURL: remoteURL)
-        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, gitHandler: gitHandler)
+        let factory = MockContextFactory(tapListFolderPath: tapListFolder.path, inputResponses: [tapDetails], gitHandler: gitHandler)
         
         try runCommand(factory, name: name)
 
