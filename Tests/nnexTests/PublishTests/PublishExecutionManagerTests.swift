@@ -27,7 +27,7 @@ final class PublishExecutionManagerTests: BasePublishTestSuite {
 
 // MARK: - Tests
 extension PublishExecutionManagerTests {
-    @Test("Successfully executes publish with existing formula", .disabled()) // TODO: -
+    @Test("Successfully executes publish with existing formula")
     func successfullyExecutesPublishWithExistingFormula() throws {
         try createPackageSwift()
         
@@ -47,8 +47,14 @@ extension PublishExecutionManagerTests {
         let factory = MockContextFactory(
             commandResults: commandResults,
             selectedItemIndices: [],
-            inputResponses: [],
-            permissionResponses: [false] // Don't commit formula to GitHub
+            inputResponses: [
+                "formula details",
+                "release notes"
+            ],
+            permissionResponses: [
+                true, // create a new formula
+                false // Don't commit formula to GitHub
+            ]
         )
         
         let context = try factory.makeContext()
@@ -80,7 +86,7 @@ extension PublishExecutionManagerTests {
         )
     }
     
-    @Test("Successfully executes publish with new formula creation", .disabled()) // TODO: -
+    @Test("Successfully executes publish with new formula creation")
     func successfullyExecutesPublishWithNewFormulaCreation() throws {
         try createPackageSwift()
         
@@ -97,8 +103,14 @@ extension PublishExecutionManagerTests {
         let factory = MockContextFactory(
             commandResults: commandResults,
             selectedItemIndices: [0, 0], // Select tap, select no tests
-            inputResponses: ["Test formula description"], // Formula description
-            permissionResponses: [true, false] // Create new formula, don't commit to GitHub
+            inputResponses: [
+                "formula details",
+                "release notes"
+            ],
+            permissionResponses: [
+                true, // create a new formula
+                false // Don't commit formula to GitHub
+            ]
         )
         
         let context = try factory.makeContext()
@@ -119,7 +131,7 @@ extension PublishExecutionManagerTests {
         )
     }
     
-    @Test("Commits and pushes formula when user chooses to", .disabled()) // TODO: -
+    @Test("Commits and pushes formula when user chooses to")
     func commitsAndPushesFormulaWhenUserChooses() throws {
         try createPackageSwift()
         
@@ -137,7 +149,10 @@ extension PublishExecutionManagerTests {
         let factory = MockContextFactory(
             commandResults: commandResults,
             selectedItemIndices: [],
-            inputResponses: ["Test commit message"], // Commit message
+            inputResponses: [
+                "release notes",
+                "Test commit message" // Commit message
+            ],
             permissionResponses: [true] // Commit and push to GitHub
         )
         
@@ -170,7 +185,7 @@ extension PublishExecutionManagerTests {
         )
     }
     
-    @Test("Uses provided commit message instead of asking user", .disabled()) // TODO: - 
+    @Test("Uses provided commit message instead of asking user")
     func usesProvidedCommitMessage() throws {
         try createPackageSwift()
         
@@ -185,7 +200,14 @@ extension PublishExecutionManagerTests {
         ]
         
         let factory = MockContextFactory(
-            commandResults: commandResults
+            commandResults: commandResults,
+            inputResponses: [
+                "formula details",
+                "release notes"
+            ],
+            permissionResponses: [
+                true // create new formula
+            ]
         )
         
         let context = try factory.makeContext()
