@@ -11,16 +11,16 @@ import GitCommandGen
 
 /// Utility for creating and validating release notes files.
 struct ReleaseNotesFileUtility {
-    private let picker: NnexPicker
-    private let fileSystem: FileSystemProvider
-    private let dateProvider: DateProvider
+    private let picker: any NnexPicker
+    private let fileSystem: any FileSystemProvider
+    private let dateProvider: any DateProvider
     
     /// Initializes a new ReleaseNotesFileUtility instance.
     /// - Parameters:
     ///   - picker: The picker for user interactions.
     ///   - fileSystem: The file system provider.
     ///   - dateProvider: The date provider.
-    init(picker: NnexPicker, fileSystem: FileSystemProvider = DefaultFileSystemProvider(), dateProvider: DateProvider = DefaultDateProvider()) {
+    init(picker: any NnexPicker, fileSystem: any FileSystemProvider = DefaultFileSystemProvider(), dateProvider: any DateProvider = DefaultDateProvider()) {
         self.picker = picker
         self.fileSystem = fileSystem
         self.dateProvider = dateProvider

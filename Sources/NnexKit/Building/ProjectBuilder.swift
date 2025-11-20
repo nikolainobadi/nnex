@@ -4,9 +4,9 @@ import Foundation
 public struct ProjectBuilder {
     private let shell: any Shell
     private let config: BuildConfig
-    private let progressDelegate: BuildProgressDelegate?
+    private let progressDelegate: (any BuildProgressDelegate)?
 
-    public init(shell: any Shell, config: BuildConfig, progressDelegate: BuildProgressDelegate? = nil) {
+    public init(shell: any Shell, config: BuildConfig, progressDelegate: (any BuildProgressDelegate)? = nil) {
         self.shell = shell
         self.config = config
         self.progressDelegate = progressDelegate

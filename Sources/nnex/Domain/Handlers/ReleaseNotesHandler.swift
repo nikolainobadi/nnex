@@ -11,11 +11,11 @@ import GitCommandGen
 import NnShellKit
 
 struct ReleaseNotesHandler {
-    private let picker: NnexPicker
+    private let picker: any NnexPicker
     private let projectName: String
     private let fileUtility: ReleaseNotesFileUtility
     
-    init(picker: NnexPicker, projectName: String, fileUtility: ReleaseNotesFileUtility? = nil) {
+    init(picker: any NnexPicker, projectName: String, fileUtility: ReleaseNotesFileUtility? = nil) {
         self.picker = picker
         self.projectName = projectName
         self.fileUtility = fileUtility ?? ReleaseNotesFileUtility(picker: picker)

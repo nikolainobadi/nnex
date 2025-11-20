@@ -13,11 +13,11 @@ import Foundation
 
 struct CreateTapManager {
     private let shell: any Shell
-    private let picker: NnexPicker
-    private let gitHandler: GitHandler
+    private let picker: any NnexPicker
+    private let gitHandler: any GitHandler
     private let context: NnexContext
     
-    init(shell: any Shell, picker: NnexPicker, gitHandler: GitHandler, context: NnexContext) {
+    init(shell: any Shell, picker: any NnexPicker, gitHandler: any GitHandler, context: NnexContext) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler

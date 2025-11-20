@@ -69,7 +69,7 @@ extension MockContextFactory: ContextFactory {
         return newShell
     }
     
-    func makePicker() -> NnexPicker {
+    func makePicker() -> any NnexPicker {
         if let picker {
             return picker
         }
@@ -101,23 +101,23 @@ extension MockContextFactory: ContextFactory {
         return context
     }
     
-    func makeProjectDetector() -> ProjectDetector {
+    func makeProjectDetector() -> any ProjectDetector {
         return DefaultProjectDetector(shell: makeShell())
     }
     
-    func makeMacOSArchiveBuilder() -> ArchiveBuilder {
+    func makeMacOSArchiveBuilder() -> any ArchiveBuilder {
         return DefaultMacOSArchiveBuilder(shell: makeShell())
     }
     
-    func makeNotarizeHandler() -> NotarizeHandler {
+    func makeNotarizeHandler() -> any NotarizeHandler {
         return DefaultNotarizeHandler(shell: makeShell(), picker: makePicker())
     }
     
-    func makeExportHandler() -> ExportHandler {
+    func makeExportHandler() -> any ExportHandler {
         return DefaultExportHandler(shell: makeShell())
     }
     
-    func makeTrashHandler() -> TrashHandler {
+    func makeTrashHandler() -> any TrashHandler {
         if let trashHandler {
             return trashHandler
         }

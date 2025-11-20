@@ -9,11 +9,11 @@ import Files
 
 /// Handles publishing Homebrew formulas to a specified tap.
 public struct FormulaPublisher {
-    private let gitHandler: GitHandler
+    private let gitHandler: any GitHandler
 
     /// Initializes a new instance of FormulaPublisher.
     /// - Parameter gitHandler: The Git handler used to commit and push formula files.
-    public init(gitHandler: GitHandler) {
+    public init(gitHandler: any GitHandler) {
         self.gitHandler = gitHandler
     }
 }

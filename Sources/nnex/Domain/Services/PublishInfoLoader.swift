@@ -12,9 +12,9 @@ import NnShellKit
 /// Loads publish information, including taps and formulas, for the publishing process.
 struct PublishInfoLoader {
     private let shell: any Shell
-    private let picker: NnexPicker
+    private let picker: any NnexPicker
     private let projectFolder: Folder
-    private let gitHandler: GitHandler
+    private let gitHandler: any GitHandler
     private let context: NnexContext
     private let skipTests: Bool
     
@@ -25,7 +25,7 @@ struct PublishInfoLoader {
     ///   - projectFolder: The folder containing the project to be published.
     ///   - context: The context for loading saved taps and formulas.
     ///   - gitHandler: The Git handler for managing repository operations.
-    init(shell: any Shell, picker: NnexPicker, projectFolder: Folder, context: NnexContext, gitHandler: GitHandler, skipTests: Bool) {
+    init(shell: any Shell, picker: any NnexPicker, projectFolder: Folder, context: NnexContext, gitHandler: any GitHandler, skipTests: Bool) {
         self.shell = shell
         self.picker = picker
         self.projectFolder = projectFolder

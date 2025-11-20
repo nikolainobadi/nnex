@@ -12,11 +12,11 @@ import GitCommandGen
 import NnShellKit
 
 struct ReleaseHandler {
-    private let picker: NnexPicker
-    private let gitHandler: GitHandler
-    private let trashHandler: TrashHandler
+    private let picker: any NnexPicker
+    private let gitHandler: any GitHandler
+    private let trashHandler: any TrashHandler
     
-    init(picker: NnexPicker, gitHandler: GitHandler, trashHandler: TrashHandler) {
+    init(picker: any NnexPicker, gitHandler: any GitHandler, trashHandler: any TrashHandler) {
         self.picker = picker
         self.gitHandler = gitHandler
         self.trashHandler = trashHandler

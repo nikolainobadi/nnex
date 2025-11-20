@@ -40,31 +40,31 @@ struct DefaultContextFactory: ContextFactory {
     
     /// Creates a default project detector instance.
     /// - Returns: A DefaultProjectDetector instance.
-    func makeProjectDetector() -> ProjectDetector {
+    func makeProjectDetector() -> any ProjectDetector {
         return DefaultProjectDetector(shell: makeShell())
     }
     
     /// Creates a default macOS archive builder instance.
     /// - Returns: A DefaultMacOSArchiveBuilder instance.
-    func makeMacOSArchiveBuilder() -> ArchiveBuilder {
+    func makeMacOSArchiveBuilder() -> any ArchiveBuilder {
         return DefaultMacOSArchiveBuilder(shell: makeShell())
     }
     
     /// Creates a default notarize handler instance.
     /// - Returns: A DefaultNotarizeHandler instance.
-    func makeNotarizeHandler() -> NotarizeHandler {
+    func makeNotarizeHandler() -> any NotarizeHandler {
         return DefaultNotarizeHandler(shell: makeShell(), picker: makePicker())
     }
     
     /// Creates a default export handler instance.
     /// - Returns: A DefaultExportHandler instance.
-    func makeExportHandler() -> ExportHandler {
+    func makeExportHandler() -> any ExportHandler {
         return DefaultExportHandler(shell: makeShell())
     }
     
     /// Creates a default trash handler instance.
     /// - Returns: A DefaultTrashHandler instance.
-    func makeTrashHandler() -> TrashHandler {
+    func makeTrashHandler() -> any TrashHandler {
         return DefaultTrashHandler()
     }
 }

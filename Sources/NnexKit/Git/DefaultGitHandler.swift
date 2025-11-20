@@ -12,7 +12,7 @@ import NnShellKit
 /// Default implementation of the GitHandler protocol, providing Git-related operations.
 public struct DefaultGitHandler {
     private let shell: any Shell
-    private let gitShell: GitShell
+    private let gitShell: any GitShell
 
     /// Initializes a new instance of DefaultGitHandler with the specified shell.
     /// - Parameter shell: The shell used to execute commands.
