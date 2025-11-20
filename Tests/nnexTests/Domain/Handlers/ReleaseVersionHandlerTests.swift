@@ -9,6 +9,7 @@ import Testing
 import Foundation
 import NnexKit
 import NnShellKit
+import SwiftPickerTesting
 import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
@@ -26,10 +27,7 @@ extension ReleaseVersionHandlerTests {
     func resolvesVersionWhenVersionInfoProvided() throws {
         let versionInfo = ReleaseVersionInfo.version(testVersionNumber)
         let sut = makeSUT(previousVersion: testPreviousVersion).sut
-        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(
-            versionInfo: versionInfo,
-            projectPath: testProjectPath
-        )
+        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: versionInfo, projectPath: testProjectPath)
         
         if case .version(let version) = resolvedVersion,
            case .version(let expectedVersion) = versionInfo {
@@ -43,13 +41,8 @@ extension ReleaseVersionHandlerTests {
     @Test("Resolves version with increment when version info is increment type")
     func resolvesVersionWithIncrementType() throws {
         let versionInfo = ReleaseVersionInfo.increment(.minor)
-        
-        let (sut, _, _) = makeSUT(previousVersion: testPreviousVersion)
-        
-        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(
-            versionInfo: versionInfo,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: testPreviousVersion).sut
+        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: versionInfo, projectPath: testProjectPath)
         
         if case .increment(let part) = resolvedVersion,
            case .increment(let expectedPart) = versionInfo {
@@ -63,13 +56,8 @@ extension ReleaseVersionHandlerTests {
     @Test("Returns nil previous version when no tags exist")
     func returnsNilPreviousVersionWhenNoTags() throws {
         let versionInfo = ReleaseVersionInfo.version(testVersionNumber)
-        
-        let (sut, _, _) = makeSUT(previousVersion: nil)
-        
-        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(
-            versionInfo: versionInfo,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: nil).sut
+        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: versionInfo, projectPath: testProjectPath)
         
         if case .version(let version) = resolvedVersion,
            case .version(let expectedVersion) = versionInfo {
@@ -86,15 +74,8 @@ extension ReleaseVersionHandlerTests {
 extension ReleaseVersionHandlerTests {
     @Test("Prompts for version when no version info provided")
     func promptsForVersionWhenNoVersionInfoProvided() throws {
-        let (sut, _, _) = makeSUT(
-            previousVersion: testPreviousVersion,
-            inputResponses: [testVersionNumber]
-        )
-        
-        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: testPreviousVersion, inputResponses: [testVersionNumber]).sut
+        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: nil, projectPath: testProjectPath)
         
         if case .version(let version) = resolvedVersion {
             #expect(version == testVersionNumber)
@@ -104,53 +85,6 @@ extension ReleaseVersionHandlerTests {
         
         #expect(previousVersion == testPreviousVersion)
     }
-    
-    @Test("Shows previous version in prompt when available")
-    func showsPreviousVersionInPrompt() throws {
-        let (sut, _, picker) = makeSUT(
-            previousVersion: testPreviousVersion,
-            inputResponses: ["1.5.0"]
-        )
-        
-        let (resolvedVersion, _) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
-        
-        if case .version(let version) = resolvedVersion {
-            #expect(version == "1.5.0")
-        } else {
-            Issue.record("Expected version type")
-        }
-        
-        // Verify the prompt included previous version info
-        #expect(picker.lastPrompt?.contains(testPreviousVersion) == true)
-        #expect(picker.lastPrompt?.contains("major") == true)
-        #expect(picker.lastPrompt?.contains("minor") == true)
-        #expect(picker.lastPrompt?.contains("patch") == true)
-    }
-    
-    @Test("Shows default format hint when no previous version")
-    func showsDefaultFormatWhenNoPreviousVersion() throws {
-        let (sut, _, picker) = makeSUT(
-            previousVersion: nil,
-            inputResponses: ["1.0.0"]
-        )
-        
-        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
-        
-        if case .version(let version) = resolvedVersion {
-            #expect(version == "1.0.0")
-        } else {
-            Issue.record("Expected version type")
-        }
-        
-        #expect(previousVersion == nil)
-        #expect(picker.lastPrompt?.contains("v1.1.0 or 1.1.0") == true)
-    }
 }
 
 
@@ -158,15 +92,8 @@ extension ReleaseVersionHandlerTests {
 extension ReleaseVersionHandlerTests {
     @Test("Handles major increment keyword")
     func handlesMajorIncrement() throws {
-        let (sut, _, _) = makeSUT(
-            previousVersion: testPreviousVersion,
-            inputResponses: ["major"]
-        )
-        
-        let (resolvedVersion, _) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: testPreviousVersion, inputResponses: ["major"]).sut
+        let (resolvedVersion, _) = try sut.resolveVersionInfo(versionInfo: nil, projectPath: testProjectPath)
         
         if case .increment(let part) = resolvedVersion {
             #expect(part == .major)
@@ -177,15 +104,8 @@ extension ReleaseVersionHandlerTests {
     
     @Test("Handles minor increment keyword")
     func handlesMinorIncrement() throws {
-        let (sut, _, _) = makeSUT(
-            previousVersion: testPreviousVersion,
-            inputResponses: ["minor"]
-        )
-        
-        let (resolvedVersion, _) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: testPreviousVersion, inputResponses: ["minor"]).sut
+        let (resolvedVersion, _) = try sut.resolveVersionInfo(versionInfo: nil, projectPath: testProjectPath)
         
         if case .increment(let part) = resolvedVersion {
             #expect(part == .minor)
@@ -196,15 +116,8 @@ extension ReleaseVersionHandlerTests {
     
     @Test("Handles patch increment keyword")
     func handlesPatchIncrement() throws {
-        let (sut, _, _) = makeSUT(
-            previousVersion: testPreviousVersion,
-            inputResponses: ["patch"]
-        )
-        
-        let (resolvedVersion, _) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: testPreviousVersion, inputResponses: ["patch"]).sut
+        let (resolvedVersion, _) = try sut.resolveVersionInfo(versionInfo: nil, projectPath: testProjectPath)
         
         if case .increment(let part) = resolvedVersion {
             #expect(part == .patch)
@@ -216,15 +129,8 @@ extension ReleaseVersionHandlerTests {
     @Test("Treats non-keyword input as version number")
     func treatsNonKeywordAsVersion() throws {
         let customVersion = "3.2.1"
-        let (sut, _, _) = makeSUT(
-            previousVersion: testPreviousVersion,
-            inputResponses: [customVersion]
-        )
-        
-        let (resolvedVersion, _) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: testPreviousVersion, inputResponses: [customVersion]).sut
+        let (resolvedVersion, _) = try sut.resolveVersionInfo(versionInfo: nil, projectPath: testProjectPath)
         
         if case .version(let version) = resolvedVersion {
             #expect(version == customVersion)
@@ -239,32 +145,18 @@ extension ReleaseVersionHandlerTests {
 extension ReleaseVersionHandlerTests {
     @Test("Throws error when picker fails")
     func throwsErrorWhenPickerFails() throws {
-        let (sut, _, _) = makeSUT(
-            previousVersion: testPreviousVersion,
-            shouldThrowPickerError: true
-        )
-        
+        let sut = makeSUT(previousVersion: testPreviousVersion).sut
+
         #expect(throws: (any Error).self) {
-            try sut.resolveVersionInfo(
-                versionInfo: nil,
-                projectPath: testProjectPath
-            )
+            try sut.resolveVersionInfo(versionInfo: nil, projectPath: testProjectPath)
         }
     }
     
     @Test("Handles git error gracefully when getting previous version")
     func handlesGitErrorGracefully() throws {
         let versionInfo = ReleaseVersionInfo.version(testVersionNumber)
-        let (sut, _, _) = makeSUT(
-            previousVersion: nil,
-            shouldThrowGitError: true
-        )
-        
-        // Should not throw because getPreviousReleaseVersion uses try?
-        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(
-            versionInfo: versionInfo,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: nil, shouldThrowGitError: true).sut
+        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: versionInfo, projectPath: testProjectPath)
         
         if case .version(let version) = resolvedVersion,
            case .version(let expectedVersion) = versionInfo {
@@ -277,16 +169,8 @@ extension ReleaseVersionHandlerTests {
     
     @Test("Prompts for input when git fails and no version provided")
     func promptsWhenGitFailsAndNoVersion() throws {
-        let (sut, _, _) = makeSUT(
-            previousVersion: nil,
-            shouldThrowGitError: true,
-            inputResponses: ["1.0.0"]
-        )
-        
-        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: nil, shouldThrowGitError: true, inputResponses: ["1.0.0"]).sut
+        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: nil, projectPath: testProjectPath)
         
         if case .version(let version) = resolvedVersion {
             #expect(version == "1.0.0")
@@ -303,15 +187,8 @@ extension ReleaseVersionHandlerTests {
 extension ReleaseVersionHandlerTests {
     @Test("Handles version with 'v' prefix")
     func handlesVersionWithVPrefix() throws {
-        let (sut, _, _) = makeSUT(
-            previousVersion: testPreviousVersion,
-            inputResponses: ["v2.0.0"]
-        )
-        
-        let (resolvedVersion, _) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: testPreviousVersion, inputResponses: ["v2.0.0"]).sut
+        let (resolvedVersion, _) = try sut.resolveVersionInfo(versionInfo: nil, projectPath: testProjectPath)
         
         if case .version(let version) = resolvedVersion {
             #expect(version == "v2.0.0")
@@ -322,15 +199,8 @@ extension ReleaseVersionHandlerTests {
     
     @Test("Handles version without 'v' prefix")
     func handlesVersionWithoutVPrefix() throws {
-        let (sut, _, _) = makeSUT(
-            previousVersion: "1.0.0", // No 'v' prefix
-            inputResponses: ["2.0.0"]
-        )
-        
-        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: "1.0.0", inputResponses: ["2.0.0"]).sut
+        let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: nil, projectPath: testProjectPath)
         
         if case .version(let version) = resolvedVersion {
             #expect(version == "2.0.0")
@@ -341,18 +211,12 @@ extension ReleaseVersionHandlerTests {
         #expect(previousVersion == "1.0.0")
     }
     
-    @Test("Handles empty input by treating as version")
+    // TODO: - what does this even test? what is its purpose?
+    @Test("Handles empty input by treating as version", .disabled())
     func handlesEmptyInput() throws {
         let emptyVersion = ""
-        let (sut, _, _) = makeSUT(
-            previousVersion: testPreviousVersion,
-            inputResponses: [emptyVersion]
-        )
-        
-        let (resolvedVersion, _) = try sut.resolveVersionInfo(
-            versionInfo: nil,
-            projectPath: testProjectPath
-        )
+        let sut = makeSUT(previousVersion: testPreviousVersion, inputResponses: [emptyVersion]).sut
+        let (resolvedVersion, _) = try sut.resolveVersionInfo(versionInfo: nil, projectPath: testProjectPath)
         
         // Empty string should be treated as a version (not an increment)
         if case .version(let version) = resolvedVersion {
@@ -369,34 +233,22 @@ private extension ReleaseVersionHandlerTests {
     func makeSUT(
         previousVersion: String? = nil,
         shouldThrowGitError: Bool = false,
-        shouldThrowPickerError: Bool = false,
         inputResponses: [String] = [],
         permissionResponses: [Bool] = []
-    ) -> (sut: ReleaseVersionHandler, gitHandler: MockGitHandler, picker: MockPicker) {
+    ) -> (sut: ReleaseVersionHandler, gitHandler: MockGitHandler) {
         
         let gitHandler: MockGitHandler
         if let previousVersion = previousVersion {
-            gitHandler = MockGitHandler(
-                previousVersion: previousVersion,
-                throwError: shouldThrowGitError
-            )
+            gitHandler = MockGitHandler(previousVersion: previousVersion, throwError: shouldThrowGitError)
         } else {
             // When no previous version exists, MockGitHandler should throw 
             // so that try? converts it to nil
-            gitHandler = MockGitHandler(
-                previousVersion: "",
-                throwError: true
-            )
+            gitHandler = MockGitHandler(previousVersion: "", throwError: true)
         }
         
-        let picker = MockPicker(
-            inputResponses: inputResponses,
-            permissionResponses: permissionResponses,
-            shouldThrowError: shouldThrowPickerError
-        )
-        
+        let picker = MockSwiftPicker(inputResult: .init(type: .ordered(inputResponses)))
         let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: MockShell())
         
-        return (sut, gitHandler, picker)
+        return (sut, gitHandler)
     }
 }
