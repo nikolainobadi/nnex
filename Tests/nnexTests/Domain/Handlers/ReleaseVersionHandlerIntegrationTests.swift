@@ -8,6 +8,7 @@
 import Testing
 import Foundation
 import NnShellKit
+import SwiftPickerTesting
 import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
@@ -35,7 +36,7 @@ final class ReleaseVersionHandlerIntegrationTests {
 extension ReleaseVersionHandlerIntegrationTests {
     @Test("Updates source code version if it exists")
     func updatesExistingVersionInSource() throws {
-        let (sut, _) = makeSUT(permissionResponses: [true])
+        let sut = makeSUT().sut
         let _ = try sut.resolveVersionInfo(versionInfo: .version(newVersion), projectPath: projectFolder.path)
         let updatedFile = try File(path: mainCommandFilePath)
         let contents = try updatedFile.readAsString()
@@ -45,7 +46,7 @@ extension ReleaseVersionHandlerIntegrationTests {
     
     @Test("Commits changes to source code when updating version number in executable file")
     func commitsNewVersionInSource() throws {
-        let (sut, gitHandler) = makeSUT(permissionResponses: [true])
+        let (sut, gitHandler) = makeSUT()
         let _ = try sut.resolveVersionInfo(versionInfo: .version(newVersion), projectPath: projectFolder.path)
         let message = try #require(gitHandler.message)
         let expectedMessage = "Update version to \(newVersion)"
@@ -57,15 +58,10 @@ extension ReleaseVersionHandlerIntegrationTests {
 
 // MARK: - SUT
 private extension ReleaseVersionHandlerIntegrationTests {
-    func makeSUT(
-        previousVersion: String? = nil,
-        permissionResponses: [Bool] = [],
-        shouldThrowGitError: Bool = false,
-        shouldThrowPickerError: Bool = false
-    ) -> (sut: ReleaseVersionHandler, gitHandler: MockGitHandler) {
+    func makeSUT(previousVersion: String? = nil) -> (sut: ReleaseVersionHandler, gitHandler: MockGitHandler) {
         let shell = MockShell()
-        let picker = MockPicker(permissionResponses: permissionResponses, shouldThrowError: shouldThrowPickerError)
-        let gitHandler = makeGitHandler(previousVersion: previousVersion, throwError: shouldThrowGitError)
+        let picker = MockSwiftPicker(permissionResult: .init(defaultValue: true))
+        let gitHandler = makeGitHandler(previousVersion: previousVersion, throwError: false)
         let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell)
         
         return (sut, gitHandler)

@@ -110,9 +110,6 @@ extension ReleaseNotesHandlerTests {
     }
 }
 
-
-
-
 // MARK: - SUT
 private extension ReleaseNotesHandlerTests {
     func makeSUT(selectedOption: ReleaseNotesHandler.NoteContentType = .direct, inputResponses: [String] = [], permissionResponses: [Bool] = [], fileContent: String = "", shouldThrowPickerError: Bool = false) -> (sut: ReleaseNotesHandler, picker: MockPicker, fileSystem: MockFileSystemProvider) {
