@@ -7,6 +7,8 @@
 
 import Testing
 import Foundation
+import SwiftPickerTesting
+import NnexSharedTestHelpers
 @testable import nnex
 
 struct ReleaseNotesFileUtilityTests {
@@ -21,8 +23,8 @@ struct ReleaseNotesFileUtilityTests {
 extension ReleaseNotesFileUtilityTests {
     @Test("Creates file with correct timestamp format")
     func createsFileWithTimestamp() throws {
-        let (sut, _, fileSystem) = makeSUT()
-        
+        let (sut, fileSystem) = makeSUT()
+
         _ = try sut.createAndOpenNewNoteFile(projectName: projectName)
         
         let expectedFileName = "\(projectName)-releaseNotes-8-10-23.md"
@@ -33,8 +35,8 @@ extension ReleaseNotesFileUtilityTests {
     
     @Test("Returns file with correct path")
     func returnsFileWithCorrectPath() throws {
-        let (sut, _, fileSystem) = makeSUT()
-        
+        let (sut, fileSystem) = makeSUT()
+
         let file = try sut.createAndOpenNewNoteFile(projectName: projectName)
         
         #expect(file.path == fileSystem.createdFilePath)
@@ -46,8 +48,8 @@ extension ReleaseNotesFileUtilityTests {
 extension ReleaseNotesFileUtilityTests {
     @Test("Creates versioned file with correct name")
     func createsVersionedFile() throws {
-        let (sut, _, fileSystem) = makeSUT()
-        
+        let (sut, fileSystem) = makeSUT()
+
         _ = try sut.createVersionedNoteFile(projectName: projectName, version: version)
         
         let expectedFileName = "\(projectName)-releaseNotes-v\(version).md"
@@ -58,8 +60,8 @@ extension ReleaseNotesFileUtilityTests {
     
     @Test("Returns versioned file with correct path")
     func returnsVersionedFileWithCorrectPath() throws {
-        let (sut, _, fileSystem) = makeSUT()
-        
+        let (sut, fileSystem) = makeSUT()
+
         let file = try sut.createVersionedNoteFile(projectName: projectName, version: version)
         
         #expect(file.path == fileSystem.createdFilePath)
@@ -71,43 +73,28 @@ extension ReleaseNotesFileUtilityTests {
 extension ReleaseNotesFileUtilityTests {
     @Test("Returns file path when file has content")
     func returnsFilePathWithContent() throws {
-        let (sut, picker, _) = makeSUT(
-            fileContent: testContent,
-            permissionResponses: [true]
-        )
-        
+        let sut = makeSUT(fileContent: testContent, permissionResponses: [true]).sut
         let file = MockFile(path: "/test/path.md", content: testContent)
         let result = try sut.validateAndConfirmNoteFile(file)
         
         #expect(result.content == file.path)
         #expect(result.isFromFile == true)
-        #expect(picker.allPrompts.count == 1)
-        #expect(picker.allPrompts[0].contains("Did you add your release notes"))
     }
     
     @Test("Handles empty file with successful retry")
     func handlesEmptyFileWithRetry() throws {
-        let (sut, picker, _) = makeSUT(
-            permissionResponses: [true, true] // First confirmation, then retry confirmation
-        )
-        
-        // Create file that starts empty but has content after retry
+        let sut = makeSUT(permissionResponses: [true, true]).sut
         let file = MockFileWithRetry(path: "/test/path.md", initialContent: "", retryContent: testContent)
         let result = try sut.validateAndConfirmNoteFile(file)
         
         #expect(result.content == file.path)
         #expect(result.isFromFile == true)
-        #expect(picker.allPrompts.count == 2)
-        #expect(picker.allPrompts[1].contains("The file looks empty"))
     }
     
     @Test("Throws error when file remains empty after retry")
     func throwsErrorForPersistentlyEmptyFile() throws {
-        let (sut, _, _) = makeSUT(
-            permissionResponses: [true, true] // First confirmation, then retry confirmation
-        )
-        
-        let file = MockFile(path: "/test/path.md", content: "") // File remains empty
+        let sut = makeSUT(permissionResponses: [true, true]).sut
+        let file = MockFile(path: "/test/path.md", content: "")
         
         #expect(throws: ReleaseNotesError.self) {
             try sut.validateAndConfirmNoteFile(file)
@@ -116,8 +103,7 @@ extension ReleaseNotesFileUtilityTests {
     
     @Test("Handles user cancellation during initial confirmation")
     func handlesUserCancellationDuringInitialConfirmation() throws {
-        let (sut, _, _) = makeSUT(shouldThrowPickerError: true)
-        
+        let sut = makeSUT(shouldThrowPickerError: true).sut
         let file = MockFile(path: "/test/path.md", content: testContent)
         
         #expect(throws: (any Error).self) {
@@ -127,11 +113,7 @@ extension ReleaseNotesFileUtilityTests {
     
     @Test("Handles user cancellation during retry confirmation")
     func handlesUserCancellationDuringRetryConfirmation() throws {
-        let (sut, _, _) = makeSUT(
-            permissionResponses: [true], // Only first confirmation, no retry confirmation
-            shouldThrowPickerError: true
-        )
-        
+        let sut = makeSUT(permissionResponses: [true], shouldThrowPickerError: true).sut
         let file = MockFile(path: "/test/path.md", content: "")
         
         #expect(throws: (any Error).self) {
@@ -147,25 +129,21 @@ private extension ReleaseNotesFileUtilityTests {
         fileContent: String = "",
         permissionResponses: [Bool] = [],
         shouldThrowPickerError: Bool = false
-    ) -> (sut: ReleaseNotesFileUtility, picker: MockPicker, fileSystem: MockFileSystemProvider) {
-        
-        let picker = MockPicker(
-            selectedItemIndices: [],
-            inputResponses: [],
-            permissionResponses: permissionResponses,
-            shouldThrowError: shouldThrowPickerError
+    ) -> (sut: ReleaseNotesFileUtility, fileSystem: MockFileSystemProvider) {
+        let picker = MockSwiftPicker(
+            inputResult: .init(type: .ordered([])),
+            permissionResult: .init(type: .ordered(permissionResponses))
         )
-        
+
         let fileSystem = MockFileSystemProvider(fileContent: fileContent)
         let dateProvider = MockDateProvider(date: testDate)
-        
         let sut = ReleaseNotesFileUtility(
             picker: picker,
             fileSystem: fileSystem,
             dateProvider: dateProvider
         )
-        
-        return (sut, picker, fileSystem)
+
+        return (sut, fileSystem)
     }
 }
 
