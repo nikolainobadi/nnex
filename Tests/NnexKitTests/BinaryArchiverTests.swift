@@ -5,9 +5,9 @@
 //  Created by Nikolai Nobadi on 8/26/25.
 //
 
-import Foundation
 import Testing
-import NnShellKit
+import Foundation
+import NnShellTesting
 @testable import NnexKit
 
 struct BinaryArchiverTests {
@@ -27,18 +27,16 @@ extension BinaryArchiverTests {
             "shasum -a 256 \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"": testSha256
         ]
         let (sut, shell) = makeSUT(commandResults: commandResults)
-        
         let result = try sut.createArchives(from: [armBinaryPath])
+        let archived = try #require(result.first)
         
         #expect(result.count == 1)
-        let archived = result[0]
         #expect(archived.originalPath == armBinaryPath)
         #expect(archived.archivePath == "/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz")
         #expect(archived.sha256 == testSha256)
-        
         #expect(shell.executedCommands.count == 2)
-        #expect(shell.executedCommands[0] == "cd \"/path/to/.build/arm64-apple-macosx/release\" && tar -czf \"nnex-arm64.tar.gz\" \"nnex\"")
-        #expect(shell.executedCommands[1] == "shasum -a 256 \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"")
+        #expect(shell.executedCommand(containing: "cd \"/path/to/.build/arm64-apple-macosx/release\" && tar -czf \"nnex-arm64.tar.gz\" \"nnex\""))
+        #expect(shell.executedCommand(containing: "shasum -a 256 \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\""))
     }
     
     @Test("Creates archive for x86_64 binary with architecture-specific naming")
@@ -48,35 +46,35 @@ extension BinaryArchiverTests {
             "shasum -a 256 \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"": testSha256
         ]
         let (sut, shell) = makeSUT(commandResults: commandResults)
-        
         let result = try sut.createArchives(from: [intelBinaryPath])
-        
+        let archived = try #require(result.first)
+
         #expect(result.count == 1)
-        let archived = result[0]
         #expect(archived.originalPath == intelBinaryPath)
         #expect(archived.archivePath == "/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz")
         #expect(archived.sha256 == testSha256)
-        
         #expect(shell.executedCommands.count == 2)
-        #expect(shell.executedCommands[0] == "cd \"/path/to/.build/x86_64-apple-macosx/release\" && tar -czf \"nnex-x86_64.tar.gz\" \"nnex\"")
-        #expect(shell.executedCommands[1] == "shasum -a 256 \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"")
+        #expect(shell.executedCommand(containing: "cd \"/path/to/.build/x86_64-apple-macosx/release\" && tar -czf \"nnex-x86_64.tar.gz\" \"nnex\""))
+        #expect(shell.executedCommand(containing: "shasum -a 256 \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\""))
     }
     
     @Test("Creates generic archive for non-architecture-specific binary path")
     func createsGenericArchiveForNonArchPath() throws {
-        let (sut, shell) = makeSUT(runResults: ["", testSha256])
-        
+        let commandResults: [String: String] = [
+            "cd \"/path/to/binary\" && tar -czf \"nnex.tar.gz\" \"nnex\"": "",
+            "shasum -a 256 \"/path/to/binary/nnex.tar.gz\"": testSha256
+        ]
+        let (sut, shell) = makeSUT(commandResults: commandResults)
         let result = try sut.createArchives(from: [genericBinaryPath])
-        
+        let archived = try #require(result.first)
+
         #expect(result.count == 1)
-        let archived = result[0]
         #expect(archived.originalPath == genericBinaryPath)
         #expect(archived.archivePath == "/path/to/binary/nnex.tar.gz")
         #expect(archived.sha256 == testSha256)
-        
         #expect(shell.executedCommands.count == 2)
-        #expect(shell.executedCommands[0] == "cd \"/path/to/binary\" && tar -czf \"nnex.tar.gz\" \"nnex\"")
-        #expect(shell.executedCommands[1] == "shasum -a 256 \"/path/to/binary/nnex.tar.gz\"")
+        #expect(shell.executedCommand(containing: "cd \"/path/to/binary\" && tar -czf \"nnex.tar.gz\" \"nnex\""))
+        #expect(shell.executedCommand(containing: "shasum -a 256 \"/path/to/binary/nnex.tar.gz\""))
     }
 }
 
@@ -94,26 +92,25 @@ extension BinaryArchiverTests {
             "shasum -a 256 \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"": intelSha256
         ]
         let (sut, shell) = makeSUT(commandResults: commandResults)
-        
         let result = try sut.createArchives(from: [armBinaryPath, intelBinaryPath])
-        
+
         #expect(result.count == 2)
-        
+
         let armArchived = result[0]
         #expect(armArchived.originalPath == armBinaryPath)
         #expect(armArchived.archivePath == "/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz")
         #expect(armArchived.sha256 == armSha256)
-        
+
         let intelArchived = result[1]
         #expect(intelArchived.originalPath == intelBinaryPath)
         #expect(intelArchived.archivePath == "/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz")
         #expect(intelArchived.sha256 == intelSha256)
-        
+
         #expect(shell.executedCommands.count == 4)
-        #expect(shell.executedCommands[0] == "cd \"/path/to/.build/arm64-apple-macosx/release\" && tar -czf \"nnex-arm64.tar.gz\" \"nnex\"")
-        #expect(shell.executedCommands[1] == "shasum -a 256 \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"")
-        #expect(shell.executedCommands[2] == "cd \"/path/to/.build/x86_64-apple-macosx/release\" && tar -czf \"nnex-x86_64.tar.gz\" \"nnex\"")
-        #expect(shell.executedCommands[3] == "shasum -a 256 \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"")
+        #expect(shell.executedCommand(containing: "cd \"/path/to/.build/arm64-apple-macosx/release\" && tar -czf \"nnex-arm64.tar.gz\" \"nnex\""))
+        #expect(shell.executedCommand(containing: "shasum -a 256 \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\""))
+        #expect(shell.executedCommand(containing: "cd \"/path/to/.build/x86_64-apple-macosx/release\" && tar -czf \"nnex-x86_64.tar.gz\" \"nnex\""))
+        #expect(shell.executedCommand(containing: "shasum -a 256 \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\""))
     }
     
     @Test("Creates archives for mixed architecture and generic binaries")
@@ -162,11 +159,11 @@ extension BinaryArchiverTests {
             "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"": ""
         ]
         let (sut, shell) = makeSUT(commandResults: commandResults)
-        
+
         try sut.cleanup([archived])
-        
+
         #expect(shell.executedCommands.count == 1)
-        #expect(shell.executedCommands[0] == "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"")
+        #expect(shell.executedCommand(containing: "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\""))
     }
     
     @Test("Successfully cleans up multiple archive files")
@@ -181,13 +178,17 @@ extension BinaryArchiverTests {
             archivePath: "/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz",
             sha256: "intelhash"
         )
-        let (sut, shell) = makeSUT(runResults: ["", ""])
-        
+        let commandResults: [String: String] = [
+            "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"": "",
+            "rm -f \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"": ""
+        ]
+        let (sut, shell) = makeSUT(commandResults: commandResults)
+
         try sut.cleanup([armArchived, intelArchived])
-        
+
         #expect(shell.executedCommands.count == 2)
-        #expect(shell.executedCommands[0] == "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\"")
-        #expect(shell.executedCommands[1] == "rm -f \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\"")
+        #expect(shell.executedCommand(containing: "rm -f \"/path/to/.build/arm64-apple-macosx/release/nnex-arm64.tar.gz\""))
+        #expect(shell.executedCommand(containing: "rm -f \"/path/to/.build/x86_64-apple-macosx/release/nnex-x86_64.tar.gz\""))
     }
     
     @Test("Skips cleanup for non-tar.gz files")

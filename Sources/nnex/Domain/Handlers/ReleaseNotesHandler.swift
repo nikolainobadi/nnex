@@ -8,7 +8,6 @@
 import Files
 import Foundation
 import GitCommandGen
-import NnShellKit
 
 struct ReleaseNotesHandler {
     private let picker: any NnexPicker

@@ -5,11 +5,11 @@
 //  Created by Nikolai Nobadi on 8/26/25.
 //
 
+import NnexKit
 import Testing
 import Foundation
-import NnShellKit
+import NnShellTesting
 import NnexSharedTestHelpers
-import NnexKit
 @testable import nnex
 @preconcurrency import Files
 

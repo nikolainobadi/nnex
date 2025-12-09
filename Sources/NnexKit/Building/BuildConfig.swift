@@ -5,17 +5,11 @@
 //  Created by Nikolai Nobadi on 3/25/25.
 //
 
-/// Represents the configuration for building a project.
 public struct BuildConfig: Sendable {
-    /// The name of the project to build.
     public let projectName: String
-    /// The file path to the project directory.
     public let projectPath: String
-    /// The type of build to perform (e.g., universal, arm64, x86_64).
     public let buildType: BuildType
-    /// Additional arguments to pass to the build command.
     public let extraBuildArgs: [String]
-    /// Indicates whether the project should be cleaned before building.
     public let skipClean: Bool
     public let testCommand: TestCommand?
 

@@ -6,9 +6,8 @@
 //
 
 import Files
-import Foundation
 import NnexKit
-import NnShellKit
+import Foundation
 
 protocol ProjectDetector {
     func detectProject(at path: String) throws -> ProjectInfo
@@ -17,9 +16,9 @@ protocol ProjectDetector {
 }
 
 struct DefaultProjectDetector: ProjectDetector {
-    private let shell: any Shell
+    private let shell: any NnexShell
     
-    init(shell: any Shell) {
+    init(shell: any NnexShell) {
         self.shell = shell
     }
 }

@@ -7,7 +7,6 @@
 
 import Files
 import NnexKit
-import NnShellKit
 import Foundation
 import ArgumentParser
 

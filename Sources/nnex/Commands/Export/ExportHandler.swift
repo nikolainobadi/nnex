@@ -7,7 +7,6 @@
 
 import Files
 import NnexKit
-import NnShellKit
 import Foundation
 
 protocol ExportHandler {
@@ -15,9 +14,9 @@ protocol ExportHandler {
 }
 
 struct DefaultExportHandler: ExportHandler {
-    private let shell: Shell
+    private let shell: NnexShell
     
-    init(shell: Shell) {
+    init(shell: NnexShell) {
         self.shell = shell
     }
 }
@@ -33,7 +32,7 @@ extension DefaultExportHandler {
         
         // Ensure output directory exists
         let outputDir = URL(fileURLWithPath: outputPath).deletingLastPathComponent().path
-        _ = try shell.bash("mkdir -p \"\(outputDir)\"")
+        try shell.runAndPrint(bash: "mkdir -p \"\(outputDir)\"")
         
         // Copy the app to the output location
         try copyApp(from: appPath, to: outputPath, verbose: verbose)

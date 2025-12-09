@@ -7,15 +7,14 @@
 
 import Files
 import NnexKit
-import NnShellKit
 import Foundation
 
 struct BuildExecutionManager {
-    private let shell: any Shell
+    private let shell: any NnexShell
     private let picker: any NnexPicker
     private let copyUtility: BinaryCopyUtility
     
-    init(shell: any Shell, picker: any NnexPicker) {
+    init(shell: any NnexShell, picker: any NnexPicker) {
         self.shell = shell
         self.picker = picker
         self.copyUtility = BinaryCopyUtility(shell: shell)
@@ -43,7 +42,7 @@ private extension BuildExecutionManager {
         case .single(let binaryInfo):
             print("New binary was built at \(binaryInfo.path)")
             if openInFinder {
-                _ = try? shell.bash("open -R \(binaryInfo.path)")
+                try? shell.runAndPrint(bash: "open -R \(binaryInfo.path)")
             }
         case .multiple(let binaries):
             print("Universal binary built:")
@@ -51,7 +50,7 @@ private extension BuildExecutionManager {
                 print("  \(arch.name): \(binaryInfo.path)")
             }
             if openInFinder, let firstBinary = binaries.values.first {
-                _ = try? shell.bash("open -R \(firstBinary.path)")
+                try? shell.runAndPrint(bash: "open -R \(firstBinary.path)")
             }
         }
     }

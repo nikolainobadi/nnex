@@ -6,7 +6,7 @@
 import NnexKit
 import Testing
 import Foundation
-import NnShellKit
+import NnShellTesting
 import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files

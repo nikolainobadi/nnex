@@ -7,7 +7,6 @@
 
 import Files
 import NnexKit
-import NnShellKit
 import Foundation
 
 protocol NotarizeHandler {
@@ -16,10 +15,10 @@ protocol NotarizeHandler {
 }
 
 struct DefaultNotarizeHandler: NotarizeHandler {
-    private let shell: any Shell
+    private let shell: any NnexShell
     private let picker: any NnexPicker
     
-    init(shell: any Shell, picker: any NnexPicker) {
+    init(shell: any NnexShell, picker: any NnexPicker) {
         self.shell = shell
         self.picker = picker
     }
@@ -197,7 +196,7 @@ private extension DefaultNotarizeHandler {
         let checkProfileCommand = "xcrun notarytool list --keychain-profile \"notarytool-profile\""
         
         do {
-            let _ = try shell.bash(checkProfileCommand)
+            try shell.runAndPrint(bash: checkProfileCommand)
         } catch {
             // Profile doesn't exist - prompt user to set it up
             try setupNotarizationCredentials()

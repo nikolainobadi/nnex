@@ -6,12 +6,11 @@
 //
 
 import Foundation
-import NnShellKit
 
 public struct BinaryArchiver {
-    private let shell: any Shell
+    private let shell: any NnexShell
     
-    public init(shell: any Shell) {
+    public init(shell: any NnexShell) {
         self.shell = shell
     }
 }
@@ -37,7 +36,7 @@ public extension BinaryArchiver {
             
             if fileName.hasSuffix(".tar.gz") {
                 let removeCmd = "rm -f \"\(archived.archivePath)\""
-                _ = try shell.bash(removeCmd)
+                try shell.runAndPrint(bash: removeCmd)
             }
         }
     }
@@ -55,15 +54,11 @@ private extension BinaryArchiver {
         let archivePath = "\(directory)/\(archiveName)"
         
         let tarCmd = "cd \"\(directory)\" && tar -czf \"\(archiveName)\" \"\(fileName)\""
-        _ = try shell.bash(tarCmd)
+        try shell.runAndPrint(bash: tarCmd)
         
         let sha256 = try calculateSHA256(for: archivePath)
         
-        return ArchivedBinary(
-            originalPath: binaryPath,
-            archivePath: archivePath,
-            sha256: sha256
-        )
+        return .init(originalPath: binaryPath, archivePath: archivePath, sha256: sha256)
     }
     
     func determineArchiveName(for binaryPath: String, fileName: String) -> String {
@@ -85,7 +80,10 @@ private extension BinaryArchiver {
             let raw = try? shell.bash("shasum -a 256 \"\(filePath)\""),
             let sha = raw.components(separatedBy: " ").first,
             !sha.isEmpty
-        else { throw NnexError.missingSha256 }
+        else {
+            throw NnexError.missingSha256
+        }
+        
         return sha
     }
 }

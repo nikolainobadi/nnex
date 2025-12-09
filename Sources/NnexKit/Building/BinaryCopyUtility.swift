@@ -6,12 +6,11 @@
 //
 
 import Files
-import NnShellKit
 
 public struct BinaryCopyUtility {
-    private let shell: any Shell
+    private let shell: any NnexShell
     
-    public init(shell: any Shell) {
+    public init(shell: any NnexShell) {
         self.shell = shell
     }
 }
@@ -42,14 +41,14 @@ private extension BinaryCopyUtility {
         switch binaryOutput {
         case .single(let binaryInfo):
             let finalPath = destinationPath + "/" + executableName
-            _ = try shell.bash("cp \"\(binaryInfo.path)\" \"\(finalPath)\"")
+            try shell.runAndPrint(bash: "cp \"\(binaryInfo.path)\" \"\(finalPath)\"")
             return .single(.init(path: finalPath))
             
         case .multiple(let binaries):
             var results: [ReleaseArchitecture: BinaryInfo] = [:]
             for (arch, binaryInfo) in binaries {
                 let finalPath = destinationPath + "/" + executableName + "-\(arch.name)"
-                _ = try shell.bash("cp \"\(binaryInfo.path)\" \"\(finalPath)\"")
+                try shell.runAndPrint(bash: "cp \"\(binaryInfo.path)\" \"\(finalPath)\"")
                 results[arch] = .init(path: finalPath)
             }
             return .multiple(results)

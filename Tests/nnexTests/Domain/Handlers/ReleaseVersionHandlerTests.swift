@@ -5,10 +5,10 @@
 //  Created by Nikolai Nobadi on 8/12/25.
 //
 
+import NnexKit
 import Testing
 import Foundation
-import NnexKit
-import NnShellKit
+import NnShellTesting
 import SwiftPickerTesting
 import NnexSharedTestHelpers
 @testable import nnex

@@ -5,16 +5,15 @@
 //  Created by Nikolai Nobadi on 8/12/25.
 //
 
-import Foundation
 import NnexKit
-import NnShellKit
+import Foundation
 
 struct ReleaseVersionHandler {
-    private let shell: any Shell
+    private let shell: any NnexShell
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
     
-    init(picker: any NnexPicker, gitHandler: any GitHandler, shell: any Shell) {
+    init(picker: any NnexPicker, gitHandler: any GitHandler, shell: any NnexShell) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler

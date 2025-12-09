@@ -7,8 +7,8 @@
 
 import NnexKit
 import Testing
-import NnShellKit
 import Foundation
+import NnShellTesting
 import SwiftPickerTesting
 import NnexSharedTestHelpers
 @testable import nnex

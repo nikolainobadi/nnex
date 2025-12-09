@@ -7,17 +7,16 @@
 
 import Files
 import NnexKit
-import NnShellKit
 import Foundation
 
 struct PublishExecutionManager {
-    private let shell: any Shell
+    private let shell: any NnexShell
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
     private let publishInfoLoader: PublishInfoLoader
     private let trashHandler: any TrashHandler
     
-    init(shell: any Shell, picker: any NnexPicker, gitHandler: any GitHandler, publishInfoLoader: PublishInfoLoader, trashHandler: any TrashHandler) {
+    init(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, publishInfoLoader: PublishInfoLoader, trashHandler: any TrashHandler) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler

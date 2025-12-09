@@ -6,10 +6,9 @@
 //
 
 import Files
-import Foundation
 import NnexKit
+import Foundation
 import GitCommandGen
-import NnShellKit
 
 struct ReleaseHandler {
     private let picker: any NnexPicker
