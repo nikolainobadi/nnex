@@ -21,7 +21,7 @@ extension Nnex.Brew {
             if let name, let selection = tapList.first(where: { $0.name.lowercased() == name.lowercased() }) {
                 try context.deleteTap(selection)
             } else {
-                let selection = try Nnex.makePicker().requiredSingleSelection(title: "Select a tap.", items: tapList)
+                let selection = try Nnex.makePicker().requiredSingleSelection("Select a tap.", items: tapList)
                 
                 try context.deleteTap(selection)
             }

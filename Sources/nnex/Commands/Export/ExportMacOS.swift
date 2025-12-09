@@ -9,7 +9,6 @@ import Files
 import NnexKit
 import Foundation
 import ArgumentParser
-import SwiftPickerKit
 
 extension Nnex.Export {
     struct MacOS: ParsableCommand {
@@ -149,10 +148,7 @@ private extension Nnex.Export.MacOS {
         }
         
         // Multiple schemes - let user choose
-        return try picker.requiredSingleSelection(
-            title: "Multiple schemes detected. Which would you like to archive?",
-            items: availableSchemes
-        )
+        return try picker.requiredSingleSelection("Multiple schemes detected. Which would you like to archive?", items: availableSchemes)
     }
     
     func buildArchiveConfig(projectPath: String, scheme: String, shell: any NnexShell) throws -> ArchiveConfig {
@@ -163,7 +159,7 @@ private extension Nnex.Export.MacOS {
         // Create archive output directory if it doesn't exist
         try shell.runAndPrint(bash: "mkdir -p \"\(archiveOutput)\"")
         
-        return ArchiveConfig(
+        return .init(
             platform: .macOS,
             projectPath: projectPath,
             scheme: scheme,

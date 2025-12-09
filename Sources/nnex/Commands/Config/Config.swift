@@ -85,8 +85,9 @@ extension Nnex.Config {
         var buildType: BuildType?
         
         func run() throws {
+            let picker = Nnex.makePicker()
             let context = try Nnex.makeContext()
-            let buildType = try buildType ?? Nnex.makePicker().requiredSingleSelection(title: "Select a build type.", items: BuildType.allCases)
+            let buildType = try buildType ?? picker.requiredSingleSelection("Select a build type.", items: BuildType.allCases)
             
             context.saveDefaultBuildType(buildType)
             print("Default build type set to: \(buildType.rawValue)")

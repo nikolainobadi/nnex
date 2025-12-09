@@ -108,7 +108,7 @@ private extension CreateTapManager {
         let defaultTapFolderName = "NnexHomebrewTaps"
         let defaultPath = homeFolder.path + defaultTapFolderName
         let prompt = "Missing Taplist folder path. Where would you like new Homebrew Taps to be created?"
-        let selection = try picker.requiredSingleSelection(title: prompt, items: [addNewPath, defaultPath])
+        let selection = try picker.requiredSingleSelection(prompt, items: [addNewPath, defaultPath])
 
         var tapListFolder: Folder
         if selection == addNewPath {
@@ -124,5 +124,3 @@ private extension CreateTapManager {
         return tapListFolder
     }
 }
-
-

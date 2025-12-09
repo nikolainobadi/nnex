@@ -25,15 +25,16 @@ struct ReleaseNotesHandler {
 // MARK: - Action
 extension ReleaseNotesHandler {
     func getReleaseNoteInfo() throws -> ReleaseNoteInfo {
-        switch try picker.requiredSingleSelection(title: "How would you like to add your release notes for \(projectName)?", items: NoteContentType.allCases) {
+        switch try picker.requiredSingleSelection("How would you like to add your release notes for \(projectName)?", items: NoteContentType.allCases) {
         case .direct:
             let notes = try picker.getRequiredInput(prompt: "Enter your release notes.")
             
             return .init(content: notes, isFromFile: false)
         case .selectFile:
-            let selection = try picker.requiredBrowseSelection(prompt: "Select the file containing your release notes", allowSelectingFolders: false)
-            
-            return .init(content: selection.url.path(), isFromFile: true)
+            fatalError() // TODO: - need to abstract Files in order to enable this
+//            let selection = try picker.requiredBrowseSelection(prompt: "Select the file containing your release notes", allowSelectingFolders: false)
+//            
+//            return .init(content: selection.url.path(), isFromFile: true)
         case .fromPath:
             let filePath = try picker.getRequiredInput(prompt: "Enter the path to the file for the \(projectName) release notes.")
             

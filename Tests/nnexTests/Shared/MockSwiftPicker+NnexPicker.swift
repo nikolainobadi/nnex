@@ -14,26 +14,6 @@ extension MockSwiftPicker: NnexPicker {
     nonisolated(unsafe) static var folderToReturn: Folder?
     nonisolated(unsafe) static var fileToReturn: FileSystemNode?
     
-    public func browseSelection(prompt: String, allowSelectingFolders: Bool) -> FileSystemNode? {
-        if allowSelectingFolders {
-            guard let folderToReturn = MockSwiftPicker.folderToReturn else {
-                return nil
-            }
-            
-            return .init(url: folderToReturn.url)
-        }
-        
-        guard let fileToReturn = MockSwiftPicker.fileToReturn else {
-            return nil
-        }
-        
-        return fileToReturn
-    }
-    
-    public func browseFolders(prompt: String) -> Folder? {
-        return MockSwiftPicker.folderToReturn
-    }
-    
     public func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
         return try requiredSingleSelection(prompt: title, items: items, layout: .singleColumn, newScreen: true, showSelectedItemText: false)
     }

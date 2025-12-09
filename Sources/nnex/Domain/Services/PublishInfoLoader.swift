@@ -41,10 +41,7 @@ extension PublishInfoLoader {
     /// - Throws: An error if the loading process fails.
     func loadPublishInfo() throws -> (SwiftDataTap, SwiftDataFormula) {
         let allTaps = try context.loadTaps()
-        let tap = try getTap(allTaps: allTaps) ?? picker.requiredSingleSelection(
-            title: "\(projectFolder.name) does not yet have a formula. Select a tap for this formula.",
-            items: allTaps
-        )
+        let tap = try getTap(allTaps: allTaps) ?? picker.requiredSingleSelection("\(projectFolder.name) does not yet have a formula. Select a tap for this formula.", items: allTaps)
         
         if let formula = tap.formulas.first(where: { $0.name.lowercased() == projectFolder.name.lowercased() }) {
             // Update the formula's localProjectPath if needed
@@ -111,7 +108,7 @@ private extension PublishInfoLoader {
             return names.first!
         }
         
-        return try picker.requiredSingleSelection(title: "Which executable would you like to build?", items: names)
+        return try picker.requiredSingleSelection("Which executable would you like to build?", items: names)
     }
     
     /// Retrieves the test command based on user input or configuration.
@@ -122,7 +119,7 @@ private extension PublishInfoLoader {
             return nil
         }
         
-        switch try picker.requiredSingleSelection(title: "How would you like to handle tests?", items: FormulaTestType.allCases) {
+        switch try picker.requiredSingleSelection("How would you like to handle tests?", items: FormulaTestType.allCases) {
         case .custom:
             let command = try picker.getRequiredInput(prompt: "Enter the test command that you would like to use.")
             

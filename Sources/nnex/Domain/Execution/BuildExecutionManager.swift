@@ -64,7 +64,7 @@ private extension BuildExecutionManager {
         }
         
         do {
-            return try picker.requiredSingleSelection(title: "Which executable would you like to build?", items: names)
+            return try picker.requiredSingleSelection("Which executable would you like to build?", items: names)
         } catch {
             throw BuildExecutionError.failedToSelectExecutable(reason: error.localizedDescription)
         }
@@ -77,7 +77,7 @@ private extension BuildExecutionManager {
             .custom("")
         ]
         
-        let selection = try picker.requiredSingleSelection(title: "Where would you like to place the built binary?", items: options)
+        let selection = try picker.requiredSingleSelection("Where would you like to place the built binary?", items: options)
         
         if case .custom = selection {
             return try handleCustomLocationInput()

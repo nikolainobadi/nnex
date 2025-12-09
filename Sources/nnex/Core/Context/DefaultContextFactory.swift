@@ -6,6 +6,7 @@
 //
 
 import NnexKit
+import SwiftPickerKit
 
 let APP_GROUP_ID = "R8SJ24LQF3.com.nobadi.nnex"
 
@@ -15,7 +16,7 @@ struct DefaultContextFactory: ContextFactory {
     }
 
     func makePicker() -> any NnexPicker {
-        return DefaultPicker()
+        return SwiftPicker()
     }
 
     func makeGitHandler() -> any GitHandler {
