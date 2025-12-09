@@ -8,7 +8,6 @@
 import Files
 import NnexKit
 import Foundation
-import SwiftPickerKit
 import ArgumentParser
 
 extension Nnex.Archive {
@@ -100,10 +99,7 @@ private extension Nnex.Archive.MacOS {
         }
         
         // Multiple schemes - let user choose
-        return try picker.requiredSingleSelection(
-            title: "Multiple schemes detected. Which would you like to archive?",
-            items: availableSchemes
-        )
+        return try picker.requiredSingleSelection("Multiple schemes detected. Which would you like to archive?", items: availableSchemes)
     }
     
     func buildArchiveConfig(projectPath: String, scheme: String, shell: any NnexShell) throws -> ArchiveConfig {
