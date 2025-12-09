@@ -78,23 +78,24 @@ private extension PublishInfoLoader {
     /// - Returns: A SwiftDataFormula instance representing the created formula.
     /// - Throws: An error if the creation process fails.
     func createNewFormula(for folder: Folder) throws -> SwiftDataFormula {
-        let name = try getExecutableName()
-        let details = try picker.getRequiredInput(prompt: "Enter the description for this formula.")
-        let homepage = try gitHandler.getRemoteURL(path: folder.path)
-        let license = LicenseDetector.detectLicense(in: folder)
-        let testCommand = try getTestCommand()
-        let extraArgs = getExtraArgs()
-        
-        return .init(
-            name: name,
-            details: details,
-            homepage: homepage,
-            license: license,
-            localProjectPath: folder.path,
-            uploadType: .binary,
-            testCommand: testCommand,
-            extraBuildArgs: extraArgs
-        )
+        fatalError() // TODO: - 
+//        let name = try getExecutableName()
+//        let details = try picker.getRequiredInput(prompt: "Enter the description for this formula.")
+//        let homepage = try gitHandler.getRemoteURL(path: folder.path)
+//        let license = LicenseDetector.detectLicense(in: folder)
+//        let testCommand = try getTestCommand()
+//        let extraArgs = getExtraArgs()
+//        
+//        return .init(
+//            name: name,
+//            details: details,
+//            homepage: homepage,
+//            license: license,
+//            localProjectPath: folder.path,
+//            uploadType: .binary,
+//            testCommand: testCommand,
+//            extraBuildArgs: extraArgs
+//        )
     }
     
     /// Retrieves the name of the executable from the package manifest.

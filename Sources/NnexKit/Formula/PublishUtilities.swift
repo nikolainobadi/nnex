@@ -18,11 +18,12 @@ public enum PublishUtilities {
     /// - Returns: The binary output including path(s) and hash(es).
     /// - Throws: An error if the build process fails.
     public static func buildBinary(formula: SwiftDataFormula, buildType: BuildType, skipTesting: Bool, shell: any NnexShell) throws -> BinaryOutput {
-        let testCommand = skipTesting ? nil : formula.testCommand
-        let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
-        let builder = ProjectBuilder(shell: shell, config: config)
-        
-        return try builder.build()
+        fatalError() // TODO: - 
+//        let testCommand = skipTesting ? nil : formula.testCommand
+//        let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
+//        let builder = ProjectBuilder(shell: shell, config: config)
+//        
+//        return try builder.build()
     }
 
     /// Creates tar.gz archives from binary output.
