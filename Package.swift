@@ -59,7 +59,8 @@ let package = Package(
         .target(
             name: "NnexSharedTestHelpers",
             dependencies: [
-                "NnexKit"
+                "NnexKit",
+                .product(name: "NnShellTesting", package: "NnShellKit"),
             ]
         ),
         .testTarget(
@@ -74,8 +75,7 @@ let package = Package(
             name: "NnexKitTests",
             dependencies: [
                 "NnexKit",
-                "NnexSharedTestHelpers",
-                .product(name: "NnShellTesting", package: "NnShellKit"),
+                "NnexSharedTestHelpers"
             ]
         )
     ]
