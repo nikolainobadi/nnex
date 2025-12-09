@@ -28,7 +28,8 @@ struct DefaultContextFactory: ContextFactory {
     /// Creates a default Git handler instance.
     /// - Returns: A DefaultGitHandler instance.
     func makeGitHandler() -> any GitHandler {
-        return DefaultGitHandler(shell: makeShell())
+        fatalError() // TODO: - 
+//        return DefaultGitHandler(shell: makeShell())
     }
 
     /// Creates a default Nnex context instance.

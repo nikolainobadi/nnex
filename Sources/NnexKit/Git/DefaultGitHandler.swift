@@ -7,18 +7,12 @@
 
 import Foundation
 import GitShellKit
-import NnShellKit
 
-/// Default implementation of the GitHandler protocol, providing Git-related operations.
 public struct DefaultGitHandler {
-    private let shell: any Shell
-    private let gitShell: any GitShell
+    private let shell: any NnexShell
 
-    /// Initializes a new instance of DefaultGitHandler with the specified shell.
-    /// - Parameter shell: The shell used to execute commands.
-    public init(shell: any Shell) {
+    public init(shell: any NnexShell) {
         self.shell = shell
-        self.gitShell = GitShellAdapter(shell: shell)
     }
 }
 
@@ -39,7 +33,7 @@ extension DefaultGitHandler: GitHandler {
     /// - Parameter path: The file path of the repository.
     /// - Returns: A string representing the remote URL.
     public func getRemoteURL(path: String) throws -> String {
-        return try gitShell.getGitHubURL(at: path)
+        return try shell.getGitHubURL(at: path)
     }
 
     /// Retrieves the previous release version from the repository at the given path.
@@ -52,7 +46,7 @@ extension DefaultGitHandler: GitHandler {
     /// Initializes a new Git repository at the given path.
     /// - Parameter path: The file path where the repository should be initialized.
     public func gitInit(path: String) throws {
-        try GitStarter(path: path, shell: gitShell).gitInit()
+        try GitStarter(path: path, shell: shell).gitInit()
     }
 
     /// Initializes a new remote repository on GitHub with specified details and returns the repository URL.
@@ -64,7 +58,7 @@ extension DefaultGitHandler: GitHandler {
     /// - Returns: A string representing the repository URL.
     public func remoteRepoInit(tapName: String, path: String, projectDetails: String, visibility: RepoVisibility) throws -> String {
         let info = RepoInfo(name: tapName, details: projectDetails, visibility: visibility, canUploadFromNonMainBranch: false)
-        return try GitHubRepoStarter(path: path, shell: gitShell, repoInfo: info).repoInit()
+        return try GitHubRepoStarter(path: path, shell: shell, repoInfo: info).repoInit()
     }
 
     /// Creates a new release with one or more archived binaries and returns all asset URLs.

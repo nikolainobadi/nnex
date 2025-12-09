@@ -33,16 +33,17 @@ public enum PublishUtilities {
     /// - Returns: An array of archived binaries.
     /// - Throws: An error if archive creation fails.
     public static func createArchives(from binaryOutput: BinaryOutput, shell: any Shell) throws -> [ArchivedBinary] {
-        let archiver = BinaryArchiver(shell: shell)
-        
-        switch binaryOutput {
-        case .single(let info):
-            return try archiver.createArchives(from: [info.path])
-        case .multiple(let map):
-            let binaryPaths = [ReleaseArchitecture.arm, ReleaseArchitecture.intel]
-                .compactMap { map[$0]?.path }
-            return try archiver.createArchives(from: binaryPaths)
-        }
+        fatalError() // TODO: - 
+//        let archiver = BinaryArchiver(shell: shell)
+//        
+//        switch binaryOutput {
+//        case .single(let info):
+//            return try archiver.createArchives(from: [info.path])
+//        case .multiple(let map):
+//            let binaryPaths = [ReleaseArchitecture.arm, ReleaseArchitecture.intel]
+//                .compactMap { map[$0]?.path }
+//            return try archiver.createArchives(from: binaryPaths)
+//        }
     }
 
     /// Creates formula content based on the archived binaries and asset URLs.
