@@ -24,9 +24,9 @@ extension DefaultGitHandler: GitHandler {
     ///   - message: The commit message describing the changes.
     ///   - path: The file path of the repository.
     public func commitAndPush(message: String, path: String) throws {
-        _ = try shell.bash(makeGitCommand(.addAll, path: path))
-        _ = try shell.bash(makeGitCommand(.commit(message: message), path: path))
-        _ = try shell.bash(makeGitCommand(.push, path: path))
+        try shell.runAndPrint(bash: makeGitCommand(.addAll, path: path))
+        try shell.runAndPrint(bash: makeGitCommand(.commit(message: message), path: path))
+        try shell.runAndPrint(bash: makeGitCommand(.push, path: path))
     }
 
     /// Retrieves the remote URL of the repository located at the given path.
@@ -96,7 +96,7 @@ private extension DefaultGitHandler {
         // Create the release and upload all archives at once
         let quotedArchivePaths = archivedBinaries.map { "\"\($0.archivePath)\"" }.joined(separator: " ")
         let createCmd = "cd \"\(path)\" && gh release create \(version) \(quotedArchivePaths) --title \"\(version)\" \(notesParam)"
-        _ = try shell.bash(createCmd)
+        try shell.runAndPrint(bash: createCmd)
         
         // Clean up archive files after upload
         let archiver = BinaryArchiver(shell: shell)

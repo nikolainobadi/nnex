@@ -196,7 +196,7 @@ private extension DefaultNotarizeHandler {
         let checkProfileCommand = "xcrun notarytool list --keychain-profile \"notarytool-profile\""
         
         do {
-            let _ = try shell.bash(checkProfileCommand)
+            try shell.runAndPrint(bash: checkProfileCommand)
         } catch {
             // Profile doesn't exist - prompt user to set it up
             try setupNotarizationCredentials()

@@ -22,6 +22,10 @@ extension DefaultShell: NnexShell {
     public func bash(_ command: String) throws -> String {
         return try shell.bash(command)
     }
+    
+    public func runAndPrint(bash command: String) throws {
+        try shell.runAndPrint(bash: command)
+    }
 }
 
 

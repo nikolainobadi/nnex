@@ -68,8 +68,7 @@ private extension ProjectBuilder {
 
     func cleanProject() throws {
         log("🧹 Cleaning the project...")
-        let output = try shell.bash("swift package clean --package-path \(config.projectPath)")
-        if !output.isEmpty { print(output) }
+        try shell.runAndPrint(bash: "swift package clean --package-path \(config.projectPath)")
         log("✅ Project cleaned.")
     }
 
@@ -93,8 +92,7 @@ private extension ProjectBuilder {
             log("🧪 Running tests: \(testCommand)")
             
             do {
-                let output = try shell.bash(testCommand)
-                if !output.isEmpty { print(output) }
+                try shell.runAndPrint(bash: testCommand)
                 log("✅ Tests completed successfully.")
             } catch let shellError as ShellError {
                 // Extract test output from the shell error
@@ -120,9 +118,8 @@ private extension ProjectBuilder {
         log("🔨 Building for \(arch.name)...")
         let extra = config.extraBuildArgs.joined(separator: " ")
         let cmd = "swift build -c release --arch \(arch.name) -Xswiftc -Osize -Xswiftc -wmo -Xswiftc -gnone -Xswiftc -cross-module-optimization -Xlinker -dead_strip_dylibs --package-path \(config.projectPath) \(extra)"
-        let output = try shell.bash(cmd)
-        if !output.isEmpty { print(output) }
         
+        try shell.runAndPrint(bash: cmd)
         try stripBinary(for: arch)
     }
 
@@ -134,8 +131,8 @@ private extension ProjectBuilder {
         log("✂️ Stripping binary for \(arch.name)...")
         let binaryPath = binaryPath(for: arch)
         let stripCmd = "strip -x \"\(binaryPath)\""
-        let output = try shell.bash(stripCmd)
-        if !output.isEmpty { print(output) }
+        
+        try shell.runAndPrint(bash: stripCmd)
         log("✅ Binary stripped for \(arch.name).")
     }
 }

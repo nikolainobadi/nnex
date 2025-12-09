@@ -10,4 +10,5 @@ import GitShellKit
 // TODO: - remove GitShell when possible
 public protocol NnexShell: GitShell {
     func bash(_ command: String) throws -> String
+    func runAndPrint(bash command: String) throws
 }

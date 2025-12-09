@@ -32,7 +32,7 @@ extension DefaultExportHandler {
         
         // Ensure output directory exists
         let outputDir = URL(fileURLWithPath: outputPath).deletingLastPathComponent().path
-        _ = try shell.bash("mkdir -p \"\(outputDir)\"")
+        try shell.runAndPrint(bash: "mkdir -p \"\(outputDir)\"")
         
         // Copy the app to the output location
         try copyApp(from: appPath, to: outputPath, verbose: verbose)

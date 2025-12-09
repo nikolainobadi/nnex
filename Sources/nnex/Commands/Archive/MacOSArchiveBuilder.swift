@@ -78,7 +78,7 @@ extension DefaultMacOSArchiveBuilder {
 // MARK: - Private Methods
 private extension DefaultMacOSArchiveBuilder {
     func createDirectoryIfNeeded(_ path: String) throws {
-        _ = try shell.bash("mkdir -p \"\(path)\"")
+        try shell.runAndPrint(bash: "mkdir -p \"\(path)\"")
     }
     
     func buildArchiveCommand(projectType: ProjectType, scheme: String, configuration: BuildConfiguration, archivePath: String, universalBinary: Bool, stripBinary: Bool) -> String {

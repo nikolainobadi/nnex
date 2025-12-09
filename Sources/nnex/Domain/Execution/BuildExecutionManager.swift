@@ -42,7 +42,7 @@ private extension BuildExecutionManager {
         case .single(let binaryInfo):
             print("New binary was built at \(binaryInfo.path)")
             if openInFinder {
-                _ = try? shell.bash("open -R \(binaryInfo.path)")
+                try? shell.runAndPrint(bash: "open -R \(binaryInfo.path)")
             }
         case .multiple(let binaries):
             print("Universal binary built:")
@@ -50,7 +50,7 @@ private extension BuildExecutionManager {
                 print("  \(arch.name): \(binaryInfo.path)")
             }
             if openInFinder, let firstBinary = binaries.values.first {
-                _ = try? shell.bash("open -R \(firstBinary.path)")
+                try? shell.runAndPrint(bash: "open -R \(firstBinary.path)")
             }
         }
     }

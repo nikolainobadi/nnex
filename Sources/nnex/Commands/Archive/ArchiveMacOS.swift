@@ -70,7 +70,7 @@ extension Nnex.Archive {
             
             // Open in Finder if requested
             if openFinder {
-                _ = try shell.bash("open -R \"\(config.archiveOutputPath)\"")
+                try shell.runAndPrint(bash: "open -R \"\(config.archiveOutputPath)\"")
             }
         }
     }
@@ -112,7 +112,7 @@ private extension Nnex.Archive.MacOS {
         let archiveOutput = output ?? defaultArchiveLocation
         
         // Create archive output directory if it doesn't exist
-        _ = try shell.bash("mkdir -p \"\(archiveOutput)\"")
+        try shell.runAndPrint(bash: "mkdir -p \"\(archiveOutput)\"")
         
         return .init(
             platform: .macOS,
