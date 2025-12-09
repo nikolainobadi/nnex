@@ -6,12 +6,11 @@
 //
 
 import Files
-import NnShellKit
 
 public struct BinaryCopyUtility {
-    private let shell: any Shell
+    private let shell: any NnexShell
     
-    public init(shell: any Shell) {
+    public init(shell: any NnexShell) {
         self.shell = shell
     }
 }

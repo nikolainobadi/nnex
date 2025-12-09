@@ -7,7 +7,6 @@
 
 import Files
 import NnexKit
-import NnShellKit
 import Foundation
 import ArgumentParser
 import SwiftPickerKit
@@ -46,6 +45,7 @@ extension Nnex.Export {
         var noStrip: Bool = false
         
         func run() throws {
+            // TODO: - 
             let shell = Nnex.makeShell()
             let picker = Nnex.makePicker()
             let projectDetector = Nnex.makeProjectDetector()
@@ -92,10 +92,10 @@ extension Nnex.Export {
 // MARK: - Private Methods
 private extension Nnex.Export.MacOS {
     func getOrCreateArchive(
-        shell: Shell,
-        picker: NnexPicker,
-        projectDetector: ProjectDetector,
-        archiveBuilder: ArchiveBuilder
+        shell: any NnexShell,
+        picker: any NnexPicker,
+        projectDetector: any ProjectDetector,
+        archiveBuilder: any ArchiveBuilder
     ) throws -> String {
         if let archive = archive {
             return archive
@@ -136,7 +136,7 @@ private extension Nnex.Export.MacOS {
         return Folder.current.path
     }
     
-    func getScheme(projectInfo: ProjectInfo, projectDetector: ProjectDetector, picker: NnexPicker) throws -> String {
+    func getScheme(projectInfo: ProjectInfo, projectDetector: any ProjectDetector, picker: any NnexPicker) throws -> String {
         if let scheme = scheme {
             return scheme
         }
@@ -155,7 +155,7 @@ private extension Nnex.Export.MacOS {
         )
     }
     
-    func buildArchiveConfig(projectPath: String, scheme: String, shell: any Shell) throws -> ArchiveConfig {
+    func buildArchiveConfig(projectPath: String, scheme: String, shell: any NnexShell) throws -> ArchiveConfig {
         let config = configuration ?? .release
         let defaultArchiveLocation = NSString(string: "~/Library/Developer/Xcode/Archives").expandingTildeInPath
         let archiveOutput = defaultArchiveLocation

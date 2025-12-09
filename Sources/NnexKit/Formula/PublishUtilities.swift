@@ -7,7 +7,6 @@
 
 import Files
 import Foundation
-import NnShellKit
 
 public enum PublishUtilities {
     /// Builds the binary for the given project and formula.
@@ -18,7 +17,7 @@ public enum PublishUtilities {
     ///   - shell: The shell instance to use for building.
     /// - Returns: The binary output including path(s) and hash(es).
     /// - Throws: An error if the build process fails.
-    public static func buildBinary(formula: SwiftDataFormula, buildType: BuildType, skipTesting: Bool, shell: any Shell) throws -> BinaryOutput {
+    public static func buildBinary(formula: SwiftDataFormula, buildType: BuildType, skipTesting: Bool, shell: any NnexShell) throws -> BinaryOutput {
         let testCommand = skipTesting ? nil : formula.testCommand
         let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
         let builder = ProjectBuilder(shell: shell, config: config)
@@ -32,18 +31,17 @@ public enum PublishUtilities {
     ///   - shell: The shell instance to use for archiving.
     /// - Returns: An array of archived binaries.
     /// - Throws: An error if archive creation fails.
-    public static func createArchives(from binaryOutput: BinaryOutput, shell: any Shell) throws -> [ArchivedBinary] {
-        fatalError() // TODO: - 
-//        let archiver = BinaryArchiver(shell: shell)
-//        
-//        switch binaryOutput {
-//        case .single(let info):
-//            return try archiver.createArchives(from: [info.path])
-//        case .multiple(let map):
-//            let binaryPaths = [ReleaseArchitecture.arm, ReleaseArchitecture.intel]
-//                .compactMap { map[$0]?.path }
-//            return try archiver.createArchives(from: binaryPaths)
-//        }
+    public static func createArchives(from binaryOutput: BinaryOutput, shell: any NnexShell) throws -> [ArchivedBinary] {
+        let archiver = BinaryArchiver(shell: shell)
+        
+        switch binaryOutput {
+        case .single(let info):
+            return try archiver.createArchives(from: [info.path])
+        case .multiple(let map):
+            let binaryPaths = [ReleaseArchitecture.arm, ReleaseArchitecture.intel]
+                .compactMap { map[$0]?.path }
+            return try archiver.createArchives(from: binaryPaths)
+        }
     }
 
     /// Creates formula content based on the archived binaries and asset URLs.

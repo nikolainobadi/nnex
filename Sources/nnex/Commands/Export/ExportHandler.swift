@@ -7,7 +7,6 @@
 
 import Files
 import NnexKit
-import NnShellKit
 import Foundation
 
 protocol ExportHandler {
@@ -15,9 +14,9 @@ protocol ExportHandler {
 }
 
 struct DefaultExportHandler: ExportHandler {
-    private let shell: Shell
+    private let shell: NnexShell
     
-    init(shell: Shell) {
+    init(shell: NnexShell) {
         self.shell = shell
     }
 }

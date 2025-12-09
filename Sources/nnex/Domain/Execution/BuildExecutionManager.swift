@@ -7,15 +7,14 @@
 
 import Files
 import NnexKit
-import NnShellKit
 import Foundation
 
 struct BuildExecutionManager {
-    private let shell: any Shell
+    private let shell: any NnexShell
     private let picker: any NnexPicker
     private let copyUtility: BinaryCopyUtility
     
-    init(shell: any Shell, picker: any NnexPicker) {
+    init(shell: any NnexShell, picker: any NnexPicker) {
         self.shell = shell
         self.picker = picker
         self.copyUtility = BinaryCopyUtility(shell: shell)

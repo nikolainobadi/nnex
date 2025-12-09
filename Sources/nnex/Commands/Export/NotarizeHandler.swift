@@ -7,7 +7,6 @@
 
 import Files
 import NnexKit
-import NnShellKit
 import Foundation
 
 protocol NotarizeHandler {
@@ -16,10 +15,10 @@ protocol NotarizeHandler {
 }
 
 struct DefaultNotarizeHandler: NotarizeHandler {
-    private let shell: any Shell
+    private let shell: any NnexShell
     private let picker: any NnexPicker
     
-    init(shell: any Shell, picker: any NnexPicker) {
+    init(shell: any NnexShell, picker: any NnexPicker) {
         self.shell = shell
         self.picker = picker
     }

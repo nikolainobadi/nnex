@@ -8,7 +8,6 @@
 import Files
 import NnexKit
 import Foundation
-import NnShellKit
 import SwiftPickerKit
 import ArgumentParser
 
@@ -29,7 +28,6 @@ extension Nnex.Archive {
         
         @Option(name: .shortAndLong, help: "Archive output location. Defaults to ~/Library/Developer/Xcode/Archives/")
         var output: String?
-        
         
         @Flag(help: "Show detailed xcodebuild output.")
         var verbose: Bool = false
@@ -108,7 +106,7 @@ private extension Nnex.Archive.MacOS {
         )
     }
     
-    func buildArchiveConfig(projectPath: String, scheme: String, shell: any Shell) throws -> ArchiveConfig {
+    func buildArchiveConfig(projectPath: String, scheme: String, shell: any NnexShell) throws -> ArchiveConfig {
         let config = configuration ?? .release
         let defaultArchiveLocation = NSString(string: "~/Library/Developer/Xcode/Archives").expandingTildeInPath
         let archiveOutput = output ?? defaultArchiveLocation
@@ -136,4 +134,3 @@ extension BuildConfiguration: ExpressibleByArgument {
         self.init(rawValue: argument.capitalized)
     }
 }
-

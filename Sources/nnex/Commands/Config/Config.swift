@@ -6,7 +6,6 @@
 //
 
 import NnexKit
-import NnShellKit
 import ArgumentParser
 
 extension Nnex {

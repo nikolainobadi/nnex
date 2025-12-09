@@ -1,12 +1,19 @@
-import NnShellKit
+//
+//  ProjectBuilder.swift
+//  nnex
+//
+//  Created by Nikolai Nobadi on 3/21/25.
+//
+
 import Foundation
+import NnShellKit
 
 public struct ProjectBuilder {
-    private let shell: any Shell
+    private let shell: any NnexShell
     private let config: BuildConfig
     private let progressDelegate: (any BuildProgressDelegate)?
 
-    public init(shell: any Shell, config: BuildConfig, progressDelegate: (any BuildProgressDelegate)? = nil) {
+    public init(shell: any NnexShell, config: BuildConfig, progressDelegate: (any BuildProgressDelegate)? = nil) {
         self.shell = shell
         self.config = config
         self.progressDelegate = progressDelegate
@@ -131,9 +138,10 @@ private extension ProjectBuilder {
         if !output.isEmpty { print(output) }
         log("✅ Binary stripped for \(arch.name).")
     }
-
 }
 
+
+// MARK: - Dependencies
 public enum BinaryOutput {
     case single(BinaryInfo)
     case multiple([ReleaseArchitecture: BinaryInfo])
@@ -156,12 +164,17 @@ public struct TestFailureError: Error, LocalizedError {
     }
 }
 
+
+// MARK: - Extension Dependencies
 private extension BuildType {
     var archs: [ReleaseArchitecture] {
         switch self {
-        case .arm64: return [.arm]
-        case .x86_64: return [.intel]
-        case .universal: return [.arm, .intel]
+        case .arm64:
+            return [.arm]
+        case .x86_64:
+            return [.intel]
+        case .universal:
+            return [.arm, .intel]
         }
     }
 }

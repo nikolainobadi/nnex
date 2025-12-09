@@ -7,13 +7,12 @@
 
 import Files
 import NnexKit
-import NnShellKit
 import Foundation
 
 struct DefaultMacOSArchiveBuilder: ArchiveBuilder {
-    private let shell: any Shell
+    private let shell: any NnexShell
     
-    init(shell: any Shell) {
+    init(shell: any NnexShell) {
         self.shell = shell
     }
 }
