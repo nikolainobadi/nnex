@@ -83,7 +83,7 @@ private extension PublishExecutionManager {
     ///   - skipTests: Whether to skip tests during loading.
     /// - Returns: A tuple containing the tap, formula, and build type.
     /// - Throws: An error if the tap or formula cannot be found.
-    func getTapAndFormula(projectFolder: Folder, buildType: BuildType, skipTests: Bool) throws -> (SwiftDataTap, SwiftDataFormula, BuildType) {
+    func getTapAndFormula(projectFolder: Folder, buildType: BuildType, skipTests: Bool) throws -> (SwiftHomebrewDataTap, SwiftDataFormula, BuildType) {
         let (tap, formula) = try publishInfoLoader.loadPublishInfo()
         
         // Note: The formula's localProjectPath update is now handled by PublishInfoLoader if needed
@@ -112,7 +112,7 @@ private extension PublishExecutionManager {
     ///   - message: An optional commit message.
     ///   - tap: The Homebrew tap to publish to.
     /// - Throws: An error if the formula cannot be published.
-    func publishFormula(_ content: String, formulaName: String, message: String?, tap: SwiftDataTap) throws {
+    func publishFormula(_ content: String, formulaName: String, message: String?, tap: SwiftHomebrewDataTap) throws {
         let publisher = FormulaPublisher(gitHandler: gitHandler)
         let commitMessage = try getMessage(message: message)
         let formulaPath = try publisher.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tap.localPath)

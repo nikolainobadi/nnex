@@ -25,12 +25,12 @@ public final class NnexContext {
     ///   - defaults: An optional UserDefaults instance.
     public init(appGroupId: String, config: ModelConfiguration? = nil, defaults: UserDefaults? = nil) throws {
         if let config, let defaults {
-            let container = try ModelContainer(for: SwiftDataTap.self, configurations: config)
+            let container = try ModelContainer(for: SwiftHomebrewDataTap.self, configurations: config)
             self.context = .init(container)
             self.defaults = defaults
         } else {
             let (config, defaults) = try configureSwiftDataContainer(appGroupId: appGroupId)
-            let container = try ModelContainer(for: SwiftDataTap.self, configurations: config)
+            let container = try ModelContainer(for: SwiftHomebrewDataTap.self, configurations: config)
             self.context = .init(container)
             self.defaults = defaults
         }
@@ -69,8 +69,8 @@ extension NnexContext {
 extension NnexContext {
     /// Loads all saved taps from the SwiftData context.
     /// - Returns: An array of SwiftDataTap objects.
-    public func loadTaps() throws -> [SwiftDataTap] {
-        return try context.fetch(FetchDescriptor<SwiftDataTap>())
+    public func loadTaps() throws -> [SwiftHomebrewDataTap] {
+        return try context.fetch(FetchDescriptor<SwiftHomebrewDataTap>())
     }
 
     /// Loads all saved formulas from the SwiftData context.
@@ -83,7 +83,7 @@ extension NnexContext {
     /// - Parameters:
     ///   - tap: The tap to save.
     ///   - formulas: An optional array of formulas to associate with the tap.
-    public func saveNewTap(_ tap: SwiftDataTap, formulas: [SwiftDataFormula] = []) throws {
+    public func saveNewTap(_ tap: SwiftHomebrewDataTap, formulas: [SwiftDataFormula] = []) throws {
         context.insert(tap)
         for formula in formulas {
             context.insert(formula)
@@ -95,7 +95,7 @@ extension NnexContext {
 
     /// Deletes the specified tap and its associated formulas.
     /// - Parameter tap: The tap to delete.
-    public func deleteTap(_ tap: SwiftDataTap) throws {
+    public func deleteTap(_ tap: SwiftHomebrewDataTap) throws {
         for formula in tap.formulas {
             context.delete(formula)
         }
@@ -107,7 +107,7 @@ extension NnexContext {
     /// - Parameters:
     ///   - formula: The formula to save.
     ///   - tap: The tap to associate with the formula.
-    public func saveNewFormula(_ formula: SwiftDataFormula, in tap: SwiftDataTap) throws {
+    public func saveNewFormula(_ formula: SwiftDataFormula, in tap: SwiftHomebrewDataTap) throws {
         context.insert(formula)
         tap.formulas.append(formula)
         formula.tap = tap

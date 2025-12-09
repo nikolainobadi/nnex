@@ -9,7 +9,7 @@ import Files
 import NnexKit
 import SwiftPickerKit
 
-extension SwiftDataTap: DisplayablePickerItem {
+extension SwiftHomebrewDataTap: DisplayablePickerItem {
     public var displayName: String {
         return name
     }
