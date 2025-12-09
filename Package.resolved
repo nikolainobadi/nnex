@@ -1,5 +1,5 @@
 {
-  "originHash" : "9e7ba982b32ec6fa9013c964f2e4ab02134e947d1477fe5270cbec777f0974b1",
+  "originHash" : "e7e3cdcd15c78e738cf58936e359c9112dcf7a43abbe0e17b5ce40bb4f170fb9",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/NnShellKit.git",
       "state" : {
-        "revision" : "cee4a6846dfe8ff0ce30596bd4a479050207f59a",
-        "version" : "2.0.0"
+        "revision" : "cd8ae6163e24243ab5eff171432da82d1c594f2c",
+        "version" : "2.2.0"
       }
     },
     {
