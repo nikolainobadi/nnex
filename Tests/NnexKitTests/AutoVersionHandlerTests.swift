@@ -67,7 +67,7 @@ extension AutoVersionHandlerTests {
         let sut = makeSUT()
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectFolder.path)
         
-        #expect(detectedVersion == "v2.1.0")
+        #expect(detectedVersion == "2.1.0")
     }
     
     @Test("Ignores non-main ParsableCommand files")

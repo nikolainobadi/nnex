@@ -49,7 +49,10 @@ public extension AutoVersionHandler {
             return false
         }
         
-        guard let updatedContent = updateVersionInContent(fileContent, newVersion: newVersion) else {
+        // Force normalized "1.2.3" format (no "v" prefix)
+        let forced = normalizeVersion(newVersion)
+        
+        guard let updatedContent = updateVersionInContent(fileContent, newVersion: forced) else {
             return false
         }
         
@@ -101,8 +104,8 @@ private extension AutoVersionHandler {
     /// - Parameter content: The file content to search.
     /// - Returns: The version string if found.
     func extractVersionFromContent(_ content: String) -> String? {
-        // Look for version: "v0.8.6" pattern in CommandConfiguration
-        let pattern = #"version:\s*"([^"]+)""#
+        // Look for version: "0.8.6" or version: "v0.8.6"
+        let pattern = #"version\s*:\s*"([^"]+)""#
         
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
             return nil
@@ -117,7 +120,8 @@ private extension AutoVersionHandler {
             return nil
         }
         
-        return String(content[versionRange])
+        let raw = String(content[versionRange])
+        return normalizeVersion(raw)
     }
     
     /// Updates version in file content.
@@ -126,20 +130,23 @@ private extension AutoVersionHandler {
     ///   - newVersion: The new version to set.
     /// - Returns: Updated content if successful, nil otherwise.
     func updateVersionInContent(_ content: String, newVersion: String) -> String? {
-        let pattern = #"(version:\s*)"([^"]+)""#
+        let pattern = #"version\s*:\s*"([^"]+)""#
         
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
             return nil
         }
         
+        // Force always-writing the strict format:
+        // version: "1.2.3"
+        let forcedLine = #"version: "\#(newVersion)""#
+        
         let range = NSRange(location: 0, length: content.utf16.count)
-        let replacement = "$1\"\(newVersion)\""
         
         return regex.stringByReplacingMatches(
             in: content,
             options: [],
             range: range,
-            withTemplate: replacement
+            withTemplate: forcedLine
         )
     }
     
@@ -147,7 +154,11 @@ private extension AutoVersionHandler {
     /// - Parameter version: The version string to normalize.
     /// - Returns: Normalized version string.
     func normalizeVersion(_ version: String) -> String {
-        return version.hasPrefix("v") ? String(version.dropFirst()) : version
+        let trimmed = version.trimmingCharacters(in: .whitespaces)
+        if trimmed.lowercased().hasPrefix("v") {
+            return String(trimmed.dropFirst()).trimmingCharacters(in: .whitespaces)
+        }
+        return trimmed
     }
     
     func strippedCode(_ s: String) -> String {
