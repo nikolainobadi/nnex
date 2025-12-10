@@ -16,9 +16,17 @@ public final class MockFileSystem: FileSystem {
     public private(set) var capturedPaths: [String] = []
 
     public let homeDirectory: any Directory
+    public var currentDirectory: any Directory
 
-    public init(homeDirectory: any Directory = MockDirectory(path: "/Users/test"), directoryToLoad: (any Directory)? = nil, directoryMap: [String: any Directory]? = nil, desktop: (any Directory)? = nil) {
+    public init(
+        homeDirectory: any Directory = MockDirectory(path: "/Users/Home"),
+        currentDirectory: any Directory = MockDirectory(path: "/Users/Home/CurrentTest"),
+        directoryToLoad: (any Directory)? = nil,
+        directoryMap: [String: any Directory]? = nil,
+        desktop: (any Directory)? = nil
+    ) {
         self.homeDirectory = homeDirectory
+        self.currentDirectory = currentDirectory
         self.directoryToLoad = directoryToLoad
         self.directoryMap = directoryMap
         self.desktop = desktop ?? MockDirectory(path: homeDirectory.path.appendingPathComponent("Desktop"))

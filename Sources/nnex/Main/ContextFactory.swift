@@ -18,4 +18,5 @@ protocol ContextFactory {
     func makeNotarizeHandler() -> any NotarizeHandler
     func makeProjectDetector() -> any ProjectDetector
     func makeMacOSArchiveBuilder() -> any ArchiveBuilder
+    func makeFolderBrowser(picker: any NnexPicker, fileSystem: any FileSystem) -> any DirectoryBrowser
 }

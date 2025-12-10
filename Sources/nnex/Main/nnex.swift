@@ -11,9 +11,9 @@ struct Nnex: ParsableCommand {
         version: "v1.0.0",
         subcommands: [
             Brew.self,
-            Build.self,
             Config.self,
             Archive.self,
+            BuildBinary.self,
 //            Export.self
         ]
     )

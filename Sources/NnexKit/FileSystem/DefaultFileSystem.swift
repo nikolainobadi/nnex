@@ -23,6 +23,10 @@ extension DefaultFileSystem: FileSystem {
         return FilesDirectoryAdapter(folder: Folder.home)
     }
     
+    public var currentDirectory: any Directory {
+        return FilesDirectoryAdapter(folder: Folder.current)
+    }
+    
     public func directory(at path: String) throws -> any Directory {
         return try FilesDirectoryAdapter(folder: Folder(path: path))
     }

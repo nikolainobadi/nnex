@@ -9,8 +9,9 @@ import NnexKit
 import ArgumentParser
 
 extension Nnex {
-    struct Build: ParsableCommand {
+    struct BuildBinary: ParsableCommand {
         static let configuration = CommandConfiguration(
+            commandName: "build",
             abstract: "Builds the project and outputs the location of the newly built binary."
         )
         
@@ -27,13 +28,10 @@ extension Nnex {
         var clean: Bool = true
         
         func run() throws {
-            let shell = Nnex.makeShell()
-            let picker = Nnex.makePicker()
             let context = try Nnex.makeContext()
             let buildType = buildType ?? context.loadDefaultBuildType()
-            let manager = BuildExecutionManager(shell: shell, picker: picker)
-
-            try manager.executeBuild(projectPath: path, buildType: buildType, clean: clean, openInFinder: openInFinder)
+            
+            try Nnex.makeBuildController().buildBinary(info: .init(path: path, type: buildType, clean: clean, openInFinder: openInFinder))
         }
     }
 }
