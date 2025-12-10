@@ -7,18 +7,10 @@
 
 import GitCommandGen
 
-/// Contains information related to a release, including project path, release notes, and version information.
 public struct ReleaseInfo {
-    /// The path to the project associated with the release.
     public let projectPath: String
-
-    /// The release notes describing the release.
     public let releaseNoteInfo: ReleaseNoteInfo
-
-    /// The previous version of the release, if available.
     public let previousVersion: String?
-
-    /// Information about the release version, including version number or increment.
     public let versionInfo: ReleaseVersionInfo
 
     /// Initializes a new instance of ReleaseInfo.

@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
-import Foundation
 import GitShellKit
 
 public struct DefaultGitHandler {
