@@ -31,16 +31,24 @@ struct FormulaContentGeneratorTests {
 extension FormulaContentGeneratorTests {
     @Test("Generates correct formula content for single binary")
     func generatesSingleBinaryFormula() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            assetURL: testAssetURL,
-            sha256: testSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let assetURL = testAssetURL
+        let sha256 = testSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            assetURL: assetURL,
+            sha256: sha256
         )
-
+        
         #expect(content.contains("class \(expectedName) < Formula"))
         #expect(content.contains("desc \"A test command line tool\""))
         #expect(content.contains("homepage \"https://github.com/test/testtool\""))
@@ -54,31 +62,47 @@ extension FormulaContentGeneratorTests {
     
     @Test("Capitalizes formula class name correctly")
     func capitalizesFormulaClassName() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: "my-tool",
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            assetURL: testAssetURL,
-            sha256: testSHA256
+        let sut = makeSUT()
+        let name = "my-tool"
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let assetURL = testAssetURL
+        let sha256 = testSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            assetURL: assetURL,
+            sha256: sha256
         )
-
+        
         #expect(content.contains("class MyTool < Formula"))
     }
 
     @Test("Handles empty strings in single binary formula")
     func handlesEmptyStringsInSingleBinary() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: "",
-            homepage: "",
-            license: "",
-            version: testVersion,
-            assetURL: "",
-            sha256: ""
+        let sut = makeSUT()
+        let name = testName
+        let details = ""
+        let homepage = ""
+        let license = ""
+        let version = testVersion
+        let assetURL = ""
+        let sha256 = ""
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            assetURL: assetURL,
+            sha256: sha256
         )
-
+        
         #expect(content.contains("desc \"\""))
         #expect(content.contains("homepage \"\""))
         #expect(content.contains("version \"1.0.0\""))
@@ -93,57 +117,68 @@ extension FormulaContentGeneratorTests {
 extension FormulaContentGeneratorTests {
     @Test("Generates correct formula content for both ARM and Intel binaries")
     func generatesBothArchitecturesFormula() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            armURL: testArmURL,
-            armSHA256: testArmSHA256,
-            intelURL: testIntelURL,
-            intelSHA256: testIntelSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let armURL = testArmURL
+        let armSHA256 = testArmSHA256
+        let intelURL = testIntelURL
+        let intelSHA256 = testIntelSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
+        
         #expect(content.contains("class \(expectedName) < Formula"))
         #expect(content.contains("desc \"A test command line tool\""))
         #expect(content.contains("homepage \"https://github.com/test/testtool\""))
         #expect(content.contains("version \"1.0.0\""))
         #expect(content.contains("license \"MIT\""))
-
-        // Check ARM section
         #expect(content.contains("on_arm do"))
         #expect(content.contains("url \"https://github.com/test/testtool/releases/download/v1.0.0/testtool-arm64.tar.gz\""))
         #expect(content.contains("sha256 \"arm64sha256hash\""))
-
-        // Check Intel section
         #expect(content.contains("on_intel do"))
         #expect(content.contains("url \"https://github.com/test/testtool/releases/download/v1.0.0/testtool-x86_64.tar.gz\""))
         #expect(content.contains("sha256 \"x86_64sha256hash\""))
-
-        // Check install and test sections
         #expect(content.contains("bin.install \"testtool\""))
         #expect(content.contains("system \"#{bin}/testtool\", \"--help\""))
-
-        // Check structure
         #expect(content.contains("on_macos do"))
     }
     
     @Test("Falls back to single binary formula when only ARM is provided")
     func fallsBackToSingleBinaryForArmOnly() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            armURL: testArmURL,
-            armSHA256: testArmSHA256,
-            intelURL: nil,
-            intelSHA256: nil
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let armURL = testArmURL
+        let armSHA256 = testArmSHA256
+        let intelURL: String? = nil
+        let intelSHA256: String? = nil
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
-        // Should generate single binary formula with ARM URL
+        
         #expect(content.contains("url \"https://github.com/test/testtool/releases/download/v1.0.0/testtool-arm64.tar.gz\""))
         #expect(content.contains("sha256 \"arm64sha256hash\""))
         #expect(!content.contains("on_arm do"))
@@ -153,19 +188,28 @@ extension FormulaContentGeneratorTests {
 
     @Test("Falls back to single binary formula when only Intel is provided")
     func fallsBackToSingleBinaryForIntelOnly() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            armURL: nil,
-            armSHA256: nil,
-            intelURL: testIntelURL,
-            intelSHA256: testIntelSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let armURL: String? = nil
+        let armSHA256: String? = nil
+        let intelURL = testIntelURL
+        let intelSHA256 = testIntelSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
-        // Should generate single binary formula with Intel URL
+        
         #expect(content.contains("url \"https://github.com/test/testtool/releases/download/v1.0.0/testtool-x86_64.tar.gz\""))
         #expect(content.contains("sha256 \"x86_64sha256hash\""))
         #expect(!content.contains("on_arm do"))
@@ -175,19 +219,28 @@ extension FormulaContentGeneratorTests {
 
     @Test("Handles missing ARM SHA256 with valid URL")
     func handlesMissingArmSHA256() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            armURL: testArmURL,
-            armSHA256: nil,
-            intelURL: testIntelURL,
-            intelSHA256: testIntelSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let armURL = testArmURL
+        let armSHA256: String? = nil
+        let intelURL = testIntelURL
+        let intelSHA256 = testIntelSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
-        // Should only use Intel since ARM is incomplete
+        
         #expect(content.contains("url \"https://github.com/test/testtool/releases/download/v1.0.0/testtool-x86_64.tar.gz\""))
         #expect(content.contains("sha256 \"x86_64sha256hash\""))
         #expect(!content.contains(testArmURL))
@@ -195,19 +248,28 @@ extension FormulaContentGeneratorTests {
 
     @Test("Handles missing Intel URL with valid SHA256")
     func handlesMissingIntelURL() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            armURL: testArmURL,
-            armSHA256: testArmSHA256,
-            intelURL: nil,
-            intelSHA256: testIntelSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let armURL = testArmURL
+        let armSHA256 = testArmSHA256
+        let intelURL: String? = nil
+        let intelSHA256 = testIntelSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
-        // Should only use ARM since Intel is incomplete
+        
         #expect(content.contains("url \"https://github.com/test/testtool/releases/download/v1.0.0/testtool-arm64.tar.gz\""))
         #expect(content.contains("sha256 \"arm64sha256hash\""))
         #expect(!content.contains("x86_64sha256hash"))
@@ -215,19 +277,28 @@ extension FormulaContentGeneratorTests {
 
     @Test("Handles empty string URLs as missing")
     func handlesEmptyStringURLsAsMissing() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            armURL: "",
-            armSHA256: testArmSHA256,
-            intelURL: testIntelURL,
-            intelSHA256: testIntelSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let armURL = ""
+        let armSHA256 = testArmSHA256
+        let intelURL = testIntelURL
+        let intelSHA256 = testIntelSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
-        // Empty string should be treated as missing
+        
         #expect(content.contains("url \"https://github.com/test/testtool/releases/download/v1.0.0/testtool-x86_64.tar.gz\""))
         #expect(content.contains("sha256 \"x86_64sha256hash\""))
         #expect(!content.contains("on_arm do"))
@@ -235,19 +306,28 @@ extension FormulaContentGeneratorTests {
 
     @Test("Handles empty string SHA256 as missing")
     func handlesEmptyStringSHA256AsMissing() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            armURL: testArmURL,
-            armSHA256: "",
-            intelURL: testIntelURL,
-            intelSHA256: testIntelSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let armURL = testArmURL
+        let armSHA256 = ""
+        let intelURL = testIntelURL
+        let intelSHA256 = testIntelSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
-        // Empty string should be treated as missing
+        
         #expect(content.contains("url \"https://github.com/test/testtool/releases/download/v1.0.0/testtool-x86_64.tar.gz\""))
         #expect(content.contains("sha256 \"x86_64sha256hash\""))
         #expect(!content.contains("on_arm do"))
@@ -255,19 +335,28 @@ extension FormulaContentGeneratorTests {
 
     @Test("Returns empty formula when no valid binaries provided")
     func returnsEmptyFormulaWhenNoBinaries() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            armURL: nil,
-            armSHA256: nil,
-            intelURL: nil,
-            intelSHA256: nil
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let armURL: String? = nil
+        let armSHA256: String? = nil
+        let intelURL: String? = nil
+        let intelSHA256: String? = nil
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
-        // Should generate formula with empty URL and SHA256
+        
         #expect(content.contains("url \"\""))
         #expect(content.contains("sha256 \"\""))
         #expect(content.contains("class \(expectedName) < Formula"))
@@ -276,19 +365,28 @@ extension FormulaContentGeneratorTests {
 
     @Test("Returns empty formula when all binaries are empty strings")
     func returnsEmptyFormulaWhenAllEmpty() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            armURL: "",
-            armSHA256: "",
-            intelURL: "",
-            intelSHA256: ""
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let armURL = ""
+        let armSHA256 = ""
+        let intelURL = ""
+        let intelSHA256 = ""
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
-        // Should generate formula with empty URL and SHA256
+        
         #expect(content.contains("url \"\""))
         #expect(content.contains("sha256 \"\""))
         #expect(!content.contains("on_arm do"))
@@ -301,33 +399,39 @@ extension FormulaContentGeneratorTests {
 extension FormulaContentGeneratorTests {
     @Test("Multi-arch formula has correct indentation structure")
     func multiArchFormulaHasCorrectIndentation() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            armURL: testArmURL,
-            armSHA256: testArmSHA256,
-            intelURL: testIntelURL,
-            intelSHA256: testIntelSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let armURL = testArmURL
+        let armSHA256 = testArmSHA256
+        let intelURL = testIntelURL
+        let intelSHA256 = testIntelSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
+        
         let lines = content.components(separatedBy: "\n")
-
-        // Check that class declaration is not indented
+        
         let classLine = lines.first { $0.contains("class") }
         #expect(classLine?.starts(with: "class") == true)
-
-        // Check that on_macos is indented once (4 spaces)
+        
         let onMacosLine = lines.first { $0.contains("on_macos do") }
         #expect(onMacosLine?.starts(with: "    on_macos") == true)
-
-        // Check that on_arm is indented twice (8 spaces)
+        
         let onArmLine = lines.first { $0.contains("on_arm do") }
         #expect(onArmLine?.starts(with: "        on_arm") == true)
-
-        // Check that URL under on_arm is indented three times (12 spaces)
+        
         if let armIndex = lines.firstIndex(where: { $0.contains("on_arm do") }) {
             let nextLine = lines[armIndex + 1]
             #expect(nextLine.starts(with: "            url"))
@@ -336,26 +440,32 @@ extension FormulaContentGeneratorTests {
 
     @Test("Single binary formula has correct indentation")
     func singleBinaryFormulaHasCorrectIndentation() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: testVersion,
-            assetURL: testAssetURL,
-            sha256: testSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = testVersion
+        let assetURL = testAssetURL
+        let sha256 = testSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            assetURL: assetURL,
+            sha256: sha256
         )
-
+        
         let lines = content.components(separatedBy: "\n")
-
-        // Check that class declaration is not indented
+        
         let classLine = lines.first { $0.contains("class") }
         #expect(classLine?.starts(with: "class") == true)
-
-        // Check that desc, homepage, url, etc. are indented once (4 spaces)
+        
         let descLine = lines.first { $0.contains("desc") }
         #expect(descLine?.starts(with: "    desc") == true)
-
+        
         let urlLine = lines.first { $0.contains("url") }
         #expect(urlLine?.starts(with: "    url") == true)
     }
@@ -366,67 +476,111 @@ extension FormulaContentGeneratorTests {
 extension FormulaContentGeneratorTests {
     @Test("Strips v prefix from version in single binary formula")
     func stripsVPrefixFromVersionInSingleBinary() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: "v1.0.0",
-            assetURL: testAssetURL,
-            sha256: testSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = "v1.0.0"
+        let assetURL = testAssetURL
+        let sha256 = testSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            assetURL: assetURL,
+            sha256: sha256
         )
-
+        
         #expect(content.contains("version \"1.0.0\""))
         #expect(!content.contains("version \"v1.0.0\""))
     }
 
     @Test("Strips v prefix from version in multi-arch formula")
     func stripsVPrefixFromVersionInMultiArch() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: "v2.5.3",
-            armURL: testArmURL,
-            armSHA256: testArmSHA256,
-            intelURL: testIntelURL,
-            intelSHA256: testIntelSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = "v2.5.3"
+        let armURL = testArmURL
+        let armSHA256 = testArmSHA256
+        let intelURL = testIntelURL
+        let intelSHA256 = testIntelSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
+        
         #expect(content.contains("version \"2.5.3\""))
         #expect(!content.contains("version \"v2.5.3\""))
     }
 
     @Test("Preserves version without v prefix in single binary formula")
     func preservesVersionWithoutVPrefixInSingleBinary() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: "3.0.0",
-            assetURL: testAssetURL,
-            sha256: testSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = "3.0.0"
+        let assetURL = testAssetURL
+        let sha256 = testSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            assetURL: assetURL,
+            sha256: sha256
         )
-
+        
         #expect(content.contains("version \"3.0.0\""))
     }
 
     @Test("Preserves version without v prefix in multi-arch formula")
     func preservesVersionWithoutVPrefixInMultiArch() {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
-            details: testDetails,
-            homepage: testHomepage,
-            license: testLicense,
-            version: "4.2.1",
-            armURL: testArmURL,
-            armSHA256: testArmSHA256,
-            intelURL: testIntelURL,
-            intelSHA256: testIntelSHA256
+        let sut = makeSUT()
+        let name = testName
+        let details = testDetails
+        let homepage = testHomepage
+        let license = testLicense
+        let version = "4.2.1"
+        let armURL = testArmURL
+        let armSHA256 = testArmSHA256
+        let intelURL = testIntelURL
+        let intelSHA256 = testIntelSHA256
+        let content = sut.makeFormulaFileContent(
+            name: name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            version: version,
+            armURL: armURL,
+            armSHA256: armSHA256,
+            intelURL: intelURL,
+            intelSHA256: intelSHA256
         )
-
+        
         #expect(content.contains("version \"4.2.1\""))
+    }
+}
+
+
+// MARK: - SUT
+private extension FormulaContentGeneratorTests {
+    func makeSUT() -> FormulaContentGenerator.Type {
+        return FormulaContentGenerator.self
     }
 }

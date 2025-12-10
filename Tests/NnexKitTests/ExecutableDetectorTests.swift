@@ -11,29 +11,42 @@ import Testing
 struct ExecutableDetectorTests {
     @Test("Returns an array of executable names when multiple executables are present")
     func parsesMultipleExecutables() throws {
-        let executables = try ExecutableDetector.getExecutables(packageManifestContent: TestData.multipleExecutables)
-        #expect(executables == ["FirstExecutable", "SecondExecutable"])
+        let sut = makeSUT()
+        let manifest = TestData.multipleExecutables
+        let result = try sut.getExecutables(packageManifestContent: manifest)
+        
+        #expect(result == ["FirstExecutable", "SecondExecutable"])
     }
 
     @Test("Throws error when no executables are present")
     func throwsWhenNoExecutables() {
+        let sut = makeSUT()
+        let manifest = TestData.noExecutables
+        
         #expect(throws: NnexError.missingExecutable) {
-            _ = try ExecutableDetector.getExecutables(packageManifestContent: TestData.noExecutables)
+            _ = try sut.getExecutables(packageManifestContent: manifest)
         }
     }
 
     @Test("Returns an array with a single executable when only one executable is present")
     func parsesSingleExecutable() throws {
-        let executables = try ExecutableDetector.getExecutables(packageManifestContent: TestData.singleExecutable)
-        #expect(executables == ["SingleExecutable"])
+        let sut = makeSUT()
+        let manifest = TestData.singleExecutable
+        let result = try sut.getExecutables(packageManifestContent: manifest)
+        
+        #expect(result == ["SingleExecutable"])
     }
 
     @Test("Ignores malformed executable entries and returns valid ones")
     func ignoresMalformedEntries() throws {
-        let executables = try ExecutableDetector.getExecutables(packageManifestContent: TestData.malformedExecutable)
-        #expect(executables == ["ValidExecutable"])
+        let sut = makeSUT()
+        let manifest = TestData.malformedExecutable
+        let result = try sut.getExecutables(packageManifestContent: manifest)
+        
+        #expect(result == ["ValidExecutable"])
     }
 }
+
 
 // MARK: - Test Data
 private extension ExecutableDetectorTests {
@@ -138,5 +151,13 @@ private extension ExecutableDetectorTests {
             ]
         )
         """
+    }
+}
+
+
+// MARK: - SUT
+private extension ExecutableDetectorTests {
+    func makeSUT() -> ExecutableDetector.Type {
+        return ExecutableDetector.self
     }
 }

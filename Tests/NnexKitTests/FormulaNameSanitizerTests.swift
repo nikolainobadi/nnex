@@ -13,8 +13,7 @@ struct FormulaNameSanitizerTests {
     func convertsSimpleDashName() {
         let input = "my-tool"
         let expected = "MyTool"
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
     }
@@ -23,8 +22,7 @@ struct FormulaNameSanitizerTests {
     func convertsMultipleDashName() {
         let input = "awesome-cli-tool"
         let expected = "AwesomeCliTool"
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
     }
@@ -33,8 +31,7 @@ struct FormulaNameSanitizerTests {
     func handlesNameWithoutDashes() {
         let input = "tool"
         let expected = "Tool"
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
     }
@@ -43,8 +40,7 @@ struct FormulaNameSanitizerTests {
     func handlesConsecutiveDashes() {
         let input = "my--awesome---tool"
         let expected = "MyAwesomeTool"
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
     }
@@ -53,8 +49,7 @@ struct FormulaNameSanitizerTests {
     func handlesLeadingDash() {
         let input = "-my-tool"
         let expected = "MyTool"
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
     }
@@ -63,8 +58,7 @@ struct FormulaNameSanitizerTests {
     func handlesTrailingDash() {
         let input = "my-tool-"
         let expected = "MyTool"
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
     }
@@ -72,9 +66,8 @@ struct FormulaNameSanitizerTests {
     @Test("Handles only dashes")
     func handlesOnlyDashes() {
         let input = "---"
-        let expected = "---"  // Fallback to capitalized original when no valid components
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let expected = "---"
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
     }
@@ -83,8 +76,7 @@ struct FormulaNameSanitizerTests {
     func preservesCapitalizedComponents() {
         let input = "My-Awesome-Tool"
         let expected = "MyAwesomeTool"
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
     }
@@ -93,8 +85,7 @@ struct FormulaNameSanitizerTests {
     func handlesLowercaseComponents() {
         let input = "swift-package-manager"
         let expected = "SwiftPackageManager"
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
     }
@@ -103,8 +94,7 @@ struct FormulaNameSanitizerTests {
     func handlesNnex() {
         let input = "nnex"
         let expected = "Nnex"
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
     }
@@ -113,9 +103,16 @@ struct FormulaNameSanitizerTests {
     func handlesCodeTap() {
         let input = "code-tap"
         let expected = "CodeTap"
-        
-        let result = FormulaNameSanitizer.sanitizeFormulaName(input)
+        let result = makeSUT().sanitizeFormulaName(input)
         
         #expect(result == expected)
+    }
+}
+
+
+// MARK: - SUT
+private extension FormulaNameSanitizerTests {
+    func makeSUT() -> FormulaNameSanitizer.Type {
+        return FormulaNameSanitizer.self
     }
 }

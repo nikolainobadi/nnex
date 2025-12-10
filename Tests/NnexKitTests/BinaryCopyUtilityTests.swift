@@ -143,10 +143,6 @@ extension BinaryCopyUtilityTests {
 
 // MARK: - Private Methods
 private extension BinaryCopyUtilityTests {
-    func makeSUT(shell: MockShell) -> BinaryCopyUtility {
-        return BinaryCopyUtility(shell: shell)
-    }
-    
     func makeSUT(throwError: Bool = false) -> (sut: BinaryCopyUtility, shell: MockShell) {
         let shell = MockShell(shouldThrowErrorOnFinal: throwError)
         let sut = BinaryCopyUtility(shell: shell)
