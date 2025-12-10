@@ -71,6 +71,7 @@ public final class MockDirectory: Directory {
         containedFiles.remove(name)
     }
 
+    @discardableResult
     public func createFile(named name: String, contents: String) throws -> String {
         containedFiles.insert(name)
         fileContents[name] = contents
