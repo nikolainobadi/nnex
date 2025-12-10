@@ -13,19 +13,11 @@ public enum ReleaseVersionInfo: Sendable {
     /// An increment to a specific part of the version number (major, minor, or patch).
     case increment(VersionPart)
 
-    /// Represents parts of a version number (major, minor, patch).
     public enum VersionPart: String, CaseIterable, Sendable {
-        /// Major version part.
         case major
-
-        /// Minor version part.
         case minor
-
-        /// Patch version part.
         case patch
 
-        /// Initializes a VersionPart from a string, ignoring case.
-        /// - Parameter string: The string representation of the version part.
         public init?(string: String) {
             self.init(rawValue: string.lowercased())
         }
