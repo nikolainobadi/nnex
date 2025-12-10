@@ -37,6 +37,7 @@ extension ReleaseNotesFileUtility {
     func createAndOpenNewNoteFile(projectName: String) throws -> String {
         let desktop = try fileSystem.desktopDirectory()
         let fileName = "\(projectName)-releaseNotes-\(dateProvider.currentDate.shortFormat).md"
+        
         return try desktop.createFile(named: fileName, contents: "")
     }
 
