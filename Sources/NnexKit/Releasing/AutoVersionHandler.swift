@@ -209,3 +209,7 @@ private extension AutoVersionHandler {
         return out
     }
 }
+
+
+// MARK: - AutoVersionHandling
+extension AutoVersionHandler: AutoVersionHandling { }
