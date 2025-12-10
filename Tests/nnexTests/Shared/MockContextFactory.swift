@@ -86,7 +86,7 @@ extension MockContextFactory: ContextFactory {
     }
     
     func makeFileSystem() -> any FileSystem {
-        return MockFileSystem() // TODO: - 
+        return MockFileSystem() // TODO: - may need to instantiate like picker/shell
     }
     
     func makeGitHandler() -> any GitHandler {
@@ -98,9 +98,9 @@ extension MockContextFactory: ContextFactory {
             return context
         }
         
-        let defaults = makeDefaults()
+        let testSuiteName = "testSuiteDefaults_\(UUID().uuidString)"
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let context = try NnexContext(appGroupId: "not needed", config: config, defaults: defaults)
+        let context = try NnexContext(config: config, userDefaultsTestSuiteName: testSuiteName)
         
         if let tapListFolderPath {
             context.saveTapListFolderPath(path: tapListFolderPath)
@@ -135,16 +135,5 @@ extension MockContextFactory: ContextFactory {
         let newTrashHandler = MockTrashHandler()
         trashHandler = newTrashHandler
         return newTrashHandler
-    }
-}
-
-// MARK: - Private
-private extension MockContextFactory {
-    func makeDefaults() -> UserDefaults {
-        let testSuiteName = "testSuiteDefaults_\(UUID().uuidString)"
-        let userDefaults = UserDefaults(suiteName: testSuiteName)!
-        userDefaults.removePersistentDomain(forName: testSuiteName)
-        
-        return userDefaults
     }
 }

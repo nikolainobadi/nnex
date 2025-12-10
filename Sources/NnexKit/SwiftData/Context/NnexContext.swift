@@ -11,31 +11,38 @@ import NnSwiftDataKit
 
 /// Manages the SwiftData model context and application configuration.
 public final class NnexContext {
+    private let context: ModelContext
     private let defaults: UserDefaults
     private let defaultBuildTypeKey = "defaultBuildTypeKey"
     private let tapListFolderPathKey = "tapListFolderPathKey"
 
-    /// The model context for interacting with SwiftData models.
-    public let context: ModelContext
-
-    /// Initializes a new NnexContext instance.
-    /// - Parameters:
-    ///   - appGroupId: The application group identifier.
-    ///   - config: An optional model configuration.
-    ///   - defaults: An optional UserDefaults instance.
-    public init(appGroupId: String, config: ModelConfiguration? = nil, defaults: UserDefaults? = nil) throws {
-        if let config, let defaults {
-            let container = try ModelContainer(for: SwiftHomebrewDataTap.self, configurations: config)
-            self.context = .init(container)
-            self.defaults = defaults
+    init(schema: Schema, testConfig: ModelConfiguration?, userDefaultsTestSuiteName: String?) throws {
+        let identifier = "com.nobadi.nnex"
+        let oldAppGroupId = "R8SJ24LQF3.\(identifier)"
+//        let appGroupId = "group.\(identifier)"
+        let appGroupId = oldAppGroupId
+        
+        if let testConfig, let userDefaultsTestSuiteName {
+            defaults = .init(suiteName: userDefaultsTestSuiteName)!
+            defaults.removePersistentDomain(forName: userDefaultsTestSuiteName)
+            context = try .init(.init(for: schema, configurations: testConfig))
         } else {
             let (config, defaults) = try configureSwiftDataContainer(appGroupId: appGroupId)
-            let container = try ModelContainer(for: SwiftHomebrewDataTap.self, configurations: config)
+            let container = try ModelContainer(for: schema, configurations: config)
             self.context = .init(container)
             self.defaults = defaults
         }
     }
 }
+
+
+// MARK: - Init
+public extension NnexContext {
+    convenience init(config: ModelConfiguration? = nil, userDefaultsTestSuiteName: String? = nil) throws {
+        try self.init(schema: .init(versionedSchema: CurrentSchema.self), testConfig: config, userDefaultsTestSuiteName: userDefaultsTestSuiteName)
+    }
+}
+
 
 // MARK: - UserDefaults
 extension NnexContext {
@@ -48,7 +55,10 @@ extension NnexContext {
     /// Loads the folder path for the tap list.
     /// - Returns: The saved folder path or nil if not set.
     public func loadTapListFolderPath() -> String? {
-        guard let path = defaults.string(forKey: tapListFolderPathKey), !path.isEmpty else { return nil }
+        guard let path = defaults.string(forKey: tapListFolderPathKey), !path.isEmpty else {
+            return nil
+        }
+        
         return path
     }
 
@@ -64,6 +74,7 @@ extension NnexContext {
         return defaults.object(forKey: defaultBuildTypeKey) as? BuildType ?? .universal
     }
 }
+
 
 // MARK: - SwiftData
 extension NnexContext {
@@ -85,11 +96,13 @@ extension NnexContext {
     ///   - formulas: An optional array of formulas to associate with the tap.
     public func saveNewTap(_ tap: SwiftHomebrewDataTap, formulas: [SwiftDataFormula] = []) throws {
         context.insert(tap)
+        
         for formula in formulas {
             context.insert(formula)
             tap.formulas.append(formula)
             formula.tap = tap
         }
+        
         try context.save()
     }
 
@@ -99,6 +112,7 @@ extension NnexContext {
         for formula in tap.formulas {
             context.delete(formula)
         }
+        
         context.delete(tap)
         try context.save()
     }
