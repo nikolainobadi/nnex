@@ -39,7 +39,7 @@ extension PublishInfoLoader {
     /// Loads the publishing information, including the selected tap and formula.
     /// - Returns: A tuple containing the selected tap and formula.
     /// - Throws: An error if the loading process fails.
-    func loadPublishInfo() throws -> (SwiftHomebrewDataTap, SwiftDataFormula) {
+    func loadPublishInfo() throws -> (SwiftDataHomebrewTap, SwiftDataFormula) {
         let allTaps = try context.loadTaps()
         let tap = try getTap(allTaps: allTaps) ?? picker.requiredSingleSelection("\(projectFolder.name) does not yet have a formula. Select a tap for this formula.", items: allTaps)
         
@@ -67,7 +67,7 @@ private extension PublishInfoLoader {
     /// Retrieves an existing tap matching the project name, if available.
     /// - Parameter allTaps: An array of available taps.
     /// - Returns: A SwiftDataTap instance if a matching tap is found, or nil otherwise.
-    func getTap(allTaps: [SwiftHomebrewDataTap]) -> SwiftHomebrewDataTap? {
+    func getTap(allTaps: [SwiftDataHomebrewTap]) -> SwiftDataHomebrewTap? {
         return allTaps.first { tap in
             return tap.formulas.contains(where: { $0.name.lowercased() == projectFolder.name.lowercased() })
         }

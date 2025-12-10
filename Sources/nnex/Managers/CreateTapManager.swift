@@ -46,7 +46,7 @@ extension CreateTapManager {
             visibility: visibility
         )
         
-        let newTap = SwiftHomebrewDataTap(name: tapName, localPath: tapFolder.path, remotePath: remotePath)
+        let newTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: remotePath)
         try context.saveNewTap(newTap)
     }
 }

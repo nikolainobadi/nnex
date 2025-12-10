@@ -33,7 +33,7 @@ extension Nnex.Brew {
                 formulaFiles = []
             }
 
-            let tap = SwiftHomebrewDataTap(name: tapName, localPath: folder.path, remotePath: remotePath)
+            let tap = SwiftDataHomebrewTap(name: tapName, localPath: folder.path, remotePath: remotePath)
             
             var formulas: [SwiftDataFormula] = []
             
