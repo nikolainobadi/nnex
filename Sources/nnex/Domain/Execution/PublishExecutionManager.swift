@@ -113,14 +113,15 @@ private extension PublishExecutionManager {
     ///   - tap: The Homebrew tap to publish to.
     /// - Throws: An error if the formula cannot be published.
     func publishFormula(_ content: String, formulaName: String, message: String?, tap: SwiftHomebrewDataTap) throws {
-        let publisher = FormulaPublisher(gitHandler: gitHandler)
-        let commitMessage = try getMessage(message: message)
-        let formulaPath = try publisher.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tap.localPath)
-
-        print("\nSuccessfully created formula at \(formulaPath.yellow)")
-        if commitMessage != nil {
-            print("pushed \(tap.name.blue.underline) to \("GitHub".green).")
-        }
+        fatalError() // TODO: - 
+//        let publisher = FormulaPublisher(gitHandler: gitHandler)
+//        let commitMessage = try getMessage(message: message)
+//        let formulaPath = try publisher.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tap.localPath)
+//
+//        print("\nSuccessfully created formula at \(formulaPath.yellow)")
+//        if commitMessage != nil {
+//            print("pushed \(tap.name.blue.underline) to \("GitHub".green).")
+//        }
     }
 
     /// Retrieves a commit message from the user or uses a provided message.

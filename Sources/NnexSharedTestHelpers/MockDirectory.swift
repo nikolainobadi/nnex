@@ -57,7 +57,21 @@ public final class MockDirectory: Directory {
         movedToParents.append(parent.path)
     }
 
-    public func copy(to parent: Directory) throws {
-        // Mock implementation - no-op for testing
+    public func createSubfolderIfNeeded(named name: String) throws -> any Directory {
+        if let existing = subdirectories.first(where: { $0.name == name }) {
+            return existing
+        }
+        let newSubdirectory = MockDirectory(path: path.appendingPathComponent(name))
+        subdirectories.append(newSubdirectory)
+        return newSubdirectory
+    }
+
+    public func deleteFile(named name: String) throws {
+        containedFiles.remove(name)
+    }
+
+    public func createFile(named name: String, contents: String) throws -> String {
+        containedFiles.insert(name)
+        return path.appendingPathComponent(name)
     }
 }

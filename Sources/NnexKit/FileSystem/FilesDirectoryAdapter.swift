@@ -57,5 +57,19 @@ extension FilesDirectoryAdapter: Directory {
 
         try folder.move(to: destination)
     }
+
+    public func createSubfolderIfNeeded(named name: String) throws -> any Directory {
+        return try FilesDirectoryAdapter(folder: folder.createSubfolderIfNeeded(withName: name))
+    }
+
+    public func deleteFile(named name: String) throws {
+        try folder.file(named: name).delete()
+    }
+
+    public func createFile(named name: String, contents: String) throws -> String {
+        let file = try folder.createFile(named: name)
+        try file.write(contents)
+        return file.path
+    }
 }
 

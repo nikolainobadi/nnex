@@ -17,6 +17,7 @@ public final class MockGitHandler {
     private let previousVersion: String
     
     private(set) public var message: String?
+    private(set) public var path: String?
     private(set) public var gitInitPath: String?
     private(set) public var remoteTapName: String?
     private(set) public var remoteTapPath: String?
@@ -45,6 +46,7 @@ extension MockGitHandler: GitHandler {
     public func commitAndPush(message: String, path: String) throws {
         if throwError { throw NSError(domain: "Test", code: 0) }
         self.message = message
+        self.path = path
     }
     
     public func gitInit(path: String) throws {

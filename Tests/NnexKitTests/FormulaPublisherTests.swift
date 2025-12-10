@@ -1,113 +1,81 @@
-////
-////  FormulaPublisherTests.swift
-////  nnex
-////
-////  Created by Nikolai Nobadi on 3/22/25.
-////
 //
-//import Files
-//import Testing
-//import Foundation
-//import NnexSharedTestHelpers
-//@testable import NnexKit
+//  FormulaPublisherTests.swift
+//  nnex
 //
-//final class FormulaPublisherTests {
-//    private let tapFolder: Folder
-//    private let content = "formula content"
-//    private let formulaName = "testFormula"
-//    
-//    private var formulaFileName: String {
-//        return "\(formulaName).rb"
-//    }
-//    
-//    init() throws {
-//        self.tapFolder = try Folder.temporary.createSubfolder(named: "testTapFolder_\(UUID().uuidString)")
-//    }
-//    
-//    deinit {
-//        deleteFolderContents(tapFolder)
-//    }
-//}
+//  Created by Nikolai Nobadi on 3/22/25.
 //
-//
-//// MARK: - Unit Tests
-//extension FormulaPublisherTests {
-//    @Test("Creates new formula file when no previous formula exists")
-//    func createsNewFormulaFile() throws {
-//        let sut = makeSUT().sut
-//        let formulaFile = try requireFormulaFile(sut: sut)
-//        let savedContents = try formulaFile.readAsString()
-//        let formulaFolder = try getFormulaFolder()
-//        
-//        #expect(savedContents == content)
-//        #expect(formulaFile.name == formulaFileName)
-//        #expect(formulaFolder.containsFile(named: formulaFileName))
-//    }
-//    
-//    @Test("Overwrites existing formula file")
-//    func overwritesExistingFormulaFile() throws {
-//        let sut = makeSUT().sut
-//        let previousContent = "previous content"
-//        let previousFile = try tapFolder.createFile(named: formulaFileName)
-//        
-//        try previousFile.write(previousContent)
-//        
-//        let formulaFile = try requireFormulaFile(sut: sut)
-//        let savedContents = try formulaFile.readAsString()
-//        
-//        #expect(savedContents == content)
-//        #expect(formulaFile.name == formulaFileName)
-//        #expect(tapFolder.containsFile(named: formulaFileName))
-//    }
-//    
-//    @Test("Does not commit and push changes if no commit message is provided")
-//    func doesNotCommitAndPush() throws {
-//        let (sut, gitHandler) = makeSUT()
-//        
-//        try requireFormulaFile(sut: sut)
-//        
-//        let formulaFolder = try getFormulaFolder()
-//        
-//        #expect(gitHandler.message == nil)
-//        #expect(formulaFolder.files.count() == 1)
-//    }
-//    
-//    @Test("Commits changes and pushes tap folder when a commit message is provided")
-//    func commitAndPushTapFolder() throws {
-//        let commitMessage = "commit message"
-//        let (sut, gitHandler) = makeSUT()
-//        
-//        try requireFormulaFile(sut: sut, commitMessage: commitMessage)
-//        
-//        let formulaFolder = try getFormulaFolder()
-//        
-//        #expect(gitHandler.message == commitMessage)
-//        #expect(formulaFolder.files.count() == 1)
-//    }
-//}
-//
-//
-//// MARK: - SUT
-//private extension FormulaPublisherTests {
-//    func makeSUT(throwError: Bool = false) -> (sut: FormulaPublisher, gitHandler: MockGitHandler) {
-//        let gitHandler = MockGitHandler(throwError: throwError)
-//        let sut = FormulaPublisher(gitHandler: gitHandler)
-//        
-//        return (sut, gitHandler)
-//    }
-//}
-//
-//
-//// MARK: - Helpers
-//private extension FormulaPublisherTests {
-//    func getFormulaFolder() throws -> Folder {
-//        return try tapFolder.subfolder(named: "Formula")
-//    }
-//    
-//    @discardableResult
-//    func requireFormulaFile(sut: FormulaPublisher, commitMessage: String? = nil) throws -> File {
-//        let path = try sut.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tapFolder.path)
-//        
-//        return try .init(path: path)
-//    }
-//}
+
+import Testing
+import Foundation
+import NnexSharedTestHelpers
+@testable import NnexKit
+
+struct FormulaPublisherTests {
+    private let tapFolderPath = "/test/tap/folder"
+    private let content = "formula content"
+    private let formulaName = "testFormula"
+
+    private var formulaFileName: String {
+        return "\(formulaName).rb"
+    }
+}
+
+
+// MARK: - Unit Tests
+extension FormulaPublisherTests {
+    @Test("Creates new formula file when no previous formula exists")
+    func createsNewFormulaFile() throws {
+        let (sut, fileSystem, formulaFolder, _) = makeSUT()
+
+        let filePath = try sut.publishFormula(content, formulaName: formulaName, commitMessage: nil, tapFolderPath: tapFolderPath)
+
+        #expect(formulaFolder.containsFile(named: formulaFileName))
+        #expect(filePath == "\(tapFolderPath)/Formula/\(formulaFileName)")
+        #expect(fileSystem.capturedPaths == [tapFolderPath])
+    }
+
+    @Test("Deletes existing formula file before creating new one")
+    func deletesExistingFormulaFile() throws {
+        let (sut, _, formulaFolder, _) = makeSUT(existingFile: formulaFileName)
+
+        #expect(formulaFolder.containsFile(named: formulaFileName))
+
+        _ = try sut.publishFormula(content, formulaName: formulaName, commitMessage: nil, tapFolderPath: tapFolderPath)
+
+        #expect(formulaFolder.containsFile(named: formulaFileName))
+    }
+
+    @Test("Does not commit and push changes if no commit message is provided")
+    func doesNotCommitAndPush() throws {
+        let (sut, _, _, gitHandler) = makeSUT()
+
+        _ = try sut.publishFormula(content, formulaName: formulaName, commitMessage: nil, tapFolderPath: tapFolderPath)
+
+        #expect(gitHandler.message == nil)
+    }
+
+    @Test("Commits changes and pushes tap folder when a commit message is provided")
+    func commitAndPushTapFolder() throws {
+        let commitMessage = "commit message"
+        let (sut, _, _, gitHandler) = makeSUT()
+
+        _ = try sut.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tapFolderPath)
+
+        #expect(gitHandler.message == commitMessage)
+        #expect(gitHandler.path == tapFolderPath)
+    }
+}
+
+
+// MARK: - SUT
+private extension FormulaPublisherTests {
+    func makeSUT(existingFile: String? = nil, throwError: Bool = false) -> (sut: FormulaPublisher, fileSystem: MockFileSystem, formulaFolder: MockDirectory, gitHandler: MockGitHandler) {
+        let formulaFolder = MockDirectory(path: "\(tapFolderPath)/Formula", containedFiles: existingFile != nil ? [existingFile!] : [])
+        let tapFolder = MockDirectory(path: tapFolderPath, subdirectories: [formulaFolder])
+        let fileSystem = MockFileSystem(directoryMap: [tapFolderPath: tapFolder])
+        let gitHandler = MockGitHandler(throwError: throwError)
+        let sut = FormulaPublisher(gitHandler: gitHandler, fileSystem: fileSystem)
+
+        return (sut, fileSystem, formulaFolder, gitHandler)
+    }
+}
