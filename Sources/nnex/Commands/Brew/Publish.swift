@@ -36,25 +36,26 @@ extension Nnex.Brew {
         var skipTests = false
 
         func run() throws {
-            let shell = Nnex.makeShell()
-            let picker = Nnex.makePicker()
-            let gitHandler = Nnex.makeGitHandler()
-            let context = try Nnex.makeContext()
-            let buildType = buildType ?? context.loadDefaultBuildType()
-            let projectFolder = try Nnex.Brew.getProjectFolder(at: path)
-            let trashHandler = Nnex.makeTrashHandler()
-            let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler, skipTests: skipTests)
-            let manager = PublishExecutionManager(shell: shell, picker: picker, gitHandler: gitHandler, publishInfoLoader: publishInfoLoader, trashHandler: trashHandler)
-            
-            try manager.executePublish(
-                projectFolder: projectFolder,
-                version: version,
-                buildType: buildType,
-                notes: notes,
-                notesFile: notesFile,
-                message: message,
-                skipTests: skipTests
-            )
+            fatalError() // TODO: - 
+//            let shell = Nnex.makeShell()
+//            let picker = Nnex.makePicker()
+//            let gitHandler = Nnex.makeGitHandler()
+//            let context = try Nnex.makeContext()
+//            let buildType = buildType ?? context.loadDefaultBuildType()
+//            let projectFolder = try Nnex.Brew.getProjectFolder(at: path)
+//            let trashHandler = Nnex.makeTrashHandler()
+//            let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler, skipTests: skipTests)
+//            let manager = PublishExecutionManager(shell: shell, picker: picker, gitHandler: gitHandler, publishInfoLoader: publishInfoLoader, trashHandler: trashHandler)
+//            
+//            try manager.executePublish(
+//                projectFolder: projectFolder,
+//                version: version,
+//                buildType: buildType,
+//                notes: notes,
+//                notesFile: notesFile,
+//                message: message,
+//                skipTests: skipTests
+//            )
         }
     }
 }

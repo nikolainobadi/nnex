@@ -22,16 +22,17 @@ struct BuildExecutionManager {
     }
     
     func executeBuild(projectPath: String?, buildType: BuildType, clean: Bool, openInFinder: Bool) throws {
-        let projectFolder = try Nnex.Brew.getProjectFolder(at: projectPath)
-        let executableName = try getExecutableName(for: projectFolder)
-        let outputLocation = try selectOutputLocation(buildType: buildType)
-        let config = BuildConfig(projectName: executableName, projectPath: projectFolder.path, buildType: buildType, extraBuildArgs: [], skipClean: !clean, testCommand: nil)
-        let builder = ProjectBuilder(shell: shell, config: config)
-        let binaryOutput = try builder.build()
-        
-        let finalPaths = try copyUtility.copyBinaryToLocation(binaryOutput: binaryOutput, outputLocation: outputLocation, executableName: executableName)
-        
-        displayBuildResult(finalPaths, openInFinder: openInFinder)
+        fatalError() // TODO: - 
+//        let projectFolder = try Nnex.Brew.getProjectFolder(at: projectPath)
+//        let executableName = try getExecutableName(for: projectFolder)
+//        let outputLocation = try selectOutputLocation(buildType: buildType)
+//        let config = BuildConfig(projectName: executableName, projectPath: projectFolder.path, buildType: buildType, extraBuildArgs: [], skipClean: !clean, testCommand: nil)
+//        let builder = ProjectBuilder(shell: shell, config: config)
+//        let binaryOutput = try builder.build()
+//        
+//        let finalPaths = try copyUtility.copyBinaryToLocation(binaryOutput: binaryOutput, outputLocation: outputLocation, executableName: executableName)
+//        
+//        displayBuildResult(finalPaths, openInFinder: openInFinder)
     }
 }
 

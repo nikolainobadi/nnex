@@ -13,8 +13,11 @@ extension Nnex {
         static let configuration = CommandConfiguration(
             abstract: "Manage configuration settings for Nnex.",
             subcommands: [
-                SetListPath.self, ShowListPath.self, OpenListFolder.self,
-                SetBuildType.self, ShowBuildType.self
+                SetListPath.self,
+                ShowListPath.self,
+                OpenListFolder.self,
+                SetBuildType.self,
+                ShowBuildType.self
             ]
         )
     }

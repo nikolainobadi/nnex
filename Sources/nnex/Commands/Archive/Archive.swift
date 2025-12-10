@@ -11,7 +11,10 @@ extension Nnex {
     struct Archive: ParsableCommand {
         static let configuration = CommandConfiguration(
             abstract: "Archive applications for different platforms.",
-            subcommands: [MacOS.self, IOS.self]
+            subcommands: [
+                MacOS.self,
+                IOS.self
+            ]
         )
     }
 }

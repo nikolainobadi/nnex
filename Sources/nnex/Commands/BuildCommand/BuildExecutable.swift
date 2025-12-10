@@ -5,8 +5,8 @@
 //  Created by Nikolai Nobadi on 4/21/25.
 //
 
-import ArgumentParser
 import NnexKit
+import ArgumentParser
 
 extension Nnex {
     struct Build: ParsableCommand {
