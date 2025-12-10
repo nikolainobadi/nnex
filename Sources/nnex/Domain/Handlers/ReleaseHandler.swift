@@ -70,14 +70,15 @@ private extension ReleaseHandler {
         releaseNumber: String,
         projectPath: String
     ) throws -> ReleaseNoteInfo {
-        if let notesFile = releaseNotesSource.notesFile {
-            return .init(content: notesFile, isFromFile: true)
-        }
-        if let notes = releaseNotesSource.notes {
-            return .init(content: notes, isFromFile: false)
-        }
-        let fileUtility = ReleaseNotesFileUtility(picker: picker, fileSystem: DefaultFileSystemProvider(), dateProvider: DefaultDateProvider())
-        return try ReleaseNotesHandler(picker: picker, projectName: projectName, fileUtility: fileUtility).getReleaseNoteInfo()
+        fatalError() // TODO: - 
+//        if let notesFile = releaseNotesSource.notesFile {
+//            return .init(content: notesFile, isFromFile: true)
+//        }
+//        if let notes = releaseNotesSource.notes {
+//            return .init(content: notes, isFromFile: false)
+//        }
+//        let fileUtility = ReleaseNotesFileUtility(picker: picker, fileSystem: DefaultFileSystemProvider(), dateProvider: DefaultDateProvider())
+//        return try ReleaseNotesHandler(picker: picker, projectName: projectName, fileUtility: fileUtility).getReleaseNoteInfo()
     }
     
     func maybeTrashReleaseNotes(_ info: ReleaseNoteInfo) throws {
