@@ -14,6 +14,7 @@ public final class MockFileSystem: FileSystem {
     private let directoryMap: [String: any Directory]?
 
     public private(set) var capturedPaths: [String] = []
+    public private(set) var pathToMoveToTrash: String?
 
     public let homeDirectory: any Directory
     public var currentDirectory: any Directory
@@ -71,5 +72,9 @@ public final class MockFileSystem: FileSystem {
             mockDir.fileContents[fileName] = contents
             mockDir.containedFiles.insert(fileName)
         }
+    }
+    
+    public func moveToTrash(at path: String) throws {
+        pathToMoveToTrash = path
     }
 }

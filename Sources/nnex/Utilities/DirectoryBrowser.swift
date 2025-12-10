@@ -7,6 +7,7 @@
 
 import NnexKit
 
+// TODO: - maybe add FileSystem conformance?
 protocol DirectoryBrowser {
     typealias FilePath = String
     func browseForFile(prompt: String) throws -> FilePath

@@ -43,4 +43,8 @@ extension DefaultFileSystem: FileSystem {
     public func writeFile(at path: String, contents: String) throws {
         try contents.write(toFile: path, atomically: true, encoding: .utf8)
     }
+    
+    public func moveToTrash(at path: String) throws {
+        try fileManager.trashItem(at: .init(fileURLWithPath: path), resultingItemURL: nil)
+    }
 }
