@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import NnShellKit
 
 public struct ProjectBuilder {
     private let shell: any NnexShell
@@ -94,19 +93,6 @@ private extension ProjectBuilder {
             do {
                 try shell.runAndPrint(bash: testCommand)
                 log("✅ Tests completed successfully.")
-            } catch let shellError as ShellError {
-                // Extract test output from the shell error
-                if case .failed(_, _, let output) = shellError {
-                    if !output.isEmpty {
-                        print("\n❌ Test failures:")
-                        print(output)
-                    } else {
-                        print("\n❌ Tests failed (no output captured)")
-                    }
-                    throw TestFailureError(command: testCommand, output: output)
-                } else {
-                    throw shellError
-                }
             } catch {
                 print("\n❌ Tests failed with unexpected error: \(error)")
                 throw TestFailureError(command: testCommand, output: error.localizedDescription)
@@ -139,26 +125,8 @@ private extension ProjectBuilder {
 
 
 // MARK: - Dependencies
-public enum BinaryOutput {
-    case single(BinaryInfo)
-    case multiple([ReleaseArchitecture: BinaryInfo])
-}
-
 public protocol BuildProgressDelegate: AnyObject {
     func didUpdateProgress(_ message: String)
-}
-
-public struct TestFailureError: Error, LocalizedError {
-    let command: String
-    let output: String
-    
-    public var errorDescription: String? {
-        if output.isEmpty {
-            return "Tests failed when running: \(command)"
-        } else {
-            return "Tests failed when running: \(command)\n\nTest output:\n\(output)"
-        }
-    }
 }
 
 
