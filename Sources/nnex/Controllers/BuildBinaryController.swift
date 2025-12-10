@@ -34,10 +34,11 @@ struct BuildBinaryController {
 extension BuildBinaryController {
     func buildBinary(info: BuildInfo) throws {
         let projectFolder = try getFolder(at: info.path)
-        let config = try makeBuildConfig(for: projectFolder, info: info)
+        let executableName = try getExecutableName(from: projectFolder)
+        let config = try makeBuildConfig(for: projectFolder, info: info, executableName: executableName)
         let binaryOutput = try service.build(config: config)
         let outputLocation = try selectOutputLocation(buildType: info.type)
-        let result = try service.moveBinary(binaryOutput, to: outputLocation)
+        let result = try service.moveBinary(binaryOutput, to: outputLocation, executableName: executableName)
         
         displayBuildResult(result, openInFinder: info.openInFinder)
     }
@@ -54,9 +55,7 @@ private extension BuildBinaryController {
         return try fileSystem.directory(at: path)
     }
     
-    func makeBuildConfig(for folder: any Directory, info: BuildInfo) throws -> BuildConfig {
-        let executableName = try getExecutableName(from: folder)
-        
+    func makeBuildConfig(for folder: any Directory, info: BuildInfo, executableName: String) throws -> BuildConfig {
         return .init(projectName: executableName, projectPath: folder.path, buildType: info.type, extraBuildArgs: [], skipClean: !info.clean, testCommand: nil)
     }
     
@@ -118,12 +117,6 @@ private extension BuildBinaryController {
 
 
 // MARK: - Dependencies
-protocol BuildBinaryService {
-    func build(config: BuildConfig) throws -> BinaryOutput
-    func getExecutableNames(from directory: any Directory) throws -> [String]
-    func moveBinary(_ binary: BinaryOutput, to location: BuildOutputLocation) throws -> BinaryOutput
-}
-
 extension BuildBinaryController {
     struct BuildInfo {
         let path: String?

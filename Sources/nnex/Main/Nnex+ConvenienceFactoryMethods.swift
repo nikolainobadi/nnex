@@ -12,7 +12,7 @@ extension Nnex {
         let shell = makeShell()
         let picker = makePicker()
         let fileSystem = makeFileSystem()
-        let service = FakeService() // TODO: -
+        let service = BuildBinaryManager(shell: shell, fileSystem: fileSystem)
         let folderBrowser = contextFactory.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
         
         return .init(
@@ -22,19 +22,5 @@ extension Nnex {
             service: service,
             folderBrowser: folderBrowser
         )
-    }
-}
-
-struct FakeService: BuildBinaryService {
-    func build(config: NnexKit.BuildConfig) throws -> NnexKit.BinaryOutput {
-        fatalError()
-    }
-    
-    func getExecutableNames(from directory: any NnexKit.Directory) throws -> [String] {
-        fatalError()
-    }
-    
-    func moveBinary(_ binary: NnexKit.BinaryOutput, to location: NnexKit.BuildOutputLocation) throws -> NnexKit.BinaryOutput {
-        fatalError()
     }
 }

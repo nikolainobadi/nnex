@@ -5,8 +5,6 @@
 //  Created by Nikolai Nobadi on 8/26/25.
 //
 
-import NnexKit
-
 /// Resolves executable names from a Package.swift manifest in a given directory.
 enum ExecutableNameResolver {
     /// Extracts executable names from the Package.swift file in the specified directory.
