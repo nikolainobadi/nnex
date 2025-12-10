@@ -57,18 +57,18 @@ private extension BuildExecutionManager {
     }
     
     func getExecutableName(for projectFolder: Folder) throws -> String {
-        let resolver = ExecutableNameResolver()
-        let names = try resolver.getExecutableNames(from: projectFolder)
-        
-        guard names.count > 1 else {
-            return names.first!
-        }
-        
-        do {
-            return try picker.requiredSingleSelection("Which executable would you like to build?", items: names)
-        } catch {
-            throw BuildExecutionError.failedToSelectExecutable(reason: error.localizedDescription)
-        }
+        fatalError() // TODO: - 
+//        let names = try ExecutableNameResolver.getExecutableNames(from: projectFolder)
+//        
+//        guard names.count > 1 else {
+//            return names.first!
+//        }
+//        
+//        do {
+//            return try picker.requiredSingleSelection("Which executable would you like to build?", items: names)
+//        } catch {
+//            throw BuildExecutionError.failedToSelectExecutable(reason: error.localizedDescription)
+//        }
     }
     
     func selectOutputLocation(buildType: BuildType) throws -> BuildOutputLocation {
