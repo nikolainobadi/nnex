@@ -22,7 +22,6 @@ extension AutoVersionHandlerTests {
     @Test("Detects version from @main ParsableCommand")
     func detectsVersionFromMainCommand() throws {
         let (sut, _) = makeSUT(mainCommandVersion: "1.2.3")
-
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectPath)
 
         #expect(detectedVersion == "1.2.3")
@@ -31,7 +30,6 @@ extension AutoVersionHandlerTests {
     @Test("Returns nil when no @main ParsableCommand exists")
     func returnsNilWhenNoMainCommand() throws {
         let (sut, _) = makeSUT(hasMainCommand: false, subCommandVersion: "1.0.0")
-
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectPath)
 
         #expect(detectedVersion == nil)
@@ -40,7 +38,6 @@ extension AutoVersionHandlerTests {
     @Test("Returns nil when @main ParsableCommand has no version")
     func returnsNilWhenMainCommandHasNoVersion() throws {
         let (sut, _) = makeSUT(mainCommandVersion: nil)
-
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectPath)
 
         #expect(detectedVersion == nil)
@@ -49,7 +46,6 @@ extension AutoVersionHandlerTests {
     @Test("Detects version with v prefix")
     func detectsVersionWithVPrefix() throws {
         let (sut, _) = makeSUT(mainCommandVersion: "v2.1.0")
-
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectPath)
 
         #expect(detectedVersion == "2.1.0")
@@ -58,7 +54,6 @@ extension AutoVersionHandlerTests {
     @Test("Ignores non-main ParsableCommand files")
     func ignoresNonMainParsableCommands() throws {
         let (sut, _) = makeSUT(mainCommandVersion: "1.0.0", subCommandVersion: "2.0.0")
-
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectPath)
 
         #expect(detectedVersion == "1.0.0") // Should find main command version, not subcommand
@@ -67,7 +62,6 @@ extension AutoVersionHandlerTests {
     @Test("Returns nil when Sources directory doesn't exist")
     func returnsNilWhenSourcesDirectoryMissing() throws {
         let (sut, _) = makeSUT(createSourcesDir: false)
-
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectPath)
 
         #expect(detectedVersion == nil)
@@ -80,7 +74,6 @@ extension AutoVersionHandlerTests {
     @Test("Updates version successfully")
     func updatesVersionSuccessfully() throws {
         let (sut, fileSystem) = makeSUT(mainCommandVersion: "1.0.0")
-
         let success = try sut.updateArgumentParserVersion(projectPath: projectPath, newVersion: "2.0.0")
 
         #expect(success == true)
@@ -114,7 +107,6 @@ extension AutoVersionHandlerTests {
     @Test("Returns false when no main command file exists")
     func returnsFalseWhenNoMainCommandExists() throws {
         let (sut, _) = makeSUT(hasMainCommand: false, subCommandVersion: "1.0.0")
-
         let success = try sut.updateArgumentParserVersion(projectPath: projectPath, newVersion: "2.0.0")
 
         #expect(success == false)
@@ -123,7 +115,6 @@ extension AutoVersionHandlerTests {
     @Test("Returns false when main command has no version configuration")
     func returnsFalseWhenMainCommandHasNoVersion() throws {
         let (sut, _) = makeSUT(mainCommandVersion: nil)
-
         let success = try sut.updateArgumentParserVersion(projectPath: projectPath, newVersion: "2.0.0")
 
         #expect(success == false)
@@ -173,7 +164,6 @@ extension AutoVersionHandlerTests {
     @Test("Handles multiple CommandConfiguration blocks")
     func handlesMultipleCommandConfigurations() throws {
         let (sut, _) = makeSUT(complexMainCommand: true)
-
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectPath)
 
         #expect(detectedVersion == "1.5.0") // Should find the main command version
@@ -182,16 +172,14 @@ extension AutoVersionHandlerTests {
     @Test("Handles malformed version strings gracefully")
     func handlesMalformedVersionStrings() throws {
         let (sut, _) = makeSUT(malformedVersion: true)
-
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectPath)
 
         #expect(detectedVersion == nil)
     }
 
-    @Test("Handles files in subdirectories", .disabled())
+    @Test("Handles files in subdirectories")
     func handlesFilesInSubdirectories() throws {
         let (sut, _) = makeSUT(mainCommandVersion: "2.5.0", inSubdirectory: true)
-
         let detectedVersion = try sut.detectArgumentParserVersion(projectPath: projectPath)
 
         #expect(detectedVersion == "2.5.0")
@@ -216,16 +204,18 @@ private extension AutoVersionHandlerTests {
         var sourcesDir: MockDirectory?
         var subdirectories: [any Directory] = []
 
+        var commandsDir: MockDirectory?
+
         if createSourcesDir {
             if inSubdirectory {
                 // Create Commands subdirectory
-                let commandsDir = MockDirectory(path: "\(projectPath)/Sources/Commands")
+                commandsDir = MockDirectory(path: "\(projectPath)/Sources/Commands")
                 let mainFilePath = "Main.swift"
                 let content = createMainCommandContent(version: mainCommandVersion)
-                commandsDir.fileContents[mainFilePath] = content
-                commandsDir.containedFiles.insert(mainFilePath)
+                commandsDir!.fileContents[mainFilePath] = content
+                commandsDir!.containedFiles.insert(mainFilePath)
 
-                sourcesDir = MockDirectory(path: "\(projectPath)/Sources", subdirectories: [commandsDir])
+                sourcesDir = MockDirectory(path: "\(projectPath)/Sources", subdirectories: [commandsDir!])
             } else {
                 sourcesDir = MockDirectory(path: "\(projectPath)/Sources")
 
@@ -263,6 +253,9 @@ private extension AutoVersionHandlerTests {
         var directoryMap: [String: any Directory] = [projectPath: projectDir]
         if let sources = sourcesDir {
             directoryMap["\(projectPath)/Sources"] = sources
+        }
+        if let commands = commandsDir {
+            directoryMap["\(projectPath)/Sources/Commands"] = commands
         }
 
         let fileSystem = MockFileSystem(directoryMap: directoryMap)
