@@ -16,6 +16,7 @@ public struct ReleaseStore {
     }
 }
 
+
 // MARK: - Upload
 extension ReleaseStore {
     /// Represents the result of a successful upload, containing asset URLs and version number.
@@ -38,6 +39,7 @@ extension ReleaseStore {
         return (assetURLs, versionNumber)
     }
 }
+
 
 // MARK: - Private Methods
 private extension ReleaseStore {
