@@ -18,4 +18,5 @@ public protocol Directory {
     func createSubfolderIfNeeded(named name: String) throws -> any Directory
     func deleteFile(named name: String) throws
     func createFile(named name: String, contents: String) throws -> String
+    func readFile(named name: String) throws -> String
 }

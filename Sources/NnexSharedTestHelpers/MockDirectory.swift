@@ -11,12 +11,13 @@ import Foundation
 public final class MockDirectory: Directory {
     private let shouldThrowOnSubdirectory: Bool
     private let autoCreateSubdirectories: Bool
-    
+
     public let path: String
     public let name: String
     public let `extension`: String?
     public var subdirectories: [any Directory]
     public var containedFiles: Set<String>
+    public var fileContents: [String: String] = [:]
     public private(set) var movedToParents: [String] = []
     
     public init(path: String, subdirectories: [any Directory] = [], containedFiles: Set<String> = [], shouldThrowOnSubdirectory: Bool = false, autoCreateSubdirectories: Bool = true, ext: String? = nil) {
@@ -53,7 +54,7 @@ public final class MockDirectory: Directory {
         return try subdirectory(named: name)
     }
 
-    public func move(to parent: Directory) throws {
+    public func move(to parent: any Directory) throws {
         movedToParents.append(parent.path)
     }
 
@@ -72,6 +73,14 @@ public final class MockDirectory: Directory {
 
     public func createFile(named name: String, contents: String) throws -> String {
         containedFiles.insert(name)
+        fileContents[name] = contents
         return path.appendingPathComponent(name)
+    }
+
+    public func readFile(named name: String) throws -> String {
+        guard containedFiles.contains(name) else {
+            throw NSError(domain: "MockDirectory", code: 3, userInfo: [NSLocalizedDescriptionKey: "File not found: \(name)"])
+        }
+        return fileContents[name] ?? ""
     }
 }

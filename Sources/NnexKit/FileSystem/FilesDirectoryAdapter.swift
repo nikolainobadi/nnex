@@ -71,5 +71,9 @@ extension FilesDirectoryAdapter: Directory {
         try file.write(contents)
         return file.path
     }
+
+    public func readFile(named name: String) throws -> String {
+        return try folder.file(named: name).readAsString()
+    }
 }
 
