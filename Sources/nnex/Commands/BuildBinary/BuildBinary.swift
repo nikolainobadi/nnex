@@ -1,5 +1,5 @@
 //
-//  BuildExecutable.swift
+//  BuildBinary.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 4/21/25.
