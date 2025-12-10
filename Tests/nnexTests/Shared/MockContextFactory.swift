@@ -89,6 +89,10 @@ extension MockContextFactory: ContextFactory {
         return MockFileSystem() // TODO: - may need to instantiate like picker/shell
     }
     
+    func makeFolderBrowser(picker: any nnex.NnexPicker, fileSystem: any FileSystem) -> any DirectoryBrowser {
+        fatalError() // TODO: -
+    }
+    
     func makeGitHandler() -> any GitHandler {
         return gitHandler
     }

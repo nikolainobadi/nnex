@@ -6,6 +6,8 @@
 //
 
 public enum BinaryOutput {
-    case single(BinaryInfo)
-    case multiple([ReleaseArchitecture: BinaryInfo])
+    public typealias BinaryPath = String
+    
+    case single(BinaryPath)
+    case multiple([ReleaseArchitecture: BinaryPath])
 }

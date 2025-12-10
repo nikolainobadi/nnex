@@ -98,18 +98,19 @@ private extension BuildBinaryController {
     
     func displayBuildResult(_ binaryOutput: BinaryOutput, openInFinder: Bool) {
         switch binaryOutput {
-        case .single(let binaryInfo):
-            print("New binary was built at \(binaryInfo.path)")
+        case .single(let path):
+            print("New binary was built at \(path)")
             if openInFinder {
-                try? shell.runAndPrint(bash: "open -R \(binaryInfo.path)")
+                try? shell.runAndPrint(bash: "open -R \(path)")
             }
         case .multiple(let binaries):
             print("Universal binary built:")
-            for (arch, binaryInfo) in binaries {
-                print("  \(arch.name): \(binaryInfo.path)")
+            for (arch, path) in binaries {
+                print("  \(arch.name): \(path)")
             }
-            if openInFinder, let firstBinary = binaries.values.first {
-                try? shell.runAndPrint(bash: "open -R \(firstBinary.path)")
+            
+            if openInFinder, let firstBinaryPath = binaries.values.first {
+                try? shell.runAndPrint(bash: "open -R \(firstBinaryPath)")
             }
         }
     }

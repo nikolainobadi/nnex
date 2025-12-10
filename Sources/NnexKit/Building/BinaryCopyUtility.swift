@@ -38,18 +38,18 @@ public extension BinaryCopyUtility {
 private extension BinaryCopyUtility {
     func copyToDestination(binaryOutput: BinaryOutput, destinationPath: String, executableName: String) throws -> BinaryOutput {
         switch binaryOutput {
-        case .single(let binaryInfo):
+        case .single(let path):
             let finalPath = destinationPath + "/" + executableName
-            try shell.runAndPrint(bash: "cp \"\(binaryInfo.path)\" \"\(finalPath)\"")
+            try shell.runAndPrint(bash: "cp \"\(path)\" \"\(finalPath)\"")
             
-            return .single(.init(path: finalPath))
+            return .single(finalPath)
         case .multiple(let binaries):
-            var results: [ReleaseArchitecture: BinaryInfo] = [:]
+            var results: [ReleaseArchitecture: BinaryOutput.BinaryPath] = [:]
             
-            for (arch, binaryInfo) in binaries {
+            for (arch, path) in binaries {
                 let finalPath = destinationPath + "/" + executableName + "-\(arch.name)"
-                try shell.runAndPrint(bash: "cp \"\(binaryInfo.path)\" \"\(finalPath)\"")
-                results[arch] = .init(path: finalPath)
+                try shell.runAndPrint(bash: "cp \"\(path)\" \"\(finalPath)\"")
+                results[arch] = finalPath
             }
             
             return .multiple(results)

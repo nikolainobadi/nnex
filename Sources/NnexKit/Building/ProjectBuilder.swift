@@ -38,13 +38,12 @@ public extension ProjectBuilder {
             
             try runTests()
             
-            return .single(.init(path: path))
+            return .single(path)
 
         case .universal:
-            var results: [ReleaseArchitecture: BinaryInfo] = [:]
+            var results: [ReleaseArchitecture: BinaryOutput.BinaryPath] = [:]
             for arch in config.buildType.archs {
-                let path = binaryPath(for: arch)
-                results[arch] = .init(path: path)
+                results[arch] = binaryPath(for: arch)
             }
             
             try runTests()

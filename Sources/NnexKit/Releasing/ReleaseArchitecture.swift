@@ -5,7 +5,7 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
-public enum ReleaseArchitecture {
+public enum ReleaseArchitecture: CaseIterable {
     case arm
     case intel
 

@@ -24,13 +24,13 @@ extension BinaryCopyUtilityTests {
     @Test("Returns original binary when output location is current directory")
     func returnsOriginalBinaryForCurrentDirectory() throws {
         let (sut, shell) = makeSUT()
-        let originalBinary = BinaryOutput.single(.init(path: sourcePath))
+        let originalBinary = BinaryOutput.single(sourcePath)
         let outputLocation = BuildOutputLocation.currentDirectory(.universal)
 
         let result = try sut.copyBinaryToLocation(binaryOutput: originalBinary, outputLocation: outputLocation, executableName: executableName)
         
-        if case .single(let resultBinary) = result, case .single(let originalBinaryInfo) = originalBinary {
-            #expect(resultBinary.path == originalBinaryInfo.path)
+        if case .single(let path) = result, case .single(let originalPath) = originalBinary {
+            #expect(path == originalPath)
         } else {
             Issue.record("Expected single binary output")
         }
@@ -40,7 +40,7 @@ extension BinaryCopyUtilityTests {
     @Test("Copies single binary to desktop")
     func copiesSingleBinaryToDesktop() throws {
         let (sut, shell) = makeSUT()
-        let originalBinary = BinaryOutput.single(.init(path: sourcePath))
+        let originalBinary = BinaryOutput.single(sourcePath)
         let outputLocation = BuildOutputLocation.desktop
         
         _ = try sut.copyBinaryToLocation(binaryOutput: originalBinary, outputLocation: outputLocation, executableName: executableName)
@@ -55,7 +55,7 @@ extension BinaryCopyUtilityTests {
     @Test("Copies single binary to custom location")
     func copiesSingleBinaryToCustomLocation() throws {
         let (sut, shell) = makeSUT()
-        let originalBinary = BinaryOutput.single(.init(path: sourcePath))
+        let originalBinary = BinaryOutput.single(sourcePath)
         let outputLocation = BuildOutputLocation.custom(customPath)
         
         let result = try sut.copyBinaryToLocation(binaryOutput: originalBinary, outputLocation: outputLocation, executableName: executableName)
@@ -63,8 +63,8 @@ extension BinaryCopyUtilityTests {
         #expect(shell.executedCommands.count == 1)
         #expect(shell.executedCommands.first?.contains("cp \"\(sourcePath)\" \"\(customPath)/\(executableName)\"") == true)
         
-        if case .single(let binaryInfo) = result {
-            #expect(binaryInfo.path == "\(customPath)/\(executableName)")
+        if case .single(let path) = result {
+            #expect(path == "\(customPath)/\(executableName)")
         } else {
             Issue.record("Expected single binary output")
         }
@@ -73,12 +73,7 @@ extension BinaryCopyUtilityTests {
     @Test("Copies multiple binaries to desktop with architecture suffixes")
     func copiesMultipleBinariesToDesktop() throws {
         let (sut, shell) = makeSUT()
-        let armBinary = BinaryInfo(path: "/source/arm64")
-        let intelBinary = BinaryInfo(path: "/source/x86_64")
-        let originalBinary = BinaryOutput.multiple([
-            .arm: armBinary,
-            .intel: intelBinary
-        ])
+        let originalBinary = BinaryOutput.multiple([.arm: "/source/arm64", .intel: "/source/x86_64"])
         let outputLocation = BuildOutputLocation.desktop
         
         try sut.copyBinaryToLocation(binaryOutput: originalBinary, outputLocation: outputLocation, executableName: executableName)
@@ -93,21 +88,15 @@ extension BinaryCopyUtilityTests {
     @Test("Copies multiple binaries to custom location with architecture suffixes")
     func copiesMultipleBinariesToCustomLocation() throws {
         let (sut, shell) = makeSUT()
-        let armBinary = BinaryInfo(path: "/source/arm64")
-        let intelBinary = BinaryInfo(path: "/source/x86_64")
-        let originalBinary = BinaryOutput.multiple([
-            .arm: armBinary,
-            .intel: intelBinary
-        ])
+        let originalBinary = BinaryOutput.multiple([.arm: "/source/arm64", .intel: "/source/x86_64"])
         let outputLocation = BuildOutputLocation.custom(customPath)
-        
         let result = try sut.copyBinaryToLocation(binaryOutput: originalBinary, outputLocation: outputLocation, executableName: executableName)
         
         #expect(shell.executedCommands.count == 2)
         
         if case .multiple(let binaries) = result {
-            #expect(binaries[.arm]?.path == "\(customPath)/\(executableName)-arm64")
-            #expect(binaries[.intel]?.path == "\(customPath)/\(executableName)-x86_64")
+            #expect(binaries[.arm] == "\(customPath)/\(executableName)-arm64")
+            #expect(binaries[.intel] == "\(customPath)/\(executableName)-x86_64")
         } else {
             Issue.record("Expected multiple binary output")
         }
@@ -118,7 +107,7 @@ extension BinaryCopyUtilityTests {
         let (sut, shell) = makeSUT()
         let sourceWithSpaces = "/path with/spaces/binary"
         let destinationWithSpaces = "/destination with/spaces"
-        let originalBinary = BinaryOutput.single(.init(path: sourceWithSpaces))
+        let originalBinary = BinaryOutput.single(sourceWithSpaces)
         let outputLocation = BuildOutputLocation.custom(destinationWithSpaces)
         
         try sut.copyBinaryToLocation(binaryOutput: originalBinary, outputLocation: outputLocation, executableName: executableName)
@@ -130,7 +119,7 @@ extension BinaryCopyUtilityTests {
     @Test("Throws error when shell command fails")
     func throwsErrorWhenShellCommandFails() throws {
         let sut = makeSUT(throwError: true).sut
-        let originalBinary = BinaryOutput.single(.init(path: sourcePath))
+        let originalBinary = BinaryOutput.single(sourcePath)
         let outputLocation = BuildOutputLocation.desktop
         
         #expect(throws: (any Error).self) {
