@@ -12,6 +12,7 @@ protocol ContextFactory {
     func makePicker() -> any NnexPicker
     func makeGitHandler() -> any GitHandler
     func makeContext() throws -> NnexContext
+    func makeFileSystem() -> any FileSystem
     func makeTrashHandler() -> any TrashHandler
     func makeExportHandler() -> any ExportHandler
     func makeNotarizeHandler() -> any NotarizeHandler

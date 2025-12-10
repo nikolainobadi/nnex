@@ -26,7 +26,11 @@ struct DefaultContextFactory: ContextFactory {
     func makeContext() throws -> NnexContext {
         return try .init(appGroupId: APP_GROUP_ID)
     }
-    
+
+    func makeFileSystem() -> any FileSystem {
+        return DefaultFileSystem()
+    }
+
     func makeProjectDetector() -> any ProjectDetector {
         return DefaultProjectDetector(shell: makeShell())
     }

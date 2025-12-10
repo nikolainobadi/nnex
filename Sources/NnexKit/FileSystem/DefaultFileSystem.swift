@@ -28,6 +28,7 @@ extension DefaultFileSystem: FileSystem {
     }
     
     public func desktopDirectory() throws -> any Directory {
-        return try directory(at: fileManager.homeDirectoryForCurrentUser.path())
+        let desktopPath = fileManager.homeDirectoryForCurrentUser.appending(path: "Desktop").path()
+        return try directory(at: desktopPath)
     }
 }

@@ -10,7 +10,6 @@ import Foundation
 import NnShellTesting
 import NnexSharedTestHelpers
 @testable import NnexKit
-@preconcurrency import Files
 
 struct BinaryCopyUtilityTests {
     private let executableName = "testExecutable"
@@ -144,9 +143,10 @@ extension BinaryCopyUtilityTests {
 // MARK: - Private Methods
 private extension BinaryCopyUtilityTests {
     func makeSUT(throwError: Bool = false) -> (sut: BinaryCopyUtility, shell: MockShell) {
+        let fileSystem = MockFileSystem()
         let shell = MockShell(shouldThrowErrorOnFinal: throwError)
-        let sut = BinaryCopyUtility(shell: shell)
-        
+        let sut = BinaryCopyUtility(shell: shell, fileSystem: fileSystem)
+
         return (sut, shell)
     }
 }

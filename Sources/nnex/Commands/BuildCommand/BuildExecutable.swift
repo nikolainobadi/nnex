@@ -32,7 +32,7 @@ extension Nnex {
             let context = try Nnex.makeContext()
             let buildType = buildType ?? context.loadDefaultBuildType()
             let manager = BuildExecutionManager(shell: shell, picker: picker)
-            
+
             try manager.executeBuild(projectPath: path, buildType: buildType, clean: clean, openInFinder: openInFinder)
         }
     }

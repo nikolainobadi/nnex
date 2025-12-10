@@ -5,13 +5,13 @@
 //  Created by Nikolai Nobadi on 8/26/25.
 //
 
-import Files
-
 public struct BinaryCopyUtility {
     private let shell: any NnexShell
-    
-    public init(shell: any NnexShell) {
+    private let fileSystem: any FileSystem
+
+    public init(shell: any NnexShell, fileSystem: any FileSystem) {
         self.shell = shell
+        self.fileSystem = fileSystem
     }
 }
 
@@ -23,11 +23,11 @@ public extension BinaryCopyUtility {
         switch outputLocation {
         case .currentDirectory:
             return binaryOutput
-            
+
         case .desktop:
-            let desktop = try Folder.home.subfolder(named: "Desktop")
+            let desktop = try fileSystem.desktopDirectory()
             return try copyToDestination(binaryOutput: binaryOutput, destinationPath: desktop.path, executableName: executableName)
-            
+
         case .custom(let parentPath):
             return try copyToDestination(binaryOutput: binaryOutput, destinationPath: parentPath, executableName: executableName)
         }

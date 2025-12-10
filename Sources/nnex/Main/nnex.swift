@@ -35,7 +35,11 @@ extension Nnex {
     static func makeContext() throws -> NnexContext {
         return try contextFactory.makeContext()
     }
-    
+
+    static func makeFileSystem() -> any FileSystem {
+        return contextFactory.makeFileSystem()
+    }
+
     static func makeGitHandler() -> GitHandler {
         return contextFactory.makeGitHandler()
     }

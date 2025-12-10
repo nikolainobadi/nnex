@@ -13,11 +13,12 @@ struct BuildExecutionManager {
     private let shell: any NnexShell
     private let picker: any NnexPicker
     private let copyUtility: BinaryCopyUtility
-    
+
     init(shell: any NnexShell, picker: any NnexPicker) {
-        self.shell = shell
-        self.picker = picker
-        self.copyUtility = BinaryCopyUtility(shell: shell)
+        fatalError() // TODO: - 
+//        self.shell = shell
+//        self.picker = picker
+//        self.copyUtility = BinaryCopyUtility(shell: shell)
     }
     
     func executeBuild(projectPath: String?, buildType: BuildType, clean: Bool, openInFinder: Bool) throws {

@@ -85,6 +85,10 @@ extension MockContextFactory: ContextFactory {
         return newPicker
     }
     
+    func makeFileSystem() -> any FileSystem {
+        return MockFileSystem() // TODO: - 
+    }
+    
     func makeGitHandler() -> any GitHandler {
         return gitHandler
     }
