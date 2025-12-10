@@ -8,7 +8,7 @@
 import Files
 import NnexKit
 
-struct PublishInfoLoader {
+struct OldPublishInfoLoader {
     private let shell: any NnexShell
     private let picker: any NnexPicker
     private let projectFolder: Folder
@@ -35,7 +35,7 @@ struct PublishInfoLoader {
 
 
 // MARK: - Load
-extension PublishInfoLoader {
+extension OldPublishInfoLoader {
     /// Loads the publishing information, including the selected tap and formula.
     /// - Returns: A tuple containing the selected tap and formula.
     /// - Throws: An error if the loading process fails.
@@ -63,7 +63,7 @@ extension PublishInfoLoader {
 
 
 // MARK: - Private Methods
-private extension PublishInfoLoader {
+private extension OldPublishInfoLoader {
     /// Retrieves an existing tap matching the project name, if available.
     /// - Parameter allTaps: An array of available taps.
     /// - Returns: A SwiftDataTap instance if a matching tap is found, or nil otherwise.

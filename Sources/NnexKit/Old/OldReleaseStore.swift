@@ -6,7 +6,7 @@
 //
 
 /// Manages the process of uploading a release to a remote repository.
-public struct ReleaseStore {
+public struct OldReleaseStore {
     private let gitHandler: any GitHandler
 
     /// Initializes a new instance of ReleaseStore with a Git handler.
@@ -18,7 +18,7 @@ public struct ReleaseStore {
 
 
 // MARK: - Upload
-extension ReleaseStore {
+extension OldReleaseStore {
     /// Represents the result of a successful upload, containing asset URLs and version number.
     public typealias UploadResult = (assetURLs: [String], versionNumber: String)
 
@@ -42,7 +42,7 @@ extension ReleaseStore {
 
 
 // MARK: - Private Methods
-private extension ReleaseStore {
+private extension OldReleaseStore {
     /// Determines the version number for the release.
     func getVersionNumber(_ info: ReleaseInfo) throws -> String {
         switch info.versionInfo {

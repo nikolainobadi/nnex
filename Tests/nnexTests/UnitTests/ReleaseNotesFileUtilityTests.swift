@@ -123,7 +123,7 @@ private extension ReleaseNotesFileUtilityTests {
         permissionResponses: [Bool] = [],
         file: (path: String, contents: String)? = nil,
         date: Date? = nil
-    ) -> (sut: ReleaseNotesFileUtility, desktop: MockDirectory) {
+    ) -> (sut: OldReleaseNotesFileUtility, desktop: MockDirectory) {
         let picker = MockSwiftPicker(
             inputResult: .init(type: .ordered([])),
             permissionResult: .init(type: .ordered(permissionResponses))
@@ -142,7 +142,7 @@ private extension ReleaseNotesFileUtilityTests {
 
         let fileSystem = MockFileSystem(directoryMap: directoryMap, desktop: desktop)
         let dateProvider = MockDateProvider(date: date ?? testDate)
-        let sut = ReleaseNotesFileUtility(picker: picker, fileSystem: fileSystem, dateProvider: dateProvider)
+        let sut = OldReleaseNotesFileUtility(picker: picker, fileSystem: fileSystem, dateProvider: dateProvider)
 
         return (sut, desktop)
     }

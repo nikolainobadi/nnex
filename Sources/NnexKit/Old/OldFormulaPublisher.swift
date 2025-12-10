@@ -6,7 +6,7 @@
 //
 
 /// Handles publishing Homebrew formulas to a specified tap.
-public struct FormulaPublisher {
+public struct OldFormulaPublisher {
     private let gitHandler: any GitHandler
     private let fileSystem: any FileSystem
 
@@ -21,7 +21,7 @@ public struct FormulaPublisher {
 }
 
 // MARK: - Publish
-public extension FormulaPublisher {
+public extension OldFormulaPublisher {
     /// Publishes a Homebrew formula file to the specified tap.
     /// - Parameters:
     ///   - content: The formula file content as a string.

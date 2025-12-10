@@ -13,10 +13,10 @@ struct PublishExecutionManager {
     private let shell: any NnexShell
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
-    private let publishInfoLoader: PublishInfoLoader
+    private let publishInfoLoader: OldPublishInfoLoader
     private let trashHandler: any TrashHandler
     
-    init(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, publishInfoLoader: PublishInfoLoader, trashHandler: any TrashHandler) {
+    init(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, publishInfoLoader: OldPublishInfoLoader, trashHandler: any TrashHandler) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
@@ -100,7 +100,7 @@ private extension PublishExecutionManager {
     ///   - releaseNotesSource: The source of release notes.
     /// - Returns: A tuple containing an array of asset URLs and the version number from the GitHub release.
     /// - Throws: An error if the upload fails.
-    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
+    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: OldReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
         let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler)
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
@@ -145,7 +145,7 @@ private extension PublishExecutionManager {
 
 
 // MARK: - Helper Types
-struct ReleaseNotesSource {
+struct OldReleaseNotesSource {
     let notes: String?
     let notesFile: String?
 }

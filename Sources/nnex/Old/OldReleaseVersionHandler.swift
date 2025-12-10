@@ -8,7 +8,7 @@
 import NnexKit
 import Foundation
 
-struct ReleaseVersionHandler {
+struct OldReleaseVersionHandler {
     private let shell: any NnexShell
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
@@ -26,7 +26,7 @@ struct ReleaseVersionHandler {
 
 
 // MARK: - Action
-extension ReleaseVersionHandler {
+extension OldReleaseVersionHandler {
     /// Resolves the version information for the release.
     /// - Parameters:
     ///   - versionInfo: Optional version info from command line arguments.
@@ -46,7 +46,7 @@ extension ReleaseVersionHandler {
 
 
 // MARK: - Private Methods
-private extension ReleaseVersionHandler {
+private extension OldReleaseVersionHandler {
     /// Gets version input from the user or calculates it based on the previous version.
     /// - Parameter previousVersion: The previous version string, if available.
     /// - Returns: A `ReleaseVersionInfo` object representing the new version.

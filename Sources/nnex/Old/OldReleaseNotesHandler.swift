@@ -9,12 +9,12 @@ import Files
 import Foundation
 import GitCommandGen
 
-struct ReleaseNotesHandler {
+struct OldReleaseNotesHandler {
     private let picker: any NnexPicker
     private let projectName: String
-    private let fileUtility: ReleaseNotesFileUtility
+    private let fileUtility: OldReleaseNotesFileUtility
     
-    init(picker: any NnexPicker, projectName: String, fileUtility: ReleaseNotesFileUtility) {
+    init(picker: any NnexPicker, projectName: String, fileUtility: OldReleaseNotesFileUtility) {
         self.picker = picker
         self.projectName = projectName
         self.fileUtility = fileUtility
@@ -23,7 +23,7 @@ struct ReleaseNotesHandler {
 
 
 // MARK: - Action
-extension ReleaseNotesHandler {
+extension OldReleaseNotesHandler {
     func getReleaseNoteInfo() throws -> ReleaseNoteInfo {
         switch try picker.requiredSingleSelection("How would you like to add your release notes for \(projectName)?", items: NoteContentType.allCases) {
         case .direct:
@@ -49,7 +49,7 @@ extension ReleaseNotesHandler {
 
 
 // MARK: - Dependencies
-extension ReleaseNotesHandler {
+extension OldReleaseNotesHandler {
     enum NoteContentType: CaseIterable {
         case direct, selectFile, fromPath, createFile
     }

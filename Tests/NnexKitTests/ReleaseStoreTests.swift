@@ -120,9 +120,9 @@ extension ReleaseStoreTests {
 
 // MARK: - SUT
 private extension ReleaseStoreTests {
-    func makeSUT(assetURL: String? = nil, throwError: Bool = false) -> (sut: ReleaseStore, gitHandler: MockGitHandler) {
+    func makeSUT(assetURL: String? = nil, throwError: Bool = false) -> (sut: OldReleaseStore, gitHandler: MockGitHandler) {
         let gitHandler = MockGitHandler(assetURL: assetURL ?? self.assetURL, throwError: throwError)
-        let sut = ReleaseStore(gitHandler: gitHandler)
+        let sut = OldReleaseStore(gitHandler: gitHandler)
         
         return (sut, gitHandler)
     }

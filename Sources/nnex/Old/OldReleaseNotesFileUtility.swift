@@ -10,7 +10,7 @@ import Foundation
 import GitCommandGen
 
 /// Utility for creating and validating release notes files.
-struct ReleaseNotesFileUtility {
+struct OldReleaseNotesFileUtility {
     private let picker: any NnexPicker
     private let fileSystem: any FileSystem
     private let dateProvider: any DateProvider
@@ -29,7 +29,7 @@ struct ReleaseNotesFileUtility {
 
 
 // MARK: - Public Methods
-extension ReleaseNotesFileUtility {
+extension OldReleaseNotesFileUtility {
     /// Creates and opens a new release notes file on the desktop.
     /// - Parameter projectName: The name of the project for the filename.
     /// - Returns: The path to the created file.

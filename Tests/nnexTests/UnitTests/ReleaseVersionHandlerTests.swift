@@ -238,7 +238,7 @@ private extension ReleaseVersionHandlerTests {
         detectedVersion: String? = nil,
         shouldUpdateVersion: Bool = false,
         updateSucceeds: Bool = true
-    ) -> (sut: ReleaseVersionHandler, gitHandler: MockGitHandler, autoVersionHandler: MockAutoVersionHandler) {
+    ) -> (sut: OldReleaseVersionHandler, gitHandler: MockGitHandler, autoVersionHandler: MockAutoVersionHandler) {
 
         let gitHandler: MockGitHandler
         if let previousVersion = previousVersion {
@@ -252,7 +252,7 @@ private extension ReleaseVersionHandlerTests {
         let picker = MockSwiftPicker(inputResult: .init(type: .ordered(inputResponses)), permissionResult: .init(type: .ordered(permissionResponses)))
         let fileSystem = MockFileSystem()
         let autoVersionHandler = MockAutoVersionHandler(detectedVersion: detectedVersion, shouldUpdate: shouldUpdateVersion, updateSucceeds: updateSucceeds)
-        let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: MockShell(), fileSystem: fileSystem, autoVersionHandler: autoVersionHandler)
+        let sut = OldReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: MockShell(), fileSystem: fileSystem, autoVersionHandler: autoVersionHandler)
 
         return (sut, gitHandler, autoVersionHandler)
     }

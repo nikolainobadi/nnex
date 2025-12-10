@@ -29,11 +29,11 @@ extension ReleaseHandler {
         archivedBinaries: [ArchivedBinary],
         versionInfo: ReleaseVersionInfo,
         previousVersion: String?,
-        releaseNotesSource: ReleaseNotesSource
+        releaseNotesSource: OldReleaseNotesSource
     ) throws -> (assetURLs: [String], versionNumber: String) {
         let releaseNumber = extractVersionString(from: versionInfo)
         let noteInfo = try getReleaseNoteInfo(projectName: folder.name, releaseNotesSource: releaseNotesSource, releaseNumber: releaseNumber, projectPath: folder.path)
-        let store = ReleaseStore(gitHandler: gitHandler)
+        let store = OldReleaseStore(gitHandler: gitHandler)
 
         let releaseInfo = ReleaseInfo(
             projectPath: folder.path,
@@ -66,7 +66,7 @@ extension ReleaseHandler {
 private extension ReleaseHandler {
     func getReleaseNoteInfo(
         projectName: String,
-        releaseNotesSource: ReleaseNotesSource,
+        releaseNotesSource: OldReleaseNotesSource,
         releaseNumber: String,
         projectPath: String
     ) throws -> ReleaseNoteInfo {

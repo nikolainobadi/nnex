@@ -69,12 +69,12 @@ extension FormulaPublisherTests {
 
 // MARK: - SUT
 private extension FormulaPublisherTests {
-    func makeSUT(existingFile: String? = nil, throwError: Bool = false) -> (sut: FormulaPublisher, fileSystem: MockFileSystem, formulaFolder: MockDirectory, gitHandler: MockGitHandler) {
+    func makeSUT(existingFile: String? = nil, throwError: Bool = false) -> (sut: OldFormulaPublisher, fileSystem: MockFileSystem, formulaFolder: MockDirectory, gitHandler: MockGitHandler) {
         let formulaFolder = MockDirectory(path: "\(tapFolderPath)/Formula", containedFiles: existingFile != nil ? [existingFile!] : [])
         let tapFolder = MockDirectory(path: tapFolderPath, subdirectories: [formulaFolder])
         let fileSystem = MockFileSystem(directoryMap: [tapFolderPath: tapFolder])
         let gitHandler = MockGitHandler(throwError: throwError)
-        let sut = FormulaPublisher(gitHandler: gitHandler, fileSystem: fileSystem)
+        let sut = OldFormulaPublisher(gitHandler: gitHandler, fileSystem: fileSystem)
 
         return (sut, fileSystem, formulaFolder, gitHandler)
     }
