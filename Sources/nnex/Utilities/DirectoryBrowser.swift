@@ -8,5 +8,7 @@
 import NnexKit
 
 protocol DirectoryBrowser {
+    typealias FilePath = String
+    func browseForFile(prompt: String) throws -> FilePath
     func browseForDirectory(prompt: String) throws -> any Directory
 }

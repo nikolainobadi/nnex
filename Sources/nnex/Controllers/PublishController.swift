@@ -11,6 +11,7 @@ struct PublishController {
     private let picker: any NnexPicker
     private let fileSystem: any FileSystem
     private let gitHandler: any GitHandler
+    private let folderBrowser: any DirectoryBrowser
 }
 
 
@@ -87,7 +88,9 @@ private extension PublishController {
             
             return .direct(notes)
         case .selectFile:
-            fatalError() // TODO: -
+            let filePath = try folderBrowser.browseForFile(prompt: "Select your release notes file.")
+            
+            return .filePath(filePath)
         case .fromPath:
             let filePath = try picker.getRequiredInput(prompt: "Enter the path to the file for your release notes.")
             

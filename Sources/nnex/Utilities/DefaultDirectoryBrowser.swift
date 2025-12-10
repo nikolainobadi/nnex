@@ -29,19 +29,29 @@ struct DefaultDirectoryBrowser {
 
 // MARK: - DirectoryBrowser
 extension DefaultDirectoryBrowser: DirectoryBrowser {
+    func browseForFile(prompt: String) throws -> FilePath {
+        return try treeNavigation(prompt: prompt, selectionType: .onlyFiles).url.path()
+    }
+    
     /// Presents an interactive browser for selecting a directory.
     /// - Parameters:
     ///   - prompt: Prompt shown at the top of the tree navigation.
     ///   - startPath: Optional path to use as the root of the browser. Defaults to the user's home directory.
     /// - Returns: The selected `Directory`.
     func browseForDirectory(prompt: String) throws -> any Directory {
-        let rootNode = FileSystemNode(url: homeDirectoryURL)
-        let root = TreeNavigationRoot(displayName: homeDirectoryURL.lastPathComponent, children: rootNode.loadChildren())
+        let selection = try treeNavigation(prompt: prompt, selectionType: .onlyFolders)
+        
+        return try fileSystem.directory(at: selection.url.path)
+    }
+}
 
-        guard let selection = picker.treeNavigation(prompt, root: root) else {
+// MARK: - Private Methods
+private extension DefaultDirectoryBrowser {
+    func treeNavigation(prompt: String, selectionType: FileSystemNode.SelectionType) throws -> FileSystemNode {
+        guard let selection = picker.browseDirectories(prompt: prompt, startURL: homeDirectoryURL, showPromptText: true, showSelectedItemText: true, selectionType: selectionType) else {
             throw NnexError.selectionRequired
         }
         
-        return try fileSystem.directory(at: selection.url.path)
+        return selection
     }
 }

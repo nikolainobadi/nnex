@@ -1,5 +1,5 @@
 {
-  "originHash" : "fed7a14478b4c8a52a4008849ebf19e69bc3eca3567f1751720d7a3a620a2fd8",
+  "originHash" : "b93e722d8e7c531035ea367ba715ca402f5ffce08cac2f4f46e5bcf86dab3e71",
   "pins" : [
     {
       "identity" : "ansiterminalmodified",
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nikolainobadi/SwiftPickerKit.git",
       "state" : {
-        "revision" : "6773ad737b1d9acd9647fd03300a1ab774eb3afa",
-        "version" : "0.8.1"
+        "branch" : "open-mock-picker",
+        "revision" : "29dd6a78d82eef7ae13a1340824d9f806acf5f2c"
       }
     }
   ],
