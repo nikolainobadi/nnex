@@ -41,4 +41,27 @@ public final class MockFileSystem: FileSystem {
     public func desktopDirectory() throws -> any Directory {
         return desktop
     }
+
+    public func readFile(at path: String) throws -> String {
+        // Extract directory path and filename
+        let directoryPath = (path as NSString).deletingLastPathComponent
+        let fileName = (path as NSString).lastPathComponent
+
+        let directory = try self.directory(at: directoryPath)
+        return try directory.readFile(named: fileName)
+    }
+
+    public func writeFile(at path: String, contents: String) throws {
+        // Extract directory path and filename
+        let directoryPath = (path as NSString).deletingLastPathComponent
+        let fileName = (path as NSString).lastPathComponent
+
+        let directory = try self.directory(at: directoryPath)
+
+        // For mock, we update the file if it exists, otherwise create it
+        if let mockDir = directory as? MockDirectory {
+            mockDir.fileContents[fileName] = contents
+            mockDir.containedFiles.insert(fileName)
+        }
+    }
 }

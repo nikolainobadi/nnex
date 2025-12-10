@@ -5,14 +5,15 @@
 //  Created by Nikolai Nobadi on 8/12/25.
 //
 
-import Files
 import Foundation
 
 public struct AutoVersionHandler {
     private let shell: any NnexShell
-    
-    public init(shell: any NnexShell) {
+    private let fileSystem: any FileSystem
+
+    public init(shell: any NnexShell, fileSystem: any FileSystem) {
         self.shell = shell
+        self.fileSystem = fileSystem
     }
 }
 
@@ -26,8 +27,8 @@ public extension AutoVersionHandler {
         guard let mainFile = try findMainCommandFile(projectPath: projectPath) else {
             return nil
         }
-        
-        let fileContent = try String(contentsOfFile: mainFile)
+
+        let fileContent = try fileSystem.readFile(at: mainFile)
         return extractVersionFromContent(fileContent)
     }
     
@@ -40,22 +41,22 @@ public extension AutoVersionHandler {
         guard let mainFile = try findMainCommandFile(projectPath: projectPath) else {
             return false
         }
-        
-        let fileContent = try String(contentsOfFile: mainFile)
-        
+
+        let fileContent = try fileSystem.readFile(at: mainFile)
+
         // Check if there's a version to update first
         guard extractVersionFromContent(fileContent) != nil else {
             return false
         }
-        
+
         // Force normalized "1.2.3" format (no "v" prefix)
         let forced = normalizeVersion(newVersion)
-        
+
         guard let updatedContent = updateVersionInContent(fileContent, newVersion: forced) else {
             return false
         }
-        
-        try updatedContent.write(toFile: mainFile, atomically: true, encoding: .utf8)
+
+        try fileSystem.writeFile(at: mainFile, contents: updatedContent)
         return true
     }
     
@@ -79,23 +80,24 @@ private extension AutoVersionHandler {
     /// - Returns: The file path if found, nil otherwise.
     func findMainCommandFile(projectPath: String) throws -> String? {
         let sourcesPath = "\(projectPath)/Sources"
-        guard let sourcesFolder = try? Folder(path: sourcesPath) else { return nil }
+        guard let sourcesFolder = try? fileSystem.directory(at: sourcesPath) else { return nil }
 
         let pattern = try NSRegularExpression(
             pattern: #"@main\s+(struct|class|enum)\s+\w+\s*:\s*[^{}]*\bParsableCommand\b"#,
             options: [.dotMatchesLineSeparators]
         )
 
-        for file in sourcesFolder.files.recursive {
-            guard file.extension == "swift" else { continue }
-            let raw = try file.readAsString()
+        let swiftFiles = try sourcesFolder.findFiles(withExtension: "swift", recursive: true)
+
+        for filePath in swiftFiles {
+            let raw = try fileSystem.readFile(at: filePath)
             let code = strippedCode(raw)
             let range = NSRange(code.startIndex..<code.endIndex, in: code)
             if pattern.firstMatch(in: code, options: [], range: range) != nil {
-                return file.path
+                return filePath
             }
         }
-        
+
         return nil
     }
     

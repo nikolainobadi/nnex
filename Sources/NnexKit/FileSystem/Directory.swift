@@ -19,4 +19,5 @@ public protocol Directory {
     func deleteFile(named name: String) throws
     func createFile(named name: String, contents: String) throws -> String
     func readFile(named name: String) throws -> String
+    func findFiles(withExtension extension: String?, recursive: Bool) throws -> [String]
 }

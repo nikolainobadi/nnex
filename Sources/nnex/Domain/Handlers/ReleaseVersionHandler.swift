@@ -71,46 +71,47 @@ private extension ReleaseVersionHandler {
     ///   - projectPath: The path to the project folder.
     /// - Throws: An error if version handling fails.
     func handleAutoVersionUpdate(resolvedVersionInfo: ReleaseVersionInfo, projectPath: String) throws {
-        let autoVersionHandler = AutoVersionHandler(shell: shell)
-        
-        // Try to detect current version in the executable
-        guard let currentVersion = try autoVersionHandler.detectArgumentParserVersion(projectPath: projectPath) else {
-            // No version found in source code, nothing to update
-            return
-        }
-        
-        // Get the actual version string from the resolved version info
-        let releaseVersionString = try getReleaseVersionString(resolvedVersionInfo: resolvedVersionInfo, projectPath: projectPath)
-        
-        // Check if versions differ
-        guard autoVersionHandler.shouldUpdateVersion(currentVersion: currentVersion, releaseVersion: releaseVersionString) else {
-            // Versions are the same, no update needed
-            return
-        }
-        
-        // Ask user if they want to update the version
-        let prompt = """
-        
-        Current executable version: \(currentVersion.yellow)
-        Release version: \(releaseVersionString.green)
-        
-        Would you like to update the version in the source code?
-        """
-        
-        guard picker.getPermission(prompt: prompt) else {
-            return
-        }
-        
-        // Update the version in source code
-        guard try autoVersionHandler.updateArgumentParserVersion(projectPath: projectPath, newVersion: releaseVersionString) else {
-            print("Failed to update version in source code.")
-            return
-        }
-        
-        // Commit the version update
-        try commitVersionUpdate(version: releaseVersionString, projectPath: projectPath)
-        
-        print("✅ Updated version to \(releaseVersionString.green) and committed changes.")
+        // TODO: - 
+//        let autoVersionHandler = AutoVersionHandler(shell: shell)
+//        
+//        // Try to detect current version in the executable
+//        guard let currentVersion = try autoVersionHandler.detectArgumentParserVersion(projectPath: projectPath) else {
+//            // No version found in source code, nothing to update
+//            return
+//        }
+//        
+//        // Get the actual version string from the resolved version info
+//        let releaseVersionString = try getReleaseVersionString(resolvedVersionInfo: resolvedVersionInfo, projectPath: projectPath)
+//        
+//        // Check if versions differ
+//        guard autoVersionHandler.shouldUpdateVersion(currentVersion: currentVersion, releaseVersion: releaseVersionString) else {
+//            // Versions are the same, no update needed
+//            return
+//        }
+//        
+//        // Ask user if they want to update the version
+//        let prompt = """
+//        
+//        Current executable version: \(currentVersion.yellow)
+//        Release version: \(releaseVersionString.green)
+//        
+//        Would you like to update the version in the source code?
+//        """
+//        
+//        guard picker.getPermission(prompt: prompt) else {
+//            return
+//        }
+//        
+//        // Update the version in source code
+//        guard try autoVersionHandler.updateArgumentParserVersion(projectPath: projectPath, newVersion: releaseVersionString) else {
+//            print("Failed to update version in source code.")
+//            return
+//        }
+//        
+//        // Commit the version update
+//        try commitVersionUpdate(version: releaseVersionString, projectPath: projectPath)
+//        
+//        print("✅ Updated version to \(releaseVersionString.green) and committed changes.")
     }
     
     /// Gets the actual version string from ReleaseVersionInfo.

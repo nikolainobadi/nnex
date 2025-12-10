@@ -31,4 +31,12 @@ extension DefaultFileSystem: FileSystem {
         let desktopPath = fileManager.homeDirectoryForCurrentUser.appending(path: "Desktop").path()
         return try directory(at: desktopPath)
     }
+
+    public func readFile(at path: String) throws -> String {
+        return try String(contentsOfFile: path, encoding: .utf8)
+    }
+
+    public func writeFile(at path: String, contents: String) throws {
+        try contents.write(toFile: path, atomically: true, encoding: .utf8)
+    }
 }

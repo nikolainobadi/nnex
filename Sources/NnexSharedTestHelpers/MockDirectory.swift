@@ -83,4 +83,30 @@ public final class MockDirectory: Directory {
         }
         return fileContents[name] ?? ""
     }
+
+    public func findFiles(withExtension extension: String?, recursive: Bool) throws -> [String] {
+        var filePaths: [String] = []
+
+        // Add files from current directory
+        for fileName in containedFiles {
+            if let ext = `extension` {
+                let fileExt = (fileName as NSString).pathExtension
+                if fileExt == ext {
+                    filePaths.append(path.appendingPathComponent(fileName))
+                }
+            } else {
+                filePaths.append(path.appendingPathComponent(fileName))
+            }
+        }
+
+        // Recursively search subdirectories if requested
+        if recursive {
+            for subdirectory in subdirectories {
+                let subFiles = try subdirectory.findFiles(withExtension: `extension`, recursive: true)
+                filePaths.append(contentsOf: subFiles)
+            }
+        }
+
+        return filePaths
+    }
 }

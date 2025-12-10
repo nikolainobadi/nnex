@@ -75,5 +75,16 @@ extension FilesDirectoryAdapter: Directory {
     public func readFile(named name: String) throws -> String {
         return try folder.file(named: name).readAsString()
     }
+
+    public func findFiles(withExtension extension: String?, recursive: Bool) throws -> [String] {
+        let fileSequence = recursive ? folder.files.recursive : folder.files
+        let files = Array(fileSequence)
+
+        if let ext = `extension` {
+            return files.filter { $0.extension == ext }.map { $0.path }
+        }
+
+        return files.map { $0.path }
+    }
 }
 
