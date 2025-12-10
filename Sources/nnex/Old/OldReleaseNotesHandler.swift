@@ -25,7 +25,7 @@ struct OldReleaseNotesHandler {
 // MARK: - Action
 extension OldReleaseNotesHandler {
     func getReleaseNoteInfo() throws -> ReleaseNoteInfo {
-        switch try picker.requiredSingleSelection("How would you like to add your release notes for \(projectName)?", items: NoteContentType.allCases) {
+        switch try picker.requiredSingleSelection("How would you like to add your release notes for \(projectName)?", items: OldNoteContentType.allCases) {
         case .direct:
             let notes = try picker.getRequiredInput(prompt: "Enter your release notes.")
             
@@ -50,7 +50,7 @@ extension OldReleaseNotesHandler {
 
 // MARK: - Dependencies
 extension OldReleaseNotesHandler {
-    enum NoteContentType: CaseIterable {
+    enum OldNoteContentType: CaseIterable {
         case direct, selectFile, fromPath, createFile
     }
 }

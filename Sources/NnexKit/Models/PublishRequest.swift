@@ -31,7 +31,7 @@ public struct PublishRequest {
 
 
 // MARK: - Release Details
-public struct ReleasePlan: Sendable {
+public struct ReleasePlan {
     public let previousVersion: String?
     public let next: ReleaseVersionSpecifier
 
@@ -41,12 +41,12 @@ public struct ReleasePlan: Sendable {
     }
 }
 
-public enum ReleaseVersionSpecifier: Sendable {
+public enum ReleaseVersionSpecifier {
     case exact(String)
     case increment(ReleaseComponent)
 }
 
-public enum ReleaseComponent: String, Sendable {
+public enum ReleaseComponent: String, CaseIterable {
     case major
     case minor
     case patch
