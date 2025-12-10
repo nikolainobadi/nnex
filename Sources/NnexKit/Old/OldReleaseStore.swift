@@ -28,7 +28,7 @@ extension OldReleaseStore {
     ///   - archivedBinaries: The archived binaries to upload to the release.
     /// - Returns: An UploadResult containing all asset URLs and version number.
     /// - Throws: An error if the upload process fails.
-    public func uploadRelease(info: ReleaseInfo, archivedBinaries: [ArchivedBinary]) throws -> UploadResult {
+    public func uploadRelease(info: OldReleaseInfo, archivedBinaries: [ArchivedBinary]) throws -> UploadResult {
         let versionNumber = try getVersionNumber(info)
         let assetURLs = try gitHandler.createNewRelease(
             version: versionNumber,
@@ -44,10 +44,10 @@ extension OldReleaseStore {
 // MARK: - Private Methods
 private extension OldReleaseStore {
     /// Determines the version number for the release.
-    func getVersionNumber(_ info: ReleaseInfo) throws -> String {
+    func getVersionNumber(_ info: OldReleaseInfo) throws -> String {
         switch info.versionInfo {
         case .version(let number):
-            guard VersionHandler.isValidVersionNumber(number) else {
+            guard OldVersionHandler.isValidVersionNumber(number) else {
                 throw NnexError.invalidVersionNumber
             }
             return number
@@ -56,7 +56,7 @@ private extension OldReleaseStore {
             guard let previousVersion = info.previousVersion else {
                 throw NnexError.noPreviousVersionToIncrement
             }
-            return try VersionHandler.incrementVersion(
+            return try OldVersionHandler.incrementVersion(
                 for: part,
                 path: info.projectPath,
                 previousVersion: previousVersion

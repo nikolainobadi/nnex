@@ -6,7 +6,7 @@
 //
 
 /// Handles version-related operations, such as validation and incrementation.
-public enum VersionHandler {
+public enum OldVersionHandler {
     /// Checks whether a version string follows the semantic versioning pattern (e.g., "1.0.0").
     /// - Parameter version: The version string to validate.
     /// - Returns: A Boolean indicating whether the version string is valid.
@@ -21,7 +21,7 @@ public enum VersionHandler {
     ///   - previousVersion: The previous version number.
     /// - Returns: The incremented version number as a string.
     /// - Throws: An error if the version number could not be incremented.
-    public static func incrementVersion(for part: ReleaseVersionInfo.VersionPart, path: String, previousVersion: String) throws -> String {
+    public static func incrementVersion(for part: OldReleaseVersionInfo.VersionPart, path: String, previousVersion: String) throws -> String {
         let previousVerisonHasV = previousVersion.hasPrefix("v")
         let cleanedVersion = previousVerisonHasV ? String(previousVersion.dropFirst()) : previousVersion
         var components = cleanedVersion.split(separator: ".").compactMap { Int($0) }

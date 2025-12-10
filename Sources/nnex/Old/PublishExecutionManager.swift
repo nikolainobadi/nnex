@@ -30,7 +30,7 @@ struct PublishExecutionManager {
 extension PublishExecutionManager {
     func executePublish(
         projectFolder: Folder,
-        version: ReleaseVersionInfo?,
+        version: OldReleaseVersionInfo?,
         buildType: BuildType,
         notes: String?,
         notesFile: String?,
@@ -100,7 +100,7 @@ private extension PublishExecutionManager {
     ///   - releaseNotesSource: The source of release notes.
     /// - Returns: A tuple containing an array of asset URLs and the version number from the GitHub release.
     /// - Throws: An error if the upload fails.
-    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: OldReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
+    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: OldReleaseVersionInfo, previousVersion: String?, releaseNotesSource: OldReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
         let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler)
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }

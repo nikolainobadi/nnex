@@ -107,8 +107,8 @@ extension ReleaseStoreTests {
         #expect(gitHandler.releaseVersion == nil)
     }
     
-    @Test("Throws error if previous version doesn't exist when trying to increment", arguments: ReleaseVersionInfo.VersionPart.allCases)
-    func previousVersionError(versionPart: ReleaseVersionInfo.VersionPart) throws {
+    @Test("Throws error if previous version doesn't exist when trying to increment", arguments: OldReleaseVersionInfo.VersionPart.allCases)
+    func previousVersionError(versionPart: OldReleaseVersionInfo.VersionPart) throws {
         let info = makeReleaseInfo(versionInfo: .increment(versionPart))
         let (sut, _) = makeSUT()
         
@@ -127,7 +127,7 @@ private extension ReleaseStoreTests {
         return (sut, gitHandler)
     }
     
-    func makeReleaseInfo(projectPath: String = "path/to/project", releaseNoteInfo: ReleaseNoteInfo = .init(content: "release notes", isFromFile: false) , previousVersion: String? = nil, versionInfo: ReleaseVersionInfo = .version("1.0.0")) -> ReleaseInfo {
+    func makeReleaseInfo(projectPath: String = "path/to/project", releaseNoteInfo: ReleaseNoteInfo = .init(content: "release notes", isFromFile: false) , previousVersion: String? = nil, versionInfo: OldReleaseVersionInfo = .version("1.0.0")) -> OldReleaseInfo {
         return .init(projectPath: projectPath, releaseNoteInfo: releaseNoteInfo, previousVersion: previousVersion, versionInfo: versionInfo)
     }
 }

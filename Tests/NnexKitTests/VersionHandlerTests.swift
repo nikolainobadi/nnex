@@ -14,7 +14,7 @@ struct VersionHandlerTests {
         arguments: ["1.0.0", "v2.3.4", "0.0.0", "v9.9.9", "10.5.3", "v0.0.1", "7.8.9", "v1.10.0"]
     )
     func validVersionNumber(version: String) throws {
-        #expect(VersionHandler.isValidVersionNumber(version), "Expected version '\(version)' to be valid")
+        #expect(OldVersionHandler.isValidVersionNumber(version), "Expected version '\(version)' to be valid")
     }
 
     @Test(
@@ -24,26 +24,26 @@ struct VersionHandlerTests {
         ]
     )
     func invalidVersionNumber(version: String) throws {
-        #expect(!VersionHandler.isValidVersionNumber(version), "Expected version '\(version)' to be invalid")
+        #expect(!OldVersionHandler.isValidVersionNumber(version), "Expected version '\(version)' to be invalid")
     }
 
     @Test("Increments major version correctly", arguments: Args.validVersions.majorValues)
     func incrementMajorVersion(previousVersion: String, expectedVersion: String) throws {
-        let incrementedVersion = try VersionHandler.incrementVersion(for: .major, path: "", previousVersion: previousVersion)
+        let incrementedVersion = try OldVersionHandler.incrementVersion(for: .major, path: "", previousVersion: previousVersion)
         
         #expect(incrementedVersion == expectedVersion, "Expected \(expectedVersion) but got \(incrementedVersion) for input \(previousVersion)")
     }
 
     @Test("Increments minor version correctly", arguments: Args.validVersions.minorValues)
     func incrementMinorVersion(previousVersion: String, expectedVersion: String) throws {
-        let incrementedVersion = try VersionHandler.incrementVersion(for: .minor, path: "", previousVersion: previousVersion)
+        let incrementedVersion = try OldVersionHandler.incrementVersion(for: .minor, path: "", previousVersion: previousVersion)
         
         #expect(incrementedVersion == expectedVersion, "Expected \(expectedVersion) but got \(incrementedVersion) for input \(previousVersion)")
     }
 
     @Test("Increments patch version correctly", arguments: Args.validVersions.patchValues)
     func incrementPatchVersion(previousVersion: String, expectedVersion: String) throws {
-        let incrementedVersion = try VersionHandler.incrementVersion(for: .patch, path: "", previousVersion: previousVersion)
+        let incrementedVersion = try OldVersionHandler.incrementVersion(for: .patch, path: "", previousVersion: previousVersion)
         
         #expect(incrementedVersion == expectedVersion, "Expected \(expectedVersion) but got \(incrementedVersion) for input \(previousVersion)")
     }

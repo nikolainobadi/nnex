@@ -33,7 +33,7 @@ extension OldReleaseVersionHandler {
     ///   - projectPath: The path to the project folder.
     /// - Returns: A tuple containing the resolved version information and the previous version (if any).
     /// - Throws: An error if version resolution fails.
-    func resolveVersionInfo(versionInfo: ReleaseVersionInfo?, projectPath: String) throws -> (ReleaseVersionInfo, String?) {
+    func resolveVersionInfo(versionInfo: OldReleaseVersionInfo?, projectPath: String) throws -> (OldReleaseVersionInfo, String?) {
         let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: projectPath)
         let resolvedVersionInfo = try versionInfo ?? getVersionInput(previousVersion: previousVersion)
         
@@ -51,7 +51,7 @@ private extension OldReleaseVersionHandler {
     /// - Parameter previousVersion: The previous version string, if available.
     /// - Returns: A `ReleaseVersionInfo` object representing the new version.
     /// - Throws: An error if the version input is invalid.
-    func getVersionInput(previousVersion: String?) throws -> ReleaseVersionInfo {
+    func getVersionInput(previousVersion: String?) throws -> OldReleaseVersionInfo {
         var prompt = "\nEnter the version number for this release."
 
         if let previousVersion {
@@ -62,7 +62,7 @@ private extension OldReleaseVersionHandler {
 
         let input = try picker.getRequiredInput(prompt: prompt)
 
-        if let versionPart = ReleaseVersionInfo.VersionPart(string: input) {
+        if let versionPart = OldReleaseVersionInfo.VersionPart(string: input) {
             return .increment(versionPart)
         }
 
@@ -74,7 +74,7 @@ private extension OldReleaseVersionHandler {
     ///   - resolvedVersionInfo: The resolved version information for the release.
     ///   - projectPath: The path to the project folder.
     /// - Throws: An error if version handling fails.
-    func handleAutoVersionUpdate(resolvedVersionInfo: ReleaseVersionInfo, projectPath: String) throws {
+    func handleAutoVersionUpdate(resolvedVersionInfo: OldReleaseVersionInfo, projectPath: String) throws {
         // Try to detect current version in the executable
         guard let currentVersion = try autoVersionHandler.detectArgumentParserVersion(projectPath: projectPath) else {
             // No version found in source code, nothing to update
@@ -121,7 +121,7 @@ private extension OldReleaseVersionHandler {
     ///   - projectPath: The path to the project folder.
     /// - Returns: The version string.
     /// - Throws: An error if version string cannot be determined.
-    func getReleaseVersionString(resolvedVersionInfo: ReleaseVersionInfo, projectPath: String) throws -> String {
+    func getReleaseVersionString(resolvedVersionInfo: OldReleaseVersionInfo, projectPath: String) throws -> String {
         switch resolvedVersionInfo {
         case .version(let versionString):
             return versionString
@@ -129,7 +129,7 @@ private extension OldReleaseVersionHandler {
             guard let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: projectPath) else {
                 throw NnexError.noPreviousVersionToIncrement
             }
-            return try VersionHandler.incrementVersion(for: versionPart, path: projectPath, previousVersion: previousVersion)
+            return try OldVersionHandler.incrementVersion(for: versionPart, path: projectPath, previousVersion: previousVersion)
         }
     }
     

@@ -6,7 +6,7 @@
 //
 
 /// Represents version information for a release, including version numbers and increments.
-public enum ReleaseVersionInfo: Sendable {
+public enum OldReleaseVersionInfo: Sendable {
     /// A specific version string (e.g., "1.0.0").
     case version(String)
 

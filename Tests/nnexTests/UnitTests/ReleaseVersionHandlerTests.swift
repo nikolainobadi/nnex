@@ -25,7 +25,7 @@ struct ReleaseVersionHandlerTests {
 extension ReleaseVersionHandlerTests {
     @Test("Resolves version when version info is provided directly")
     func resolvesVersionWhenVersionInfoProvided() throws {
-        let versionInfo = ReleaseVersionInfo.version(testVersionNumber)
+        let versionInfo = OldReleaseVersionInfo.version(testVersionNumber)
         let sut = makeSUT(previousVersion: testPreviousVersion).sut
         let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: versionInfo, projectPath: testProjectPath)
         
@@ -40,7 +40,7 @@ extension ReleaseVersionHandlerTests {
     
     @Test("Resolves version with increment when version info is increment type")
     func resolvesVersionWithIncrementType() throws {
-        let versionInfo = ReleaseVersionInfo.increment(.minor)
+        let versionInfo = OldReleaseVersionInfo.increment(.minor)
         let sut = makeSUT(previousVersion: testPreviousVersion).sut
         let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: versionInfo, projectPath: testProjectPath)
         
@@ -55,7 +55,7 @@ extension ReleaseVersionHandlerTests {
     
     @Test("Returns nil previous version when no tags exist")
     func returnsNilPreviousVersionWhenNoTags() throws {
-        let versionInfo = ReleaseVersionInfo.version(testVersionNumber)
+        let versionInfo = OldReleaseVersionInfo.version(testVersionNumber)
         let sut = makeSUT(previousVersion: nil).sut
         let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: versionInfo, projectPath: testProjectPath)
         
@@ -154,7 +154,7 @@ extension ReleaseVersionHandlerTests {
     
     @Test("Handles git error gracefully when getting previous version")
     func handlesGitErrorGracefully() throws {
-        let versionInfo = ReleaseVersionInfo.version(testVersionNumber)
+        let versionInfo = OldReleaseVersionInfo.version(testVersionNumber)
         let sut = makeSUT(previousVersion: nil, shouldThrowGitError: true).sut
         let (resolvedVersion, previousVersion) = try sut.resolveVersionInfo(versionInfo: versionInfo, projectPath: testProjectPath)
         

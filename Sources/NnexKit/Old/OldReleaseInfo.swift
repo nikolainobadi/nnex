@@ -7,11 +7,11 @@
 
 import GitCommandGen
 
-public struct ReleaseInfo {
+public struct OldReleaseInfo {
     public let projectPath: String
     public let releaseNoteInfo: ReleaseNoteInfo
     public let previousVersion: String?
-    public let versionInfo: ReleaseVersionInfo
+    public let versionInfo: OldReleaseVersionInfo
 
     /// Initializes a new instance of ReleaseInfo.
     /// - Parameters:
@@ -19,7 +19,7 @@ public struct ReleaseInfo {
     ///   - releaseNotes: A description of the release.
     ///   - previousVersion: The previous release version, if applicable.
     ///   - versionInfo: The version information for the release.
-    public init(projectPath: String, releaseNoteInfo: ReleaseNoteInfo, previousVersion: String?, versionInfo: ReleaseVersionInfo) {
+    public init(projectPath: String, releaseNoteInfo: ReleaseNoteInfo, previousVersion: String?, versionInfo: OldReleaseVersionInfo) {
         self.projectPath = projectPath
         self.releaseNoteInfo = releaseNoteInfo
         self.previousVersion = previousVersion
