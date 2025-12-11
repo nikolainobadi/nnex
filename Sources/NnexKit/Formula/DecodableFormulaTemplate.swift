@@ -1,12 +1,12 @@
 //
-//  BrewFormula.swift
+//  DecodableFormulaTemplate.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
 /// Represents a Homebrew formula with metadata and version information.
-public struct BrewFormula: Codable {
+public struct DecodableFormulaTemplate: Codable {
     /// The name of the formula.
     public let name: String
     

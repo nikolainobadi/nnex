@@ -41,9 +41,17 @@ extension Nnex.Brew {
             let context = try Nnex.makeContext()
             let fileSystem = Nnex.makeFileSystem()
             let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
-            let buildType = buildType ?? context.loadDefaultBuildType()
-            let projectFolder = try Nnex.makeFileSystem().getProjectFolder(at: path)
-            let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler, skipTests: skipTests)
+            let resolvedBuildType = buildType ?? context.loadDefaultBuildType()
+            let projectFolder = try fileSystem.getProjectFolder(at: path)
+            let store = HomebrewTapStoreAdapter(context: context)
+            let publishInfoLoader = PublishInfoLoader(
+                shell: shell,
+                picker: picker,
+                gitHandler: gitHandler,
+                store: store,
+                projectFolder: projectFolder,
+                skipTests: skipTests
+            )
             let manager = PublishExecutionManager(
                 shell: shell,
                 picker: picker,
@@ -56,7 +64,7 @@ extension Nnex.Brew {
             try manager.executePublish(
                 projectFolder: projectFolder,
                 version: version,
-                buildType: buildType,
+                buildType: resolvedBuildType,
                 notes: notes,
                 notesFile: notesFile,
                 message: message,

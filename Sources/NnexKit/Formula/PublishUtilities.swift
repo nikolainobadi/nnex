@@ -14,7 +14,7 @@ public enum PublishUtilities {
     ///   - shell: The shell instance to use for building.
     /// - Returns: The binary output including path(s) and hash(es).
     /// - Throws: An error if the build process fails.
-    public static func buildBinary(formula: SwiftDataHomebrewFormula, buildType: BuildType, skipTesting: Bool, shell: any NnexShell) throws -> BinaryOutput {
+    public static func buildBinary(formula: HomebrewFormula, buildType: BuildType, skipTesting: Bool, shell: any NnexShell) throws -> BinaryOutput {
         let testCommand = skipTesting ? nil : formula.testCommand
         let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
         let builder = ProjectBuilder(shell: shell, config: config)
@@ -49,7 +49,7 @@ public enum PublishUtilities {
     ///   - assetURLs: The asset URLs from the GitHub release.
     /// - Returns: The formula content as a string.
     /// - Throws: An error if formula generation fails.
-    public static func makeFormulaContent(formula: SwiftDataHomebrewFormula, version: String, archivedBinaries: [ArchivedBinary], assetURLs: [String]) throws -> String {
+    public static func makeFormulaContent(formula: HomebrewFormula, version: String, archivedBinaries: [ArchivedBinary], assetURLs: [String]) throws -> String {
         let formulaName = formula.name
         
         if archivedBinaries.count == 1 {

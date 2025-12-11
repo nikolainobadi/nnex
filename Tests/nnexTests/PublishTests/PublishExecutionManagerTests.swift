@@ -57,23 +57,29 @@ extension PublishExecutionManagerTests {
             ]
         )
         
-        let context = try factory.makeContext()
-        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let existingFormula = SwiftDataHomebrewFormula(
-            name: executableName,
-            details: "Test formula",
-            homepage: "https://github.com/test/repo",
-            license: "MIT",
-            localProjectPath: projectFolder.path,
-            uploadType: .binary,
-            testCommand: nil,
-            extraBuildArgs: []
+        let store = MockHomebrewTapStore(
+            taps: [
+                HomebrewTap(
+                    name: tapName,
+                    localPath: tapFolder.path,
+                    remotePath: "",
+                    formulas: [
+                        HomebrewFormula(
+                            name: executableName,
+                            details: "Test formula",
+                            homepage: "https://github.com/test/repo",
+                            license: "MIT",
+                            localProjectPath: projectFolder.path,
+                            uploadType: .binary,
+                            testCommand: nil,
+                            extraBuildArgs: []
+                        )
+                    ]
+                )
+            ]
         )
         
-        try context.saveNewTap(existingTap)
-        try context.saveNewFormula(existingFormula, in: existingTap)
-        
-        let sut = try makeSUT(factory: factory, context: context)
+        let sut = try makeSUT(factory: factory, store: store)
         
         try sut.executePublish(
             projectFolder: FilesDirectoryAdapter(folder: projectFolder),
@@ -113,12 +119,13 @@ extension PublishExecutionManagerTests {
             ]
         )
         
-        let context = try factory.makeContext()
-        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        let store = MockHomebrewTapStore(
+            taps: [
+                HomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "", formulas: [])
+            ]
+        )
         
-        try context.saveNewTap(existingTap)
-        
-        let sut = try makeSUT(factory: factory, context: context)
+        let sut = try makeSUT(factory: factory, store: store)
         
         try sut.executePublish(
             projectFolder: FilesDirectoryAdapter(folder: projectFolder),
@@ -156,23 +163,29 @@ extension PublishExecutionManagerTests {
             permissionResponses: [true] // Commit and push to GitHub
         )
         
-        let context = try factory.makeContext()
-        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let existingFormula = SwiftDataHomebrewFormula(
-            name: executableName,
-            details: "Test formula",
-            homepage: "https://github.com/test/repo",
-            license: "MIT",
-            localProjectPath: projectFolder.path,
-            uploadType: .binary,
-            testCommand: nil,
-            extraBuildArgs: []
+        let store = MockHomebrewTapStore(
+            taps: [
+                HomebrewTap(
+                    name: tapName,
+                    localPath: tapFolder.path,
+                    remotePath: "",
+                    formulas: [
+                        HomebrewFormula(
+                            name: executableName,
+                            details: "Test formula",
+                            homepage: "https://github.com/test/repo",
+                            license: "MIT",
+                            localProjectPath: projectFolder.path,
+                            uploadType: .binary,
+                            testCommand: nil,
+                            extraBuildArgs: []
+                        )
+                    ]
+                )
+            ]
         )
         
-        try context.saveNewTap(existingTap)
-        try context.saveNewFormula(existingFormula, in: existingTap)
-        
-        let sut = try makeSUT(factory: factory, context: context)
+        let sut = try makeSUT(factory: factory, store: store)
         
         try sut.executePublish(
             projectFolder: FilesDirectoryAdapter(folder: projectFolder),
@@ -210,23 +223,29 @@ extension PublishExecutionManagerTests {
             ]
         )
         
-        let context = try factory.makeContext()
-        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let existingFormula = SwiftDataHomebrewFormula(
-            name: executableName,
-            details: "Test formula",
-            homepage: "https://github.com/test/repo",
-            license: "MIT",
-            localProjectPath: projectFolder.path,
-            uploadType: .binary,
-            testCommand: nil,
-            extraBuildArgs: []
+        let store = MockHomebrewTapStore(
+            taps: [
+                HomebrewTap(
+                    name: tapName,
+                    localPath: tapFolder.path,
+                    remotePath: "",
+                    formulas: [
+                        HomebrewFormula(
+                            name: executableName,
+                            details: "Test formula",
+                            homepage: "https://github.com/test/repo",
+                            license: "MIT",
+                            localProjectPath: projectFolder.path,
+                            uploadType: .binary,
+                            testCommand: nil,
+                            extraBuildArgs: []
+                        )
+                    ]
+                )
+            ]
         )
         
-        try context.saveNewTap(existingTap)
-        try context.saveNewFormula(existingFormula, in: existingTap)
-        
-        let sut = try makeSUT(factory: factory, context: context)
+        let sut = try makeSUT(factory: factory, store: store)
         
         try sut.executePublish(
             projectFolder: FilesDirectoryAdapter(folder: projectFolder),
@@ -257,8 +276,8 @@ extension PublishExecutionManagerTests {
         )
         
         let folder = projectFolder
-        let context = try factory.makeContext()
-        let sut = try makeSUT(factory: factory, context: context)
+        let store = MockHomebrewTapStore(taps: [])
+        let sut = try makeSUT(factory: factory, store: store)
         
         #expect(throws: PublishExecutionError.uncommittedChanges) {
             try sut.executePublish(
@@ -282,8 +301,8 @@ extension PublishExecutionManagerTests {
         )
         
         let folder = FilesDirectoryAdapter(folder: projectFolder)
-        let context = try factory.makeContext()
-        let sut = try makeSUT(factory: factory, context: context)
+        let store = MockHomebrewTapStore(taps: [])
+        let sut = try makeSUT(factory: factory, store: store)
         
         #expect(throws: (any Error).self) {
             try sut.executePublish(
@@ -303,24 +322,30 @@ extension PublishExecutionManagerTests {
         try createPackageSwift()
         
         let factory = MockContextFactory(shell: MockShell(shouldThrowErrorOnFinal: true))
-        let context = try factory.makeContext()
-        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let existingFormula = SwiftDataHomebrewFormula(
-            name: executableName,
-            details: "Test formula",
-            homepage: "https://github.com/test/repo",
-            license: "MIT",
-            localProjectPath: projectFolder.path,
-            uploadType: .binary,
-            testCommand: nil,
-            extraBuildArgs: []
+        let store = MockHomebrewTapStore(
+            taps: [
+                HomebrewTap(
+                    name: tapName,
+                    localPath: tapFolder.path,
+                    remotePath: "",
+                    formulas: [
+                        HomebrewFormula(
+                            name: executableName,
+                            details: "Test formula",
+                            homepage: "https://github.com/test/repo",
+                            license: "MIT",
+                            localProjectPath: projectFolder.path,
+                            uploadType: .binary,
+                            testCommand: nil,
+                            extraBuildArgs: []
+                        )
+                    ]
+                )
+            ]
         )
         
-        try context.saveNewTap(existingTap)
-        try context.saveNewFormula(existingFormula, in: existingTap)
-        
         let folder = projectFolder
-        let sut = try makeSUT(factory: factory, context: context)
+        let sut = try makeSUT(factory: factory, store: store)
         
         #expect(throws: (any Error).self) {
             try sut.executePublish(
@@ -339,14 +364,21 @@ extension PublishExecutionManagerTests {
 
 // MARK: - Private Methods
 private extension PublishExecutionManagerTests {
-    func makeSUT(factory: MockContextFactory, context: NnexContext) throws -> PublishExecutionManager {
+    func makeSUT(factory: MockContextFactory, store: MockHomebrewTapStore) throws -> PublishExecutionManager {
         let shell = factory.makeShell()
         let picker = factory.makePicker()
         let gitHandler = factory.makeGitHandler()
         let fileSystem = factory.makeFileSystem()
         let folderBrowser = factory.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
         let folderAdapter = FilesDirectoryAdapter(folder: projectFolder)
-        let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: folderAdapter, context: context, gitHandler: gitHandler, skipTests: true)
+        let publishInfoLoader = PublishInfoLoader(
+            shell: shell,
+            picker: picker,
+            gitHandler: gitHandler,
+            store: store,
+            projectFolder: folderAdapter,
+            skipTests: true
+        )
         
         return .init(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, folderBrowser: folderBrowser, publishInfoLoader: publishInfoLoader)
     }

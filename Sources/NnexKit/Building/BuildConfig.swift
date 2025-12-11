@@ -5,13 +5,13 @@
 //  Created by Nikolai Nobadi on 3/25/25.
 //
 
-public struct BuildConfig: Sendable {
+public struct BuildConfig {
     public let projectName: String
     public let projectPath: String
     public let buildType: BuildType
     public let extraBuildArgs: [String]
     public let skipClean: Bool
-    public let testCommand: CurrentSchema.TestCommand?
+    public let testCommand: HomebrewFormula.TestCommand?
 
     /// Initializes a new `BuildConfig` with the specified settings.
     ///
@@ -22,7 +22,7 @@ public struct BuildConfig: Sendable {
     ///   - extraBuildArgs: Additional arguments to pass to the build command.
     ///   - shouldClean: Indicates whether the project should be cleaned before building. Defaults to `true`.
     ///   - testCommand: An optional command to run tests after building. Defaults to `nil`, meaning no tests will be run.
-    public init(projectName: String, projectPath: String, buildType: BuildType, extraBuildArgs: [String], skipClean: Bool, testCommand: CurrentSchema.TestCommand?) {
+    public init(projectName: String, projectPath: String, buildType: BuildType, extraBuildArgs: [String], skipClean: Bool, testCommand: HomebrewFormula.TestCommand?) {
         self.projectName = projectName
         self.projectPath = projectPath.hasSuffix("/") ? projectPath : projectPath + "/"
         self.buildType = buildType

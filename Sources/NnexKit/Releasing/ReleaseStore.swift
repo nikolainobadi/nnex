@@ -45,12 +45,13 @@ private extension ReleaseStore {
             guard VersionHandler.isValidVersionNumber(number) else {
                 throw NnexError.invalidVersionNumber
             }
+            
             return number
-
         case .increment(let part):
             guard let previousVersion = info.previousVersion else {
                 throw NnexError.noPreviousVersionToIncrement
             }
+            
             return try VersionHandler.incrementVersion(
                 for: part,
                 path: info.projectPath,

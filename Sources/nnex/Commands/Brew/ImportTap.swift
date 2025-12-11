@@ -62,9 +62,9 @@ private extension Nnex.Brew.ImportTap {
     }
     /// Decodes a Homebrew formula from a file.
     /// - Parameter path: The path to the file containing the formula.
-    /// - Returns: A BrewFormula instance if decoding is successful, or nil otherwise.
+    /// - Returns: A DecodableFormulaTemplate instance if decoding is successful, or nil otherwise.
     /// - Throws: An error if the decoding process fails.
-    func decodeBrewFormula(at path: String, fileSystem: any FileSystem) throws -> BrewFormula? {
+    func decodeBrewFormula(at path: String, fileSystem: any FileSystem) throws -> DecodableFormulaTemplate? {
         let output: String
         do {
             output = try makeBrewOutput(filePath: path)
@@ -82,7 +82,7 @@ private extension Nnex.Brew.ImportTap {
             return .init(name: name, desc: desc, homepage: homepage, license: license, versions: .init(stable: nil))
         } else if let data = output.data(using: .utf8) {
             let decoder = JSONDecoder()
-            let rootObject = try decoder.decode([String: [BrewFormula]].self, from: data)
+            let rootObject = try decoder.decode([String: [DecodableFormulaTemplate]].self, from: data)
             
             return rootObject["formulae"]?.first
         }

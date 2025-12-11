@@ -26,15 +26,14 @@ struct PublishUtilitiesTests {
 }
 
 
-// MARK: - buildBinary Tests (using ProjectBuilder directly since it doesn't require SwiftData)
+// MARK: - buildBinary Tests
 extension PublishUtilitiesTests {
     @Test("Builds binary with universal build type")
     func buildsBinaryWithUniversalType() throws {
         let shell = MockShell(results: ["", "", "", sha256Output, sha256Output]) // clean, build arm64, build x86_64, sha256 commands
-        let config = BuildConfig(projectName: projectName, projectPath: projectPath, buildType: .universal, extraBuildArgs: [], skipClean: false, testCommand: nil)
-        let builder = ProjectBuilder(shell: shell, config: config)
+        let formula = makeFormula()
         
-        let result = try builder.build()
+        let result = try PublishUtilities.buildBinary(formula: formula, buildType: .universal, skipTesting: true, shell: shell)
         
         // Should build for both architectures
         #expect(shell.executedCommands.count >= 3) // At least clean, build arm64, build x86_64
@@ -53,10 +52,9 @@ extension PublishUtilitiesTests {
     func buildsBinaryWithExtraBuildArgs() throws {
         let extraArgs = ["--verbose", "--enable-testing"]
         let shell = MockShell(results: ["", "", "", sha256Output, sha256Output])
-        let config = BuildConfig(projectName: projectName, projectPath: projectPath, buildType: .universal, extraBuildArgs: extraArgs, skipClean: false, testCommand: nil)
-        let builder = ProjectBuilder(shell: shell, config: config)
+        let formula = makeFormula(extraBuildArgs: extraArgs)
         
-        _ = try builder.build()
+        _ = try PublishUtilities.buildBinary(formula: formula, buildType: .universal, skipTesting: true, shell: shell)
         
         // Verify extra args are included in build commands
         let buildCommands = shell.executedCommands.filter { $0.contains("swift build") }
@@ -68,10 +66,9 @@ extension PublishUtilitiesTests {
     @Test("Skips tests when no test command provided")
     func skipsTestsWhenNoTestCommand() throws {
         let shell = MockShell(results: ["", "", "", sha256Output, sha256Output]) // No test command result needed
-        let config = BuildConfig(projectName: projectName, projectPath: projectPath, buildType: .universal, extraBuildArgs: [], skipClean: false, testCommand: nil)
-        let builder = ProjectBuilder(shell: shell, config: config)
+        let formula = makeFormula()
         
-        _ = try builder.build()
+        _ = try PublishUtilities.buildBinary(formula: formula, buildType: .universal, skipTesting: false, shell: shell)
         
         #expect(!shell.executedCommands.contains { $0.contains("swift test") })
     }
@@ -79,10 +76,9 @@ extension PublishUtilitiesTests {
     @Test("Runs tests when test command is provided")
     func runsTestsWhenTestCommandProvided() throws {
         let shell = MockShell(results: ["", "", "", "", sha256Output, sha256Output]) // Include test command result
-        let config = BuildConfig(projectName: projectName, projectPath: projectPath, buildType: .universal, extraBuildArgs: [], skipClean: false, testCommand: .defaultCommand)
-        let builder = ProjectBuilder(shell: shell, config: config)
+        let formula = makeFormula(testCommand: .defaultCommand)
         
-        _ = try builder.build()
+        _ = try PublishUtilities.buildBinary(formula: formula, buildType: .universal, skipTesting: false, shell: shell)
         
         #expect(shell.executedCommands.contains { $0.contains("swift test") })
     }
@@ -91,10 +87,9 @@ extension PublishUtilitiesTests {
     func usesCustomTestCommand() throws {
         let customTest = "xcodebuild test -scheme testScheme"
         let shell = MockShell(results: ["", "", "", "", sha256Output, sha256Output])
-        let config = BuildConfig(projectName: projectName, projectPath: projectPath, buildType: .universal, extraBuildArgs: [], skipClean: false, testCommand: .custom(customTest))
-        let builder = ProjectBuilder(shell: shell, config: config)
+        let formula = makeFormula(testCommand: .custom(customTest))
         
-        _ = try builder.build()
+        _ = try PublishUtilities.buildBinary(formula: formula, buildType: .universal, skipTesting: false, shell: shell)
         
         #expect(shell.executedCommands.contains { $0.contains(customTest) })
     }
@@ -166,14 +161,14 @@ extension PublishUtilitiesTests {
 extension PublishUtilitiesTests {
     @Test("Creates formula content for single binary")
     func createsFormulaContentForSingleBinary() throws {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: projectName,
-            details: details,
-            homepage: homepage,
-            license: license,
+        let formula = makeFormula()
+        let archives = [makeArchivedBinary(for: .arm, sha: sha256Value)]
+        
+        let content = try PublishUtilities.makeFormulaContent(
+            formula: formula,
             version: version,
-            assetURL: assetURL1,
-            sha256: sha256Value
+            archivedBinaries: archives,
+            assetURLs: [assetURL1]
         )
 
         #expect(content.contains(projectName.capitalized))
@@ -186,16 +181,17 @@ extension PublishUtilitiesTests {
 
     @Test("Creates formula content for multiple binaries with ARM and Intel")
     func createsFormulaContentForMultipleBinaries() throws {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: projectName,
-            details: details,
-            homepage: homepage,
-            license: license,
+        let formula = makeFormula()
+        let archives = [
+            makeArchivedBinary(for: .arm, sha: "arm_sha256"),
+            makeArchivedBinary(for: .intel, sha: "intel_sha256")
+        ]
+
+        let content = try PublishUtilities.makeFormulaContent(
+            formula: formula,
             version: version,
-            armURL: assetURL1,
-            armSHA256: "arm_sha256",
-            intelURL: assetURL2,
-            intelSHA256: "intel_sha256"
+            archivedBinaries: archives,
+            assetURLs: [assetURL1, assetURL2]
         )
 
         #expect(content.contains(projectName.capitalized))
@@ -207,16 +203,14 @@ extension PublishUtilitiesTests {
 
     @Test("Creates formula content for ARM-only binary")
     func createsFormulaContentForArmOnly() throws {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: projectName,
-            details: details,
-            homepage: homepage,
-            license: license,
+        let formula = makeFormula()
+        let archives = [makeArchivedBinary(for: .arm, sha: "arm_sha256")]
+
+        let content = try PublishUtilities.makeFormulaContent(
+            formula: formula,
             version: version,
-            armURL: assetURL1,
-            armSHA256: "arm_sha256",
-            intelURL: nil,
-            intelSHA256: nil
+            archivedBinaries: archives,
+            assetURLs: [assetURL1]
         )
 
         #expect(content.contains(projectName.capitalized))
@@ -228,16 +222,14 @@ extension PublishUtilitiesTests {
 
     @Test("Creates formula content for Intel-only binary")
     func createsFormulaContentForIntelOnly() throws {
-        let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: projectName,
-            details: details,
-            homepage: homepage,
-            license: license,
+        let formula = makeFormula()
+        let archives = [makeArchivedBinary(for: .intel, sha: "intel_sha256")]
+
+        let content = try PublishUtilities.makeFormulaContent(
+            formula: formula,
             version: version,
-            armURL: nil,
-            armSHA256: nil,
-            intelURL: assetURL1,
-            intelSHA256: "intel_sha256"
+            archivedBinaries: archives,
+            assetURLs: [assetURL1]
         )
 
         #expect(content.contains(projectName.capitalized))
@@ -249,28 +241,27 @@ extension PublishUtilitiesTests {
 }
 
 
-// MARK: - Mock Types
-private struct MockFormula {
-    let name: String
-    let details: String
-    let homepage: String
-    let license: String
-    let localProjectPath: String
-    let testCommand: CurrentSchema.TestCommand?
-    let extraBuildArgs: [String]
-}
-
 // MARK: - Private Helpers
 private extension PublishUtilitiesTests {
-    func makeFormula(testCommand: CurrentSchema.TestCommand? = nil, extraBuildArgs: [String] = []) -> MockFormula {
-        return MockFormula(
+    func makeFormula(testCommand: HomebrewFormula.TestCommand? = nil, extraBuildArgs: [String] = []) -> HomebrewFormula {
+        return .init(
             name: projectName,
             details: details,
             homepage: homepage,
             license: license,
             localProjectPath: projectPath,
+            uploadType: .binary,
             testCommand: testCommand,
             extraBuildArgs: extraBuildArgs
+        )
+    }
+    
+    func makeArchivedBinary(for architecture: ReleaseArchitecture, sha: String) -> ArchivedBinary {
+        let originalPath = "\(projectPath).build/\(architecture.name)-apple-macosx/release/\(projectName)"
+        return ArchivedBinary(
+            originalPath: originalPath,
+            archivePath: "\(originalPath).tar.gz",
+            sha256: sha
         )
     }
 }

@@ -10,23 +10,23 @@ import NnexKit
 struct PublishInfoLoader {
     private let shell: any NnexShell
     private let picker: any NnexPicker
-    private let projectFolder: any Directory
     private let gitHandler: any GitHandler
-    private let context: NnexContext
+    private let store: any HomebrewTapStore
+    private let projectFolder: any Directory
     private let skipTests: Bool
     
     init(
         shell: any NnexShell,
         picker: any NnexPicker,
-        projectFolder: any Directory,
-        context: NnexContext,
         gitHandler: any GitHandler,
+        store: any HomebrewTapStore,
+        projectFolder: any Directory,
         skipTests: Bool
     ) {
+        self.store = store
         self.shell = shell
         self.picker = picker
         self.projectFolder = projectFolder
-        self.context = context
         self.gitHandler = gitHandler
         self.skipTests = skipTests
     }
@@ -38,15 +38,14 @@ extension PublishInfoLoader {
     /// Loads the publishing information, including the selected tap and formula.
     /// - Returns: A tuple containing the selected tap and formula.
     /// - Throws: An error if the loading process fails.
-    func loadPublishInfo() throws -> (SwiftDataHomebrewTap, SwiftDataHomebrewFormula) {
-        let allTaps = try context.loadTaps()
-        let tap = try getTap(allTaps: allTaps) ?? picker.requiredSingleSelection("\(projectFolder.name) does not yet have a formula. Select a tap for this formula.", items: allTaps)
-        
-        if let formula = tap.formulas.first(where: { $0.name.lowercased() == projectFolder.name.lowercased() }) {
+    func loadPublishInfo() throws -> (HomebrewTap, HomebrewFormula) {
+        let allTaps = try store.loadTaps()
+        let tap = try getTap(allTaps: allTaps)
+        if var formula = tap.formulas.first(where: { $0.name.matches(projectFolder.name) }) {
             // Update the formula's localProjectPath if needed
             if formula.localProjectPath.isEmpty || formula.localProjectPath != projectFolder.path {
                 formula.localProjectPath = projectFolder.path
-                try context.saveChanges()
+                try store.updateFormula(formula)
             }
             return (tap, formula)
         }
@@ -54,8 +53,8 @@ extension PublishInfoLoader {
         try picker.requiredPermission(prompt: "Could not find existing formula for \(projectFolder.name.yellow) in \(tap.name).\nWould you like to create a new one?")
         
         let newFormula = try createNewFormula(for: projectFolder)
-        try context.saveNewFormula(newFormula, in: tap)
-        
+        try store.saveNewFormula(newFormula, in: tap)
+
         return (tap, newFormula)
     }
 }
@@ -66,17 +65,21 @@ private extension PublishInfoLoader {
     /// Retrieves an existing tap matching the project name, if available.
     /// - Parameter allTaps: An array of available taps.
     /// - Returns: A SwiftDataHomebrewTap instance if a matching tap is found, or nil otherwise.
-    func getTap(allTaps: [SwiftDataHomebrewTap]) -> SwiftDataHomebrewTap? {
-        return allTaps.first { tap in
-            return tap.formulas.contains(where: { $0.name.lowercased() == projectFolder.name.lowercased() })
+    func getTap(allTaps: [HomebrewTap]) throws -> HomebrewTap {
+        if let tap = allTaps.first(where: { tap in
+            tap.formulas.contains(where: { $0.name.matches(projectFolder.name) })
+        }) {
+            return tap
         }
+        
+        return try picker.requiredSingleSelection("\(projectFolder.name) does not yet have a formula. Select a tap for this formula.", items: allTaps)
     }
     
     /// Creates a new formula for the given project folder.
     /// - Parameter folder: The project folder for which to create a formula.
     /// - Returns: A SwiftDataHomebrewFormula instance representing the created formula.
     /// - Throws: An error if the creation process fails.
-    func createNewFormula(for folder: any Directory) throws -> SwiftDataHomebrewFormula {
+    func createNewFormula(for folder: any Directory) throws -> HomebrewFormula {
         let name = try getExecutableName()
         let details = try picker.getRequiredInput(prompt: "Enter the description for this formula.")
         let homepage = try gitHandler.getRemoteURL(path: folder.path)
@@ -90,7 +93,7 @@ private extension PublishInfoLoader {
             homepage: homepage,
             license: license,
             localProjectPath: folder.path,
-            uploadType: .binary,
+            uploadType: .tarball,
             testCommand: testCommand,
             extraBuildArgs: extraArgs
         )
@@ -113,7 +116,7 @@ private extension PublishInfoLoader {
     /// Retrieves the test command based on user input or configuration.
     /// - Returns: A `TestCommand` instance if tests are to be run, or `nil` if tests are skipped.
     /// - Throws: An error if the test command cannot be determined.
-    func getTestCommand() throws -> CurrentSchema.TestCommand? {
+    func getTestCommand() throws -> HomebrewFormula.TestCommand? {
         if skipTests {
             return nil
         }

@@ -8,6 +8,56 @@
 import NnexKit
 import SwiftPickerKit
 
+// MARK: - HomebrewTap
+extension HomebrewTap: DisplayablePickerItem {
+    public var displayName: String {
+        return name
+    }
+}
+
+
+// MARK: - BuildType
+extension BuildType: DisplayablePickerItem {
+    public var displayName: String {
+        switch self {
+        case .universal:
+            return "\(rawValue) (recommended)"
+        default:
+            return rawValue
+        }
+    }
+}
+
+
+// MARK: - BuildOutputLocation
+extension BuildOutputLocation: DisplayablePickerItem {
+    public var displayName: String {
+        switch self {
+        case .currentDirectory(let buildType):
+            return "Current directory (.build/\(buildType.rawValue))"
+        case .desktop:
+            return "Desktop"
+        case .custom:
+            return "Custom location..."
+        }
+    }
+}
+
+
+// MARK: - FormulaTestType
+extension FormulaTestType: DisplayablePickerItem {
+    var displayName: String {
+        switch self {
+        case .custom:
+            return "ADD CUSTOM COMMAND"
+        case .packageDefault:
+            return "Default Commmand (swift test)"
+        case .noTests:
+            return "Don't include tests"
+        }
+    }
+}
+
 extension SwiftDataHomebrewTap: DisplayablePickerItem {
     public var displayName: String {
         return name
@@ -17,17 +67,6 @@ extension SwiftDataHomebrewTap: DisplayablePickerItem {
 extension SwiftDataHomebrewFormula:  DisplayablePickerItem {
     public var displayName: String {
         return name
-    }
-}
-
-extension BuildType: DisplayablePickerItem {
-    public var displayName: String {
-        switch self {
-        case .universal:
-            return "\(rawValue) (recommended)"
-        default:
-            return rawValue
-        }
     }
 }
 
@@ -42,32 +81,6 @@ extension ReleaseNotesHandler.NoteContentType: DisplayablePickerItem {
             return "Enter path to release notes file"
         case .createFile:
             return "Create a new file"
-        }
-    }
-}
-
-extension FormulaTestType: DisplayablePickerItem {
-    var displayName: String {
-        switch self {
-        case .custom:
-            return "ADD CUSTOM COMMAND"
-        case .packageDefault:
-            return "Default Commmand (swift test)"
-        case .noTests:
-            return "Don't include tests"
-        }
-    }
-}
-
-extension BuildOutputLocation: DisplayablePickerItem {
-    public var displayName: String {
-        switch self {
-        case .currentDirectory(let buildType):
-            return "Current directory (.build/\(buildType.rawValue))"
-        case .desktop:
-            return "Desktop"
-        case .custom:
-            return "Custom location..."
         }
     }
 }

@@ -5,13 +5,6 @@
 //  Created by Nikolai Nobadi on 9/9/25.
 //
 
-//
-//  ReleaseNotesFileUtilityTests.swift
-//  nnex
-//
-//  Created by Nikolai Nobadi on 9/9/25.
-//
-
 import Testing
 import Foundation
 import SwiftPickerTesting
