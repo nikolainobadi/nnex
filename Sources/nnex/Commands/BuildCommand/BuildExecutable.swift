@@ -30,8 +30,9 @@ extension Nnex {
             let shell = Nnex.makeShell()
             let picker = Nnex.makePicker()
             let context = try Nnex.makeContext()
+            let fileSystem = Nnex.makeFileSystem()
             let buildType = buildType ?? context.loadDefaultBuildType()
-            let manager = BuildExecutionManager(shell: shell, picker: picker)
+            let manager = BuildExecutionManager(shell: shell, picker: picker, fileSystem: fileSystem)
             
             try manager.executeBuild(projectPath: path, buildType: buildType, clean: clean, openInFinder: openInFinder)
         }

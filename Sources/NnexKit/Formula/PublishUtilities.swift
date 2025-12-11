@@ -5,9 +5,6 @@
 //  Created by Nikolai Nobadi on 8/26/25.
 //
 
-import Files
-import Foundation
-
 public enum PublishUtilities {
     /// Builds the binary for the given project and formula.
     /// - Parameters:
@@ -35,11 +32,11 @@ public enum PublishUtilities {
         let archiver = BinaryArchiver(shell: shell)
         
         switch binaryOutput {
-        case .single(let info):
-            return try archiver.createArchives(from: [info.path])
-        case .multiple(let map):
-            let binaryPaths = [ReleaseArchitecture.arm, ReleaseArchitecture.intel]
-                .compactMap { map[$0]?.path }
+        case .single(let path):
+            return try archiver.createArchives(from: [path])
+        case .multiple(let binaries):
+            let binaryPaths = ReleaseArchitecture.allCases.compactMap({ binaries[$0] })
+            
             return try archiver.createArchives(from: binaryPaths)
         }
     }

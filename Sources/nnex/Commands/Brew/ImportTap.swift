@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
-import Files
 import NnexKit
 import Foundation
 import ArgumentParser
@@ -19,26 +18,19 @@ extension Nnex.Brew {
         
         func run() throws {
             let picker = Nnex.makePicker()
+            let fileSystem = Nnex.makeFileSystem()
+            let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
             let context = try Nnex.makeContext()
-            let folder = try selectHomebrewFolder(path: path, picker: picker)
+            let folder = try selectHomebrewFolder(path: path, folderBrowser: folderBrowser, fileSystem: fileSystem)
             let tapName = folder.name.removingHomebrewPrefix
             let remotePath = try Nnex.makeGitHandler().getRemoteURL(path: folder.path)
-
-            let formulaFiles: [File]
-            if folder.containsSubfolder(named: "Formula") {
-                let formulaFolder = try folder.subfolder(named: "Formula")
-                formulaFiles = formulaFolder.files.filter({ $0.extension == "rb" })
-            } else {
-                print("⚠️ Warning: No 'Formula' folder found in tap directory. Skipping formula import.".red)
-                formulaFiles = []
-            }
-
+            let formulaFiles = try findFormulaFiles(in: folder)
             let tap = SwiftDataHomebrewTap(name: tapName, localPath: folder.path, remotePath: remotePath)
             
             var formulas: [SwiftDataHomebrewFormula] = []
             
-            for file in formulaFiles {
-                if let brewFormula = try decodeBrewFormula(file) {
+            for filePath in formulaFiles {
+                if let brewFormula = try decodeBrewFormula(at: filePath, fileSystem: fileSystem) {
                     formulas.append(.init(from: brewFormula))
                     print("decoded \(brewFormula.name), added to tap.")
                 }
@@ -52,27 +44,36 @@ extension Nnex.Brew {
 
 // MARK: - Private Methods
 private extension Nnex.Brew.ImportTap {
-    func selectHomebrewFolder(path: String?, picker: any NnexPicker) throws -> Folder {
+    func selectHomebrewFolder(path: String?, folderBrowser: any DirectoryBrowser, fileSystem: any FileSystem) throws -> any Directory {
         if let path {
-            return try Folder(path: path)
+            return try fileSystem.directory(at: path)
         }
         
-        return try picker.requiredFolderSelection(prompt: "Select the Homebrew Tap folder you would like to import.")
+        return try folderBrowser.browseForDirectory(prompt: "Select the Homebrew Tap folder you would like to import.")
+    }
+    
+    func findFormulaFiles(in folder: any Directory) throws -> [String] {
+        guard let formulaFolder = folder.subdirectories.first(where: { $0.name == "Formula" }) else {
+            print("⚠️ Warning: No 'Formula' folder found in tap directory. Skipping formula import.".red)
+            return []
+        }
+        
+        return try formulaFolder.findFiles(withExtension: "rb", recursive: false)
     }
     /// Decodes a Homebrew formula from a file.
-    /// - Parameter file: The file containing the formula.
+    /// - Parameter path: The path to the file containing the formula.
     /// - Returns: A BrewFormula instance if decoding is successful, or nil otherwise.
     /// - Throws: An error if the decoding process fails.
-    func decodeBrewFormula(_ file: File) throws -> BrewFormula? {
+    func decodeBrewFormula(at path: String, fileSystem: any FileSystem) throws -> BrewFormula? {
         let output: String
         do {
-            output = try makeBrewOutput(filePath: file.path)
+            output = try makeBrewOutput(filePath: path)
         } catch {
             output = ""
         }
 
         if output.isEmpty || output.contains("⚠️⚠️⚠️") {
-            let formulaContent = try file.readAsString()
+            let formulaContent = try fileSystem.readFile(at: path)
             let name = extractField(from: formulaContent, pattern: #"class (\w+) < Formula"#) ?? "Unknown"
             let desc = extractField(from: formulaContent, pattern: #"desc\s+"([^"]+)""#) ?? "No description"
             let homepage = extractField(from: formulaContent, pattern: #"homepage\s+"([^"]+)""#) ?? "No homepage"

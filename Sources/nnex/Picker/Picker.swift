@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 3/23/25.
 //
 
-import Files
 import NnexKit
 import Foundation
 import SwiftPickerKit
@@ -34,36 +33,5 @@ extension NnexPicker {
         }
         
         return selection
-    }
-    
-    func requiredFolderSelection(prompt: String) throws -> Folder {
-        let homeFolder = Folder.home
-        let folder = try requiredTreeNavigation(prompt, root: .init(displayName: homeFolder.name, children: homeFolder.loadChildren()))
-        
-        // TODO: - this may need to be adjusted
-        return try .init(path: folder.url.path())
-    }
-}
-
-extension Folder: @retroactive DisplayablePickerItem {
-    public var displayName: String {
-        return name
-    }
-}
-extension Folder: @retroactive TreeNodePickerItem {
-    public var hasChildren: Bool {
-        return subfolders.count() > 0
-    }
-    
-    public func loadChildren() -> [Folder] {
-        return subfolders.map({ $0 })
-    }
-    
-    public var metadata: TreeNodeMetadata? {
-        return nil
-    }
-    
-    public var isSelectable: Bool {
-        return true
     }
 }

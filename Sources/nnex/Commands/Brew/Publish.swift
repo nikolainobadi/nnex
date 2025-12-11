@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
-import Files
 import NnexKit
 import Foundation
 import ArgumentParser
@@ -40,11 +39,19 @@ extension Nnex.Brew {
             let picker = Nnex.makePicker()
             let gitHandler = Nnex.makeGitHandler()
             let context = try Nnex.makeContext()
+            let fileSystem = Nnex.makeFileSystem()
+            let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
             let buildType = buildType ?? context.loadDefaultBuildType()
-            let projectFolder = try Nnex.Brew.getProjectFolder(at: path)
-            let trashHandler = Nnex.makeTrashHandler()
+            let projectFolder = try Nnex.makeFileSystem().getProjectFolder(at: path)
             let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler, skipTests: skipTests)
-            let manager = PublishExecutionManager(shell: shell, picker: picker, gitHandler: gitHandler, publishInfoLoader: publishInfoLoader, trashHandler: trashHandler)
+            let manager = PublishExecutionManager(
+                shell: shell,
+                picker: picker,
+                gitHandler: gitHandler,
+                fileSystem: fileSystem,
+                folderBrowser: folderBrowser,
+                publishInfoLoader: publishInfoLoader
+            )
             
             try manager.executePublish(
                 projectFolder: projectFolder,
@@ -59,6 +66,17 @@ extension Nnex.Brew {
     }
 }
 
+
+// MARK: - Private Methods
+private extension FileSystem {
+    func getProjectFolder(at path: String?) throws -> any Directory {
+        if let path {
+            return try directory(at: path)
+        }
+        
+        return currentDirectory
+    }
+}
 
 
 // MARK: - Extension Dependencies

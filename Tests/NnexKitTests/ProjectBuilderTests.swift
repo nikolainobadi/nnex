@@ -33,9 +33,9 @@ extension ProjectBuilderTests {
         case .single:
             Issue.record("Expected .multiple BinaryOutput but found .single")
         case .multiple(let dict):
-            for (_, info) in dict {
-                #expect(info.path.contains(projectPath))
-                #expect(info.path.contains(projectName))
+            for (_, path) in dict {
+                #expect(path.contains(projectPath))
+                #expect(path.contains(projectName))
             }
         }
     }
@@ -46,10 +46,10 @@ extension ProjectBuilderTests {
         let result = try sut.discardableBuild()
         
         switch result {
-        case .single(let info):
-            #expect(info.path.contains(projectPath))
-            #expect(info.path.contains("\(buildType.rawValue)-apple-macosx"))
-            #expect(info.path.contains(projectName))
+        case .single(let path):
+            #expect(path.contains(projectPath))
+            #expect(path.contains("\(buildType.rawValue)-apple-macosx"))
+            #expect(path.contains(projectName))
         case .multiple:
             Issue.record("Expected .single BinaryOutput but found .multiple")
         }
@@ -68,9 +68,9 @@ extension ProjectBuilderTests {
         case .single:
             Issue.record("Expected .multiple BinaryOutput but found .single")
         case .multiple(let dict):
-            for (_, info) in dict {
-                #expect(info.path.contains(projectPath))
-                #expect(info.path.contains(projectName))
+            for (_, path) in dict {
+                #expect(path.contains(projectPath))
+                #expect(path.contains(projectName))
             }
         }
     }

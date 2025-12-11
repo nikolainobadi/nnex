@@ -246,8 +246,9 @@ private extension ReleaseVersionHandlerTests {
             gitHandler = MockGitHandler(previousVersion: "", throwError: true)
         }
         
+        let fileSystem = MockFileSystem()
         let picker = MockSwiftPicker(inputResult: .init(type: .ordered(inputResponses)))
-        let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: MockShell())
+        let sut = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: MockShell(), fileSystem: fileSystem)
         
         return (sut, gitHandler)
     }

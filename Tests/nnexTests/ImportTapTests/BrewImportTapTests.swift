@@ -52,8 +52,6 @@ extension BrewImportTapTests {
     
     @Test("Imports empty tap from existing folder from selection", .disabled()) // TODO: - 
     func importsEmptyTapFromSelection() throws {
-        MockSwiftPicker.folderToReturn = tapFolder
-        
         let testFactory = MockContextFactory()
         let context = try testFactory.makeContext()
         

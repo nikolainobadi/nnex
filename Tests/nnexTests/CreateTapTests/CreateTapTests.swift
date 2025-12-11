@@ -117,8 +117,6 @@ extension CreateTapTests {
     // TODO: - need to verify other Tap properties
     @Test("Saves the newly created tap in SwiftData database", .disabled()) // TODO: - 
     func savesCreatedTap() throws {
-        MockSwiftPicker.folderToReturn = tapListFolder
-        
         let name = "myNewTap"
         let factory = MockContextFactory(inputResponses: [tapDetails])
         let context = try factory.makeContext()

@@ -76,7 +76,7 @@ extension PublishExecutionManagerTests {
         let sut = try makeSUT(factory: factory, context: context)
         
         try sut.executePublish(
-            projectFolder: projectFolder,
+            projectFolder: FilesDirectoryAdapter(folder: projectFolder),
             version: .version("2.0.0"),
             buildType: BuildType.universal,
             notes: nil as String?,
@@ -121,7 +121,7 @@ extension PublishExecutionManagerTests {
         let sut = try makeSUT(factory: factory, context: context)
         
         try sut.executePublish(
-            projectFolder: projectFolder,
+            projectFolder: FilesDirectoryAdapter(folder: projectFolder),
             version: .version("2.0.0"),
             buildType: BuildType.universal,
             notes: nil as String?,
@@ -175,7 +175,7 @@ extension PublishExecutionManagerTests {
         let sut = try makeSUT(factory: factory, context: context)
         
         try sut.executePublish(
-            projectFolder: projectFolder,
+            projectFolder: FilesDirectoryAdapter(folder: projectFolder),
             version: .version("2.0.0"),
             buildType: BuildType.universal,
             notes: nil as String?,
@@ -229,7 +229,7 @@ extension PublishExecutionManagerTests {
         let sut = try makeSUT(factory: factory, context: context)
         
         try sut.executePublish(
-            projectFolder: projectFolder,
+            projectFolder: FilesDirectoryAdapter(folder: projectFolder),
             version: .version("2.0.0"),
             buildType: BuildType.universal,
             notes: nil,
@@ -262,7 +262,7 @@ extension PublishExecutionManagerTests {
         
         #expect(throws: PublishExecutionError.uncommittedChanges) {
             try sut.executePublish(
-                projectFolder: folder,
+                projectFolder: FilesDirectoryAdapter(folder: folder),
                 version: .version("2.0.0"),
                 buildType: BuildType.universal,
                 notes: nil,
@@ -281,7 +281,7 @@ extension PublishExecutionManagerTests {
             gitHandler: MockGitHandler(ghIsInstalled: false)
         )
         
-        let folder = projectFolder
+        let folder = FilesDirectoryAdapter(folder: projectFolder)
         let context = try factory.makeContext()
         let sut = try makeSUT(factory: factory, context: context)
         
@@ -324,7 +324,7 @@ extension PublishExecutionManagerTests {
         
         #expect(throws: (any Error).self) {
             try sut.executePublish(
-                projectFolder: folder,
+                projectFolder: FilesDirectoryAdapter(folder: folder),
                 version: nil as ReleaseVersionInfo?,
                 buildType: BuildType.universal,
                 notes: nil as String?,
@@ -343,23 +343,12 @@ private extension PublishExecutionManagerTests {
         let shell = factory.makeShell()
         let picker = factory.makePicker()
         let gitHandler = factory.makeGitHandler()
-        let trashHandler = factory.makeTrashHandler()
-        let publishInfoLoader = PublishInfoLoader(
-            shell: shell,
-            picker: picker,
-            projectFolder: projectFolder,
-            context: context,
-            gitHandler: gitHandler,
-            skipTests: true
-        )
+        let fileSystem = factory.makeFileSystem()
+        let folderBrowser = factory.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
+        let folderAdapter = FilesDirectoryAdapter(folder: projectFolder)
+        let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: folderAdapter, context: context, gitHandler: gitHandler, skipTests: true)
         
-        return PublishExecutionManager(
-            shell: shell,
-            picker: picker,
-            gitHandler: gitHandler,
-            publishInfoLoader: publishInfoLoader,
-            trashHandler: trashHandler
-        )
+        return .init(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, folderBrowser: folderBrowser, publishInfoLoader: publishInfoLoader)
     }
     
     func createPackageSwift() throws {

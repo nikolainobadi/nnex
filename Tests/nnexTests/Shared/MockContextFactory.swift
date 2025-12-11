@@ -24,7 +24,6 @@ final class MockContextFactory {
     private var shell: MockShell?
     private var picker: MockSwiftPicker?
     private var context: NnexContext?
-    private var trashHandler: MockTrashHandler?
     
     init(
         tapListFolderPath: String? = nil,
@@ -36,18 +35,17 @@ final class MockContextFactory {
         permissionResponses: [Bool] = [],
         gitHandler: MockGitHandler = .init(),
         shell: MockShell? = nil,
-        trashHandler: MockTrashHandler? = nil
+        fileSystem: MockFileSystem? = nil
     ) {
-        self.tapListFolderPath = tapListFolderPath
+        self.shell = shell
         self.runResults = runResults
+        self.gitHandler = gitHandler
         self.commandResults = commandResults
         self.inputResponses = inputResponses
-        self.permissionResponses = permissionResponses
-        self.gitHandler = gitHandler
+        self.tapListFolderPath = tapListFolderPath
         self.selectedItemIndex = selectedItemIndex
+        self.permissionResponses = permissionResponses
         self.selectedItemIndices = selectedItemIndices
-        self.shell = shell
-        self.trashHandler = trashHandler
     }
 }
 
@@ -104,29 +102,13 @@ extension MockContextFactory: ContextFactory {
         return context
     }
     
-    func makeProjectDetector() -> any ProjectDetector {
-        return DefaultProjectDetector(shell: makeShell())
+    func makeFileSystem() -> any FileSystem {
+        return DefaultFileSystem()
+//        return MockFileSystem() // TODO: - may need to instantiate like picker/shell
     }
     
-    func makeMacOSArchiveBuilder() -> any ArchiveBuilder {
-        return DefaultMacOSArchiveBuilder(shell: makeShell())
-    }
-    
-    func makeNotarizeHandler() -> any NotarizeHandler {
-        return DefaultNotarizeHandler(shell: makeShell(), picker: makePicker())
-    }
-    
-    func makeExportHandler() -> any ExportHandler {
-        return DefaultExportHandler(shell: makeShell())
-    }
-    
-    func makeTrashHandler() -> any TrashHandler {
-        if let trashHandler {
-            return trashHandler
-        }
-        
-        let newTrashHandler = MockTrashHandler()
-        trashHandler = newTrashHandler
-        return newTrashHandler
+    func makeFolderBrowser(picker: any NnexPicker, fileSystem: any FileSystem) -> any DirectoryBrowser {
+        // TODO: - change to mock when possible
+        return DefaultDirectoryBrowser(picker: picker, fileSystem: fileSystem, homeDirectoryURL: FileManager.default.homeDirectoryForCurrentUser)
     }
 }

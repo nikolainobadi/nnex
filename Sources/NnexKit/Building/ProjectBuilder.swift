@@ -39,13 +39,12 @@ public extension ProjectBuilder {
             
             try runTests()
             
-            return .single(.init(path: path))
+            return .single(path)
 
         case .universal:
-            var results: [ReleaseArchitecture: BinaryInfo] = [:]
+            var results: [ReleaseArchitecture: String] = [:]
             for arch in config.buildType.archs {
-                let path = binaryPath(for: arch)
-                results[arch] = .init(path: path)
+                results[arch] = binaryPath(for: arch)
             }
             
             try runTests()
@@ -139,10 +138,7 @@ private extension ProjectBuilder {
 
 
 // MARK: - Dependencies
-public enum BinaryOutput {
-    case single(BinaryInfo)
-    case multiple([ReleaseArchitecture: BinaryInfo])
-}
+
 
 public protocol BuildProgressDelegate: AnyObject {
     func didUpdateProgress(_ message: String)

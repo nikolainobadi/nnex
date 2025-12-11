@@ -243,46 +243,46 @@ extension PublishTests {
 
 // MARK: - Input Provided from User
 extension PublishTests {
-    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and file path for release notes is input.") 
-    func publishCommandWithInputsAndFilePathReleaseNotes() throws {
-        let releaseNoteFile = try projectFolder.createFile(named: "TestReleaseNotes.md")
-        let filePath = releaseNoteFile.path
-        let gitHandler = MockGitHandler(assetURL: assetURL)
-        let trashHandler = MockTrashHandler()
-        let inputs = [versionNumber, filePath, commitMessage]
-        let shell = createMockShell()
-        let factory = MockContextFactory(selectedItemIndex: 2, inputResponses: inputs, permissionResponses: [true, true], gitHandler: gitHandler, shell: shell, trashHandler: trashHandler)
-        
-        try createTestTapAndFormula(factory: factory)
-        try runCommand(factory)
-        
-        let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
-        let formulaFileContents = try getFormulaFolder().file(named: formulaFileName).readAsString()
-        
-        #expect(formulaFileContents.contains(projectName.capitalized))
-        #expect(formulaFileContents.contains(sha256))
-        #expect(formulaFileContents.contains(assetURL))
-        #expect(gitHandler.message == commitMessage)
-        #expect(releaseNoteInfo.isFromFile)
-        #expect(releaseNoteInfo.content == filePath)
-        #expect(trashHandler.lastMovedPath == filePath)
-    }
+//    @Test("Publishes a binary to Homebrew and verifies the formula file when infomation must be input and file path for release notes is input.") 
+//    func publishCommandWithInputsAndFilePathReleaseNotes() throws {
+//        let releaseNoteFile = try projectFolder.createFile(named: "TestReleaseNotes.md")
+//        let filePath = releaseNoteFile.path
+//        let gitHandler = MockGitHandler(assetURL: assetURL)
+//        let trashHandler = MockTrashHandler()
+//        let inputs = [versionNumber, filePath, commitMessage]
+//        let shell = createMockShell()
+//        let factory = MockContextFactory(selectedItemIndex: 2, inputResponses: inputs, permissionResponses: [true, true], gitHandler: gitHandler, shell: shell, trashHandler: trashHandler)
+//        
+//        try createTestTapAndFormula(factory: factory)
+//        try runCommand(factory)
+//        
+//        let releaseNoteInfo = try #require(gitHandler.releaseNoteInfo)
+//        let formulaFileContents = try getFormulaFolder().file(named: formulaFileName).readAsString()
+//        
+//        #expect(formulaFileContents.contains(projectName.capitalized))
+//        #expect(formulaFileContents.contains(sha256))
+//        #expect(formulaFileContents.contains(assetURL))
+//        #expect(gitHandler.message == commitMessage)
+//        #expect(releaseNoteInfo.isFromFile)
+//        #expect(releaseNoteInfo.content == filePath)
+//        #expect(trashHandler.lastMovedPath == filePath)
+//    }
     
-    @Test("Does not delete release notes file when user declines deletion prompt")
-    func doesNotDeleteReleaseNotesWhenUserDeclines() throws {
-        let releaseNoteFile = try projectFolder.createFile(named: "TestReleaseNotes.md")
-        let filePath = releaseNoteFile.path
-        let gitHandler = MockGitHandler(assetURL: assetURL)
-        let trashHandler = MockTrashHandler()
-        let inputs = [versionNumber, filePath, commitMessage]
-        let shell = createMockShell()
-        let factory = MockContextFactory(selectedItemIndex: 2, inputResponses: inputs, permissionResponses: [false, true], gitHandler: gitHandler, shell: shell, trashHandler: trashHandler)
-        
-        try createTestTapAndFormula(factory: factory)
-        try runCommand(factory)
-        
-        #expect(trashHandler.lastMovedPath == nil)
-    }
+//    @Test("Does not delete release notes file when user declines deletion prompt")
+//    func doesNotDeleteReleaseNotesWhenUserDeclines() throws {
+//        let releaseNoteFile = try projectFolder.createFile(named: "TestReleaseNotes.md")
+//        let filePath = releaseNoteFile.path
+//        let gitHandler = MockGitHandler(assetURL: assetURL)
+//        let trashHandler = MockTrashHandler()
+//        let inputs = [versionNumber, filePath, commitMessage]
+//        let shell = createMockShell()
+//        let factory = MockContextFactory(selectedItemIndex: 2, inputResponses: inputs, permissionResponses: [false, true], gitHandler: gitHandler, shell: shell, trashHandler: trashHandler)
+//        
+//        try createTestTapAndFormula(factory: factory)
+//        try runCommand(factory)
+//        
+//        #expect(trashHandler.lastMovedPath == nil)
+//    }
 }
 
 

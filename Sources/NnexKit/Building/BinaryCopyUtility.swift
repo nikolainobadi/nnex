@@ -5,13 +5,13 @@
 //  Created by Nikolai Nobadi on 8/26/25.
 //
 
-import Files
-
 public struct BinaryCopyUtility {
     private let shell: any NnexShell
-    
-    public init(shell: any NnexShell) {
+    private let fileSystem: any FileSystem
+
+    public init(shell: any NnexShell, fileSystem: any FileSystem) {
         self.shell = shell
+        self.fileSystem = fileSystem
     }
 }
 
@@ -23,11 +23,10 @@ public extension BinaryCopyUtility {
         switch outputLocation {
         case .currentDirectory:
             return binaryOutput
-            
         case .desktop:
-            let desktop = try Folder.home.subfolder(named: "Desktop")
-            return try copyToDestination(binaryOutput: binaryOutput, destinationPath: desktop.path, executableName: executableName)
+            let desktop = try fileSystem.desktopDirectory()
             
+            return try copyToDestination(binaryOutput: binaryOutput, destinationPath: desktop.path, executableName: executableName)
         case .custom(let parentPath):
             return try copyToDestination(binaryOutput: binaryOutput, destinationPath: parentPath, executableName: executableName)
         }
@@ -39,18 +38,20 @@ public extension BinaryCopyUtility {
 private extension BinaryCopyUtility {
     func copyToDestination(binaryOutput: BinaryOutput, destinationPath: String, executableName: String) throws -> BinaryOutput {
         switch binaryOutput {
-        case .single(let binaryInfo):
+        case .single(let path):
             let finalPath = destinationPath + "/" + executableName
-            try shell.runAndPrint(bash: "cp \"\(binaryInfo.path)\" \"\(finalPath)\"")
-            return .single(.init(path: finalPath))
+            try shell.runAndPrint(bash: "cp \"\(path)\" \"\(finalPath)\"")
             
+            return .single(finalPath)
         case .multiple(let binaries):
-            var results: [ReleaseArchitecture: BinaryInfo] = [:]
-            for (arch, binaryInfo) in binaries {
+            var results: [ReleaseArchitecture: String] = [:]
+            
+            for (arch, path) in binaries {
                 let finalPath = destinationPath + "/" + executableName + "-\(arch.name)"
-                try shell.runAndPrint(bash: "cp \"\(binaryInfo.path)\" \"\(finalPath)\"")
-                results[arch] = .init(path: finalPath)
+                try shell.runAndPrint(bash: "cp \"\(path)\" \"\(finalPath)\"")
+                results[arch] = finalPath
             }
+            
             return .multiple(results)
         }
     }

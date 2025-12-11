@@ -192,7 +192,8 @@ private extension BuildExecutionManagerTests {
             permissionResult: .init(type: .ordered(permissionResponses)),
             selectionResult: .init(singleType: .ordered(selectedItemIndices.map({ .index($0) })))
         )
-        let sut = BuildExecutionManager(shell: shell, picker: picker)
+        let fileSystem = DefaultFileSystem()
+        let sut = BuildExecutionManager(shell: shell, picker: picker, fileSystem: fileSystem)
         
         return (sut, shell)
     }

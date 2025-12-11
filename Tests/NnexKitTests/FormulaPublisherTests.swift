@@ -91,7 +91,8 @@ extension FormulaPublisherTests {
 private extension FormulaPublisherTests {
     func makeSUT(throwError: Bool = false) -> (sut: FormulaPublisher, gitHandler: MockGitHandler) {
         let gitHandler = MockGitHandler(throwError: throwError)
-        let sut = FormulaPublisher(gitHandler: gitHandler)
+        let fileSystem = DefaultFileSystem()
+        let sut = FormulaPublisher(gitHandler: gitHandler, fileSystem: fileSystem)
         
         return (sut, gitHandler)
     }
