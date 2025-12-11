@@ -34,7 +34,8 @@ final class MockContextFactory {
         inputResponses: [String] = [],
         permissionResponses: [Bool] = [],
         gitHandler: MockGitHandler = .init(),
-        shell: MockShell? = nil
+        shell: MockShell? = nil,
+        fileSystem: MockFileSystem? = nil
     ) {
         self.shell = shell
         self.runResults = runResults
