@@ -29,14 +29,12 @@ final class PublishInfoLoaderTests: BasePublishTestSuite {
 extension PublishInfoLoaderTests {
     @Test("Creates new formula when project has no existing formula")
     func createsNewFormula() throws {
-        let factory = MockContextFactory()
-        let context = try factory.makeContext()
-        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        
-        try context.saveNewTap(existingTap)
+        let store = MockHomebrewTapStore(taps: [
+            HomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "", formulas: [])
+        ])
         
         let sut = try makeSUT(
-            context: context,
+            store: store,
             inputResponses: ["Test formula description"],
             permissionResponses: [true],
             selectedItemIndices: [0, 2] // Index 0 for tap selection, index 2 for FormulaTestType.noTests
@@ -45,19 +43,18 @@ extension PublishInfoLoaderTests {
         try createPackageSwift()
         
         let (tap, formula) = try sut.loadPublishInfo()
+        let newFormulaData = try #require(store.newFormulaData)
         
         #expect(tap.name == tapName)
         #expect(formula.name == projectName)
+        #expect(newFormulaData.tap.name.matches(tap.name))
+        #expect(newFormulaData.formula.name.matches(formula.name))
     }
     
     @Test("Updates formula localProjectPath when it doesn't match current project folder")
     func updatesFormulaProjectPath() throws {
-        let factory = MockContextFactory()
-        let context = try factory.makeContext()
-        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        
         // Create a formula with a different project path
-        let existingFormula = SwiftDataHomebrewFormula(
+        let existingFormula = HomebrewFormula(
             name: projectName,
             details: "Test formula",
             homepage: "https://github.com/test/test",
@@ -68,9 +65,11 @@ extension PublishInfoLoaderTests {
             extraBuildArgs: []
         )
         
-        try context.saveNewTap(existingTap, formulas: [existingFormula])
+        let store = MockHomebrewTapStore(taps: [
+            HomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "", formulas: [existingFormula])
+        ])
         
-        let sut = try makeSUT(context: context)
+        let sut = try makeSUT(store: store)
         
         // Create Package.swift file
         try createPackageSwift()
@@ -80,21 +79,13 @@ extension PublishInfoLoaderTests {
         #expect(tap.name == tapName)
         #expect(formula.name == projectName)
         #expect(formula.localProjectPath == projectFolder.path) // Should be updated to current project path
+        #expect(store.formulaToUpdate?.localProjectPath == projectFolder.path)
     }
     
     @Test("Preserves formula localProjectPath when it matches current project folder")
     func preservesMatchingProjectPath() throws {
-        let factory = MockContextFactory()
-        let context = try factory.makeContext()
-        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        
-        let sut = try makeSUT(context: context)
-        
-        // Create Package.swift file
-        try createPackageSwift()
-        
         // Create a formula with the same project path
-        let existingFormula = SwiftDataHomebrewFormula(
+        let existingFormula = HomebrewFormula(
             name: projectName,
             details: "Test formula",
             homepage: "https://github.com/test/test",
@@ -105,33 +96,41 @@ extension PublishInfoLoaderTests {
             extraBuildArgs: []
         )
         
-        try context.saveNewTap(existingTap, formulas: [existingFormula])
+        let store = MockHomebrewTapStore(taps: [
+            HomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "", formulas: [existingFormula])
+        ])
+        let sut = try makeSUT(store: store)
+        
+        // Create Package.swift file
+        try createPackageSwift()
         
         let (tap, formula) = try sut.loadPublishInfo()
         
         #expect(tap.name == tapName)
         #expect(formula.name == projectName)
         #expect(formula.localProjectPath == projectFolder.path) // Should remain the same
+        #expect(store.formulaToUpdate == nil)
     }
 }
 
 
 // MARK: - SUT
 private extension PublishInfoLoaderTests {
-    func makeSUT(context: NnexContext, skipTests: Bool = false, inputResponses: [String] = [], permissionResponses: [Bool] = [], selectedItemIndices: [Int] = []) throws -> PublishInfoLoader {
+    func makeSUT(store: MockHomebrewTapStore, skipTests: Bool = false, inputResponses: [String] = [], permissionResponses: [Bool] = [], selectedItemIndices: [Int] = []) throws -> PublishInfoLoader {
         let shell = MockShell()
         let gitHandler = MockGitHandler()
         let picker = MockSwiftPicker(
             inputResult: .init(type: .ordered(inputResponses)),
             permissionResult: .init(type: .ordered(permissionResponses)),
             selectionResult: .init(singleType: .ordered(selectedItemIndices.map({ .index($0) })))
-        ) 
+        )
+        let folderAdapter = FilesDirectoryAdapter(folder: projectFolder)
         let sut = PublishInfoLoader(
             shell: shell,
             picker: picker,
-            projectFolder: FilesDirectoryAdapter(folder: projectFolder),
-            context: context,
             gitHandler: gitHandler,
+            store: store,
+            projectFolder: folderAdapter,
             skipTests: skipTests
         )
         
