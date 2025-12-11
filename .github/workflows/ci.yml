@@ -50,4 +50,4 @@ jobs:
         run: swift build
 
       - name: Run Tests
-        run: xcodebuild test -scheme nnex -destination 'platform=macOS' | xcpretty
+        run: xcodebuild test -scheme nnex-Package -destination 'platform=macOS' | xcpretty
