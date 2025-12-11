@@ -114,7 +114,7 @@ private extension PublishInfoLoader {
     /// Retrieves the test command based on user input or configuration.
     /// - Returns: A `TestCommand` instance if tests are to be run, or `nil` if tests are skipped.
     /// - Throws: An error if the test command cannot be determined.
-    func getTestCommand() throws -> TestCommand? {
+    func getTestCommand() throws -> CurrentSchema.TestCommand? {
         if skipTests {
             return nil
         }

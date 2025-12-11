@@ -9,7 +9,7 @@ public extension SwiftDataHomebrewFormula {
     /// Initializes a SwiftDataHomebrewFormula instance from a BrewFormula.
     /// - Parameter brewFormula: The BrewFormula to convert.
     convenience init(from brewFormula: BrewFormula) {
-        var uploadType = FormulaUploadType.binary
+        var uploadType = CurrentSchema.FormulaUploadType.binary
         
         if let stableURL = brewFormula.versions.stable {
             uploadType = stableURL.contains(".tar.gz") ? .tarball : .binary
