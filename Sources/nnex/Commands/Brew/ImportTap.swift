@@ -33,9 +33,9 @@ extension Nnex.Brew {
                 formulaFiles = []
             }
 
-            let tap = SwiftDataTap(name: tapName, localPath: folder.path, remotePath: remotePath)
+            let tap = SwiftDataHomebrewTap(name: tapName, localPath: folder.path, remotePath: remotePath)
             
-            var formulas: [SwiftDataFormula] = []
+            var formulas: [SwiftDataHomebrewFormula] = []
             
             for file in formulaFiles {
                 if let brewFormula = try decodeBrewFormula(file) {

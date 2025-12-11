@@ -39,7 +39,7 @@ extension PublishInfoLoader {
     /// Loads the publishing information, including the selected tap and formula.
     /// - Returns: A tuple containing the selected tap and formula.
     /// - Throws: An error if the loading process fails.
-    func loadPublishInfo() throws -> (SwiftDataTap, SwiftDataFormula) {
+    func loadPublishInfo() throws -> (SwiftDataHomebrewTap, SwiftDataHomebrewFormula) {
         let allTaps = try context.loadTaps()
         let tap = try getTap(allTaps: allTaps) ?? picker.requiredSingleSelection("\(projectFolder.name) does not yet have a formula. Select a tap for this formula.", items: allTaps)
         
@@ -66,8 +66,8 @@ extension PublishInfoLoader {
 private extension PublishInfoLoader {
     /// Retrieves an existing tap matching the project name, if available.
     /// - Parameter allTaps: An array of available taps.
-    /// - Returns: A SwiftDataTap instance if a matching tap is found, or nil otherwise.
-    func getTap(allTaps: [SwiftDataTap]) -> SwiftDataTap? {
+    /// - Returns: A SwiftDataHomebrewTap instance if a matching tap is found, or nil otherwise.
+    func getTap(allTaps: [SwiftDataHomebrewTap]) -> SwiftDataHomebrewTap? {
         return allTaps.first { tap in
             return tap.formulas.contains(where: { $0.name.lowercased() == projectFolder.name.lowercased() })
         }
@@ -75,9 +75,9 @@ private extension PublishInfoLoader {
     
     /// Creates a new formula for the given project folder.
     /// - Parameter folder: The project folder for which to create a formula.
-    /// - Returns: A SwiftDataFormula instance representing the created formula.
+    /// - Returns: A SwiftDataHomebrewFormula instance representing the created formula.
     /// - Throws: An error if the creation process fails.
-    func createNewFormula(for folder: Folder) throws -> SwiftDataFormula {
+    func createNewFormula(for folder: Folder) throws -> SwiftDataHomebrewFormula {
         let name = try getExecutableName()
         let details = try picker.getRequiredInput(prompt: "Enter the description for this formula.")
         let homepage = try gitHandler.getRemoteURL(path: folder.path)
@@ -114,7 +114,7 @@ private extension PublishInfoLoader {
     /// Retrieves the test command based on user input or configuration.
     /// - Returns: A `TestCommand` instance if tests are to be run, or `nil` if tests are skipped.
     /// - Throws: An error if the test command cannot be determined.
-    func getTestCommand() throws -> TestCommand? {
+    func getTestCommand() throws -> CurrentSchema.TestCommand? {
         if skipTests {
             return nil
         }

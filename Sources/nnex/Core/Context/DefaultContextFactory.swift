@@ -8,8 +8,6 @@
 import NnexKit
 import SwiftPickerKit
 
-let APP_GROUP_ID = "R8SJ24LQF3.com.nobadi.nnex"
-
 struct DefaultContextFactory: ContextFactory {
     func makeShell() -> any NnexShell {
         return DefaultShell()
@@ -24,7 +22,7 @@ struct DefaultContextFactory: ContextFactory {
     }
 
     func makeContext() throws -> NnexContext {
-        return try .init(appGroupId: APP_GROUP_ID)
+        return try .init()
     }
     
     func makeProjectDetector() -> any ProjectDetector {

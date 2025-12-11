@@ -6,6 +6,7 @@
 //
 
 import Files
+import NnexKit
 import Foundation
 import GitCommandGen
 
@@ -31,10 +32,12 @@ extension ReleaseNotesHandler {
             
             return .init(content: notes, isFromFile: false)
         case .selectFile:
-            fatalError() // TODO: - need to abstract Files in order to enable this
-//            let selection = try picker.requiredBrowseSelection(prompt: "Select the file containing your release notes", allowSelectingFolders: false)
-//            
-//            return .init(content: selection.url.path(), isFromFile: true)
+            let homeDirectoryURL = FileManager.default.homeDirectoryForCurrentUser
+            guard let selection = picker.browseDirectories(prompt: "Select the file containing your release notes.", startURL: homeDirectoryURL, showPromptText: true, showSelectedItemText: true, selectionType: .onlyFiles) else {
+                throw NnexError.selectionRequired
+            }
+            
+            return .init(content: selection.url.path(), isFromFile: true)
         case .fromPath:
             let filePath = try picker.getRequiredInput(prompt: "Enter the path to the file for the \(projectName) release notes.")
             

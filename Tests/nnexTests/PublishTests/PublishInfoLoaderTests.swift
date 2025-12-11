@@ -31,7 +31,7 @@ extension PublishInfoLoaderTests {
     func createsNewFormula() throws {
         let factory = MockContextFactory()
         let context = try factory.makeContext()
-        let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
         
         try context.saveNewTap(existingTap)
         
@@ -54,10 +54,10 @@ extension PublishInfoLoaderTests {
     func updatesFormulaProjectPath() throws {
         let factory = MockContextFactory()
         let context = try factory.makeContext()
-        let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
         
         // Create a formula with a different project path
-        let existingFormula = SwiftDataFormula(
+        let existingFormula = SwiftDataHomebrewFormula(
             name: projectName,
             details: "Test formula",
             homepage: "https://github.com/test/test",
@@ -86,7 +86,7 @@ extension PublishInfoLoaderTests {
     func preservesMatchingProjectPath() throws {
         let factory = MockContextFactory()
         let context = try factory.makeContext()
-        let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
         
         let sut = try makeSUT(context: context)
         
@@ -94,7 +94,7 @@ extension PublishInfoLoaderTests {
         try createPackageSwift()
         
         // Create a formula with the same project path
-        let existingFormula = SwiftDataFormula(
+        let existingFormula = SwiftDataHomebrewFormula(
             name: projectName,
             details: "Test formula",
             homepage: "https://github.com/test/test",

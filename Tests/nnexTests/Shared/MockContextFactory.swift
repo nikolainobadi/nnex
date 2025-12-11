@@ -6,7 +6,6 @@
 //
 
 import NnexKit
-import SwiftData
 import Foundation
 import NnShellTesting
 import SwiftPickerTesting
@@ -94,9 +93,7 @@ extension MockContextFactory: ContextFactory {
             return context
         }
         
-        let defaults = makeDefaults()
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let context = try NnexContext(appGroupId: "not needed", config: config, defaults: defaults)
+        let context = try NnexContext(userDefaultsTestSuiteName: "testSuiteDefaults_\(UUID().uuidString)")
         
         if let tapListFolderPath {
             context.saveTapListFolderPath(path: tapListFolderPath)
@@ -131,16 +128,5 @@ extension MockContextFactory: ContextFactory {
         let newTrashHandler = MockTrashHandler()
         trashHandler = newTrashHandler
         return newTrashHandler
-    }
-}
-
-// MARK: - Private
-private extension MockContextFactory {
-    func makeDefaults() -> UserDefaults {
-        let testSuiteName = "testSuiteDefaults_\(UUID().uuidString)"
-        let userDefaults = UserDefaults(suiteName: testSuiteName)!
-        userDefaults.removePersistentDomain(forName: testSuiteName)
-        
-        return userDefaults
     }
 }

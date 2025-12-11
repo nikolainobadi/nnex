@@ -7,12 +7,14 @@
 
 import Files
 import NnexKit
+import Foundation
 import SwiftPickerKit
 
 protocol NnexPicker {
     func getPermission(prompt: String) -> Bool
     func requiredPermission(prompt: String) throws
     func getRequiredInput(prompt: String) throws -> String
+    func browseDirectories(prompt: String, startURL: URL, showPromptText: Bool, showSelectedItemText: Bool, selectionType: FileSystemNode.SelectionType) -> FileSystemNode?
     func treeNavigation<Item: TreeNodePickerItem>(prompt: String, root: TreeNavigationRoot<Item>, newScreen: Bool, showPromptText: Bool, showSelectedItemText: Bool) -> Item?
     func requiredSingleSelection<Item: DisplayablePickerItem>(prompt: String, items: [Item], layout: PickerLayout<Item>, newScreen: Bool, showSelectedItemText: Bool) throws -> Item
 }
