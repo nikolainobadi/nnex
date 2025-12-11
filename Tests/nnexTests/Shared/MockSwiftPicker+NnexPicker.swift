@@ -5,15 +5,11 @@
 //  Created by Nikolai Nobadi on 11/20/25.
 //
 
-import Files
 import SwiftPickerKit
 import SwiftPickerTesting
 @testable import nnex
 
 extension MockSwiftPicker: NnexPicker {
-    nonisolated(unsafe) static var folderToReturn: Folder?
-    nonisolated(unsafe) static var fileToReturn: FileSystemNode?
-    
     public func requiredSingleSelection<Item: DisplayablePickerItem>(title: String, items: [Item]) throws -> Item {
         return try requiredSingleSelection(prompt: title, items: items, layout: .singleColumn, newScreen: true, showSelectedItemText: false)
     }
