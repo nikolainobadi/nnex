@@ -45,20 +45,21 @@ extension PublishExecutionManager {
         message: String?,
         skipTests: Bool
     ) throws {
-        try gitHandler.checkForGitHubCLI()
-        try ensureNoUncommittedChanges(at: projectFolder.path)
-        
-        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell, fileSystem: fileSystem)
-        let (resolvedVersionInfo, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: version, projectPath: projectFolder.path)
-        
-        let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType, skipTests: skipTests)
-        let binaryOutput = try PublishUtilities.buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests, shell: shell)
-        let archivedBinaries = try PublishUtilities.createArchives(from: binaryOutput, shell: shell)
-        let (assetURLs, versionNumber) = try uploadRelease(folder: projectFolder, archivedBinaries: archivedBinaries, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
-
-        let formulaContent = try PublishUtilities.makeFormulaContent(formula: formula, version: versionNumber, archivedBinaries: archivedBinaries, assetURLs: assetURLs)
-        
-        try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
+        // TODO: - 
+//        try gitHandler.checkForGitHubCLI()
+//        try ensureNoUncommittedChanges(at: projectFolder.path)
+//        
+//        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell, fileSystem: fileSystem)
+//        let (resolvedVersionInfo, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: version, projectPath: projectFolder.path)
+//        
+//        let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType, skipTests: skipTests)
+//        let binaryOutput = try PublishUtilities.buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests, shell: shell)
+//        let archivedBinaries = try PublishUtilities.createArchives(from: binaryOutput, shell: shell)
+//        let (assetURLs, versionNumber) = try uploadRelease(folder: projectFolder, archivedBinaries: archivedBinaries, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
+//
+//        let formulaContent = try PublishUtilities.makeFormulaContent(formula: formula, version: versionNumber, archivedBinaries: archivedBinaries, assetURLs: assetURLs)
+//        
+//        try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
     }
 }
 
