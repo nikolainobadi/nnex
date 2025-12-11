@@ -104,6 +104,14 @@ extension MockContextFactory: ContextFactory {
         return context
     }
     
+    func makeFileSystem() -> any FileSystem {
+        return MockFileSystem() // TODO: - may need to instantiate like picker/shell
+    }
+    
+    func makeFolderBrowser(picker: any NnexPicker, fileSystem: any FileSystem) -> any DirectoryBrowser {
+        fatalError() // TODO: -
+    }
+    
     func makeProjectDetector() -> any ProjectDetector {
         return DefaultProjectDetector(shell: makeShell())
     }
