@@ -64,8 +64,9 @@ private extension OldPublishController {
     func makePublishRequest(projectFolder: any Directory, formulaInfo: FormulaInfo, releaseInfo: ReleaseInfo, buildConfig: BuildConfig, commitMessage: String?) -> PublishRequest {
         let releasePlan = makeReleasePlan(from: releaseInfo)
         let notes = makeReleaseNotes(from: releaseInfo.noteSource)
+        let commitMessage = commitMessage ?? "" // TODO: -
 
-        return PublishRequest(
+        return .init(
             projectName: projectFolder.name,
             projectPath: projectFolder.path,
             tap: formulaInfo.tap,

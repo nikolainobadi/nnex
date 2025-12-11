@@ -16,7 +16,7 @@ extension ReleaseComponent: DisplayablePickerItem {
 }
 
 // TODO: - 
-extension PublishController.NoteContentType: DisplayablePickerItem {
+extension NoteContentType: DisplayablePickerItem {
     var displayName: String {
         switch self {
         case .direct:

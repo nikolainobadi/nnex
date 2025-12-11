@@ -11,4 +11,11 @@ public struct HomebrewFormula {
     public var homepage: String
     public var license: String?
     // TODO: - versions
+    
+    public init(name: String, details: String, homepage: String, license: String? = nil) {
+        self.name = name
+        self.details = details
+        self.homepage = homepage
+        self.license = license
+    }
 }

@@ -15,9 +15,9 @@ public struct PublishRequest {
     public let releasePlan: ReleasePlan
     public let notes: ReleaseNotes
     public let buildConfig: BuildConfig
-    public let commitMessage: String?
+    public let commitMessage: String
 
-    public init(projectName: String, projectPath: String, tap: HomebrewTap, formula: HomebrewFormula, releasePlan: ReleasePlan, notes: ReleaseNotes, buildConfig: BuildConfig, commitMessage: String?) {
+    public init(projectName: String, projectPath: String, tap: HomebrewTap, formula: HomebrewFormula, releasePlan: ReleasePlan, notes: ReleaseNotes, buildConfig: BuildConfig, commitMessage: String) {
         self.projectName = projectName
         self.projectPath = projectPath
         self.tap = tap

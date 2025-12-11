@@ -13,24 +13,23 @@ struct PublishController {
     private let folderBrowser: any DirectoryBrowser
     private let fileSystem: any FileSystem
     private let dateProvider: any DateProvider
-    private let preparationService: any PublishPreparationService
     private let service: any PublishService
+    private let releaseInfoService: any ReleaseInfoService
 }
 
 
 // MARK: - Actions
 extension PublishController {
-    func publish(projectPath: String?, releaseNumber: ReleaseVersionSpecifier?, notes: ReleaseNotes?, commitMessage: String?) throws {
-        let projectFolder = try selectProjectFolder(at: projectPath)
-        let previousVersion = try preparationService.previousReleaseVersion(projectPath: projectFolder.path)
-        let releaseSpecifier = try selectReleaseNumber(previous: previousVersion, releaseNumber: releaseNumber)
-        let releaseNotes = try selectReleaseNoteSource(noteSource: notes, projectName: projectFolder.name)
-        let tap = try selectTap(projectName: projectFolder.name)
-        let formula = try resolveFormula(projectName: projectFolder.name, in: tap)
-        let buildConfig = try preparationService.makeBuildConfig(projectName: projectFolder.name, projectPath: projectFolder.path, testCommand: nil)
-        let request = makePublishRequest(projectFolder: projectFolder, tap: tap, formula: formula, releaseSpecifier: releaseSpecifier, notes: releaseNotes, commitMessage: commitMessage, buildConfig: buildConfig, previousVersion: previousVersion)
-
-        try service.publish(request: request)
+    func publish(projectPath: String?, versionSpecifier: ReleaseVersionSpecifier?, notes: ReleaseNotes?, commitMessage: String?) throws {
+        // TODO: -
+//        let projectFolder = try selectProjectFolder(at: projectPath)
+//        let (releaseSpecifier, releaseNotes) = try releaseInfoService.makeReleaseInfo(projectFolder: projectFolder, versionSpecifier: versionSpecifier, notes: notes)
+//        let tap = try selectTap(projectName: projectFolder.name)
+//        let formula = try resolveFormula(projectName: projectFolder.name, in: tap)
+//        let buildConfig = try service.makeBuildConfig(projectName: projectFolder.name, projectPath: projectFolder.path, testCommand: nil)
+//        let request = makePublishRequest(projectFolder: projectFolder, tap: tap, formula: formula, releaseSpecifier: releaseSpecifier, notes: releaseNotes, commitMessage: commitMessage, buildConfig: buildConfig, previousVersion: previousVersion)
+//
+//        try service.publish(request: request)
     }
 }
 
@@ -47,85 +46,10 @@ private extension PublishController {
 }
 
 
-// MARK: - Release Version and Notes
-private extension PublishController {
-    func selectReleaseNumber(previous: String?, releaseNumber: ReleaseVersionSpecifier?) throws -> ReleaseVersionSpecifier {
-        if let releaseNumber {
-            return releaseNumber
-        }
-
-        let promptPrefix: String
-
-        if let previous {
-            promptPrefix = "Previous Version: \(previous)."
-        } else {
-            promptPrefix = "No previous version detected."
-        }
-
-        let prompt = "\(promptPrefix)\nSelect which component to increment for this release."
-        let selection = try picker.requiredSingleSelection(prompt, items: ReleaseComponent.allCases)
-
-        return .increment(selection)
-    }
-
-    func selectReleaseNoteSource(noteSource: ReleaseNotes?, projectName: String) throws -> ReleaseNotes {
-        if let noteSource {
-            return noteSource
-        }
-
-        let selection = try picker.requiredSingleSelection("How would you like to provide notes for this release?", items: NoteContentType.allCases)
-
-        switch selection {
-        case .direct:
-            let notes = try picker.getRequiredInput(prompt: "Enter your release notes.")
-
-            return .text(notes)
-        case .selectFile:
-            let filePath = try folderBrowser.browseForFile(prompt: "Select your release notes file.")
-
-            return .filePath(filePath)
-        case .fromPath:
-            let filePath = try picker.getRequiredInput(prompt: "Enter the path to the file for your release notes.")
-
-            return .filePath(filePath)
-        case .createFile:
-            let filePath = try createAndOpenNewNoteFile(projectName: projectName)
-
-            return try validateAndConfirmNoteFile(filePath)
-        }
-    }
-
-    func createAndOpenNewNoteFile(projectName: String) throws -> String {
-        let desktop = try fileSystem.desktopDirectory()
-        let fileName = "\(projectName)-releaseNotes-\(dateProvider.currentDate.shortFormat).md"
-
-        return try desktop.createFile(named: fileName, contents: "")
-    }
-
-    func validateAndConfirmNoteFile(_ filePath: String) throws -> ReleaseNotes {
-        try picker.requiredPermission(prompt: "Did you add your release notes to \(filePath)?")
-
-        let notesContent = try fileSystem.readFile(at: filePath)
-
-        if notesContent.isEmpty {
-            try picker.requiredPermission(prompt: "The file looks empty. Make sure to save your changes then type 'y' to proceed. Type 'n' to cancel")
-
-            let notesContent = try fileSystem.readFile(at: filePath)
-
-            if notesContent.isEmpty {
-                throw ReleaseNotesError.emptyFileAfterRetry(filePath: filePath)
-            }
-        }
-
-        return .filePath(filePath)
-    }
-}
-
-
 // MARK: - Tap and Formula
 private extension PublishController {
     func selectTap(projectName: String) throws -> HomebrewTap {
-        let taps = try preparationService.availableTaps()
+        let taps = try service.availableTaps()
 
         if let tap = taps.first(where: { tap in
             return tap.formulas.contains(where: { $0.name.lowercased() == projectName.lowercased() })
@@ -137,13 +61,13 @@ private extension PublishController {
     }
 
     func resolveFormula(projectName: String, in tap: HomebrewTap) throws -> HomebrewFormula {
-        if let formula = try preparationService.resolveFormula(named: projectName, in: tap) {
+        if let formula = try service.resolveFormula(named: projectName, in: tap) {
             return formula
         }
 
         try picker.requiredPermission(prompt: "Could not find existing formula for \(projectName.yellow) in \(tap.name). Would you like to create a new one?")
 
-        return try preparationService.createFormula(named: projectName, in: tap)
+        return try service.createFormula(named: projectName, in: tap)
     }
 }
 
@@ -151,28 +75,25 @@ private extension PublishController {
 // MARK: - Publish Request
 private extension PublishController {
     func makePublishRequest(projectFolder: any Directory, tap: HomebrewTap, formula: HomebrewFormula, releaseSpecifier: ReleaseVersionSpecifier, notes: ReleaseNotes, commitMessage: String?, buildConfig: BuildConfig, previousVersion: String?) -> PublishRequest {
-        let releasePlan = makeReleasePlan(previousVersion: previousVersion, releaseSpecifier: releaseSpecifier)
+        let commitMessage = commitMessage ?? "" // TODO: -
+        let releasePlan = ReleasePlan(previousVersion: previousVersion, next: releaseSpecifier)
         
-        return PublishRequest(projectName: projectFolder.name, projectPath: projectFolder.path, tap: tap, formula: formula, releasePlan: releasePlan, notes: notes, buildConfig: buildConfig, commitMessage: commitMessage)
-    }
-
-    func makeReleasePlan(previousVersion: String?, releaseSpecifier: ReleaseVersionSpecifier) -> ReleasePlan {
-        return .init(previousVersion: previousVersion, next: releaseSpecifier)
+        return .init(projectName: projectFolder.name, projectPath: projectFolder.path, tap: tap, formula: formula, releasePlan: releasePlan, notes: notes, buildConfig: buildConfig, commitMessage: commitMessage)
     }
 }
 
 
 // MARK: - Dependencies
 protocol PublishService {
+    func availableTaps() throws -> [HomebrewTap]
     func publish(request: PublishRequest) throws
+    func createFormula(named name: String, in tap: HomebrewTap) throws -> HomebrewFormula
+    func resolveFormula(named name: String, in tap: HomebrewTap) throws -> HomebrewFormula?
+    func makeBuildConfig(projectName: String, projectPath: String, testCommand: TestCommand?) throws -> BuildConfig
 }
 
-protocol PublishPreparationService {
-    func previousReleaseVersion(projectPath: String) throws -> String?
-    func availableTaps() throws -> [HomebrewTap]
-    func resolveFormula(named name: String, in tap: HomebrewTap) throws -> HomebrewFormula?
-    func createFormula(named name: String, in tap: HomebrewTap) throws -> HomebrewFormula
-    func makeBuildConfig(projectName: String, projectPath: String, testCommand: TestCommand?) throws -> BuildConfig
+protocol ReleaseInfoService {
+    func makeReleaseInfo(projectFolder: any Directory, versionSpecifier: ReleaseVersionSpecifier?, notes: ReleaseNotes?) throws -> (ReleaseVersionSpecifier, ReleaseNotes)
 }
 
 extension PublishController {
@@ -193,3 +114,7 @@ private extension Date {
         return formatter.string(from: self)
     }
 }
+
+
+
+
