@@ -41,34 +41,27 @@ swift build -c release
 
 ### Core Structure
 
-- **Main Entry Point**: `Sources/nnex/Commands/Main/nnex.swift` - The main `@main` struct using Swift ArgumentParser
-- **Command Architecture**: Four main command groups:
+- **Main Entry Point**: `Sources/nnex/Main/nnex.swift` - The main `@main` struct using Swift ArgumentParser
+- **Command Architecture**: Three main command groups:
   - `Brew` - Homebrew and GitHub distribution commands (publish, import-tap, create-tap, etc.)
-  - `Build` - Local binary building functionality  
+  - `Build` - Local binary building functionality
   - `Config` - Configuration management
-  - `Archive` - Archiving and packaging functionality
 
-### Improved Folder Organization (as of August 2024)
+### Improved Folder Organization (as of December 2025)
 
 ```
 Sources/nnex/
 ├── Commands/               # Command implementations
-│   ├── Main/              # Entry point
-│   ├── Archive/           # Archive command group
-│   ├── Brew/              # Brew command group  
-│   ├── Build/             # Build command group
-│   ├── Config/            # Config command group
-│   └── Export/            # Export command group
-├── Core/                  # Core application components
-│   ├── Context/           # Context factory and dependency injection
-│   └── Extensions/        # Application-level extensions
-├── Domain/                # Business logic
-│   ├── Execution/         # Execution managers (BuildExecutionManager, PublishExecutionManager, CreateTapManager)
-│   ├── Handlers/          # Various handlers (ReleaseHandler, ReleaseNotesHandler, etc.)
-│   └── Services/          # Domain services (PublishInfoLoader, ExecutableNameResolver)
-└── Infrastructure/        # External concerns
-    ├── Picker/           # Interactive selection implementations
-    └── (Various provider implementations)
+│   ├── Brew/              # Brew command group
+│   ├── BuildCommand/      # Build command group
+│   └── Config/            # Config command group
+├── Main/                  # Entry point and context factory
+├── Managers/              # Execution managers (BuildExecutionManager, PublishExecutionManager, CreateTapManager)
+├── Handlers/              # Various handlers (ReleaseHandler, ReleaseNotesHandler, etc.)
+├── Utilities/             # Utilities (PublishInfoLoader, DirectoryBrowser, etc.)
+├── Picker/                # Interactive selection implementations
+├── Extensions/            # Application-level extensions
+└── Errors/                # Error definitions
 ```
 
 ### Key Architectural Patterns
@@ -114,6 +107,13 @@ The tool supports multiple build configurations:
 - Requires Homebrew and GitHub CLI (`gh`) for full functionality
 
 ## Recent Improvements
+
+### December 2025 - Architecture Decoupling and Cleanup
+- **SwiftData decoupling**: Separated domain models from SwiftData persistence layer with mapper pattern
+- **Files dependency removal**: Replaced Files library with custom FileSystem abstraction
+- **Dependency updates**: Updated to NnShellKit 2.2.0, NnSwiftDataKit 0.9.0
+- **Command cleanup**: Removed non-operational Archive and Export commands
+- **Version normalization fix**: Fixed bug where version strings with "v" prefix weren't handled consistently
 
 ### September 2025 - Documentation and Maintenance
 - **Project changelog**: Added comprehensive changelog documentation with complete project history
