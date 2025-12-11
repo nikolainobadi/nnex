@@ -1,5 +1,9 @@
-// The Swift Programming Language
-// https://docs.swift.org/swift-book
+//
+//  Nnex.swift
+//  nnex
+//
+//  Created by Nikolai Nobadi on 3/19/25.
+//
 
 import NnexKit
 import ArgumentParser
@@ -12,9 +16,7 @@ struct Nnex: ParsableCommand {
         subcommands: [
             Brew.self,
             Build.self,
-            Config.self,
-            Archive.self,
-//            Export.self
+            Config.self
         ]
     )
     
@@ -22,7 +24,7 @@ struct Nnex: ParsableCommand {
 }
 
 
-// MARK: - Factory Methods
+// MARK: - Essential Factory Methods
 extension Nnex {
     static func makeShell() -> any NnexShell {
         return contextFactory.makeShell()
@@ -32,39 +34,30 @@ extension Nnex {
         return contextFactory.makePicker()
     }
     
-    static func makeContext() throws -> NnexContext {
-        return try contextFactory.makeContext()
+    static func makeGitHandler() -> GitHandler {
+        return contextFactory.makeGitHandler()
     }
     
     static func makeFileSystem() -> any FileSystem {
         return contextFactory.makeFileSystem()
     }
     
+    static func makeContext() throws -> NnexContext {
+        return try contextFactory.makeContext()
+    }
+    
     static func makeFolderBrowser(picker: any NnexPicker, fileSystem: any FileSystem) -> any DirectoryBrowser {
         return contextFactory.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
     }
-    
-    static func makeGitHandler() -> GitHandler {
-        return contextFactory.makeGitHandler()
-    }
-    
-    static func makeProjectDetector() -> ProjectDetector {
-        return contextFactory.makeProjectDetector()
-    }
-    
-    static func makeMacOSArchiveBuilder() -> ArchiveBuilder {
-        return contextFactory.makeMacOSArchiveBuilder()
-    }
-    
-    static func makeNotarizeHandler() -> NotarizeHandler {
-        return contextFactory.makeNotarizeHandler()
-    }
-    
-    static func makeExportHandler() -> ExportHandler {
-        return contextFactory.makeExportHandler()
-    }
-    
-    static func makeTrashHandler() -> TrashHandler {
-        return contextFactory.makeTrashHandler()
-    }
+}
+
+
+// MARK: - Dependencies
+protocol ContextFactory {
+    func makeShell() -> any NnexShell
+    func makePicker() -> any NnexPicker
+    func makeGitHandler() -> any GitHandler
+    func makeFileSystem() -> any FileSystem
+    func makeContext() throws -> NnexContext
+    func makeFolderBrowser(picker: any NnexPicker, fileSystem: any FileSystem) -> any DirectoryBrowser
 }

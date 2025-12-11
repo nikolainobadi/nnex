@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 3/19/25.
 //
 
-import Files
 import NnexKit
 import Foundation
 import ArgumentParser
@@ -44,14 +43,12 @@ extension Nnex.Brew {
             let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
             let buildType = buildType ?? context.loadDefaultBuildType()
             let projectFolder = try Nnex.makeFileSystem().getProjectFolder(at: path)
-            let trashHandler = Nnex.makeTrashHandler()
             let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler, skipTests: skipTests)
             let manager = PublishExecutionManager(
                 shell: shell,
                 picker: picker,
                 gitHandler: gitHandler,
                 fileSystem: fileSystem,
-                trashHandler: trashHandler,
                 folderBrowser: folderBrowser,
                 publishInfoLoader: publishInfoLoader
             )

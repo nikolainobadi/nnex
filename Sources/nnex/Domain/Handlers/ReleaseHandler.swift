@@ -12,13 +12,13 @@ import GitCommandGen
 struct ReleaseHandler {
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
-    private let trashHandler: any TrashHandler
+    private let fileSystem: any FileSystem
     private let folderBrowser: any DirectoryBrowser
     
-    init(picker: any NnexPicker, gitHandler: any GitHandler, trashHandler: any TrashHandler, folderBrowser: any DirectoryBrowser) {
+    init(picker: any NnexPicker, gitHandler: any GitHandler, fileSystem: any FileSystem, folderBrowser: any DirectoryBrowser) {
         self.picker = picker
         self.gitHandler = gitHandler
-        self.trashHandler = trashHandler
+        self.fileSystem = fileSystem
         self.folderBrowser = folderBrowser
     }
 }
@@ -83,7 +83,7 @@ private extension ReleaseHandler {
     
     func maybeTrashReleaseNotes(_ info: ReleaseNoteInfo) throws {
         if info.isFromFile, picker.getPermission(prompt: "Would you like to move your release notes file to the trash?") {
-            try trashHandler.moveToTrash(at: info.content)
+            try fileSystem.moveToTrash(at: info.content)
         }
     }
     
@@ -97,9 +97,4 @@ private extension ReleaseHandler {
             return "0.0.0"
         }
     }
-}
-
-// MARK: - Dependencies
-protocol TrashHandler {
-    func moveToTrash(at path: String) throws
 }
