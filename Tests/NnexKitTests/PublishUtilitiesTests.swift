@@ -260,13 +260,13 @@ private struct MockFormula {
     let homepage: String
     let license: String
     let localProjectPath: String
-    let testCommand: TestCommand?
+    let testCommand: CurrentSchema.TestCommand?
     let extraBuildArgs: [String]
 }
 
 // MARK: - Private Helpers
 private extension PublishUtilitiesTests {
-    func makeFormula(testCommand: TestCommand? = nil, extraBuildArgs: [String] = []) -> MockFormula {
+    func makeFormula(testCommand: CurrentSchema.TestCommand? = nil, extraBuildArgs: [String] = []) -> MockFormula {
         return MockFormula(
             name: projectName,
             details: details,

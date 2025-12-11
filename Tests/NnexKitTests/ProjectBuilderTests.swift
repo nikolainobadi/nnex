@@ -252,7 +252,7 @@ extension ProjectBuilderTests {
 
 // MARK: - SUT
 private extension ProjectBuilderTests {
-    func makeSUT(buildType: BuildType = .universal, runResults: [String] = [], throwShellError: Bool = false, testCommand: TestCommand? = nil, skipClean: Bool = false) -> (sut: ProjectBuilder, shell: MockShell) {
+    func makeSUT(buildType: BuildType = .universal, runResults: [String] = [], throwShellError: Bool = false, testCommand: CurrentSchema.TestCommand? = nil, skipClean: Bool = false) -> (sut: ProjectBuilder, shell: MockShell) {
         let shell = MockShell(results: runResults, shouldThrowErrorOnFinal: throwShellError)
         let config = BuildConfig(
             projectName: projectName,

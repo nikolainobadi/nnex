@@ -9,73 +9,82 @@ import SwiftData
 import Foundation
 import NnSwiftDataKit
 
-/// Manages the SwiftData model context and application configuration.
 public final class NnexContext {
+    private let context: ModelContext
     private let defaults: UserDefaults
     private let defaultBuildTypeKey = "defaultBuildTypeKey"
     private let tapListFolderPathKey = "tapListFolderPathKey"
 
-    /// The model context for interacting with SwiftData models.
-    public let context: ModelContext
-
-    /// Initializes a new NnexContext instance.
-    /// - Parameters:
-    ///   - appGroupId: The application group identifier.
-    ///   - config: An optional model configuration.
-    ///   - defaults: An optional UserDefaults instance.
-    public init(appGroupId: String, config: ModelConfiguration? = nil, defaults: UserDefaults? = nil) throws {
-        if let config, let defaults {
-            let container = try ModelContainer(for: SwiftDataHomebrewTap.self, configurations: config)
-            self.context = .init(container)
-            self.defaults = defaults
+    init(schema: Schema, userDefaultsTestSuiteName: String?) throws {
+        let identifier = "com.nobadi.nnex"
+        let oldAppGroupId = "R8SJ24LQF3.\(identifier)"
+//        let appGroupId = "group.\(identifier)" // TODO: -
+        let appGroupId = oldAppGroupId
+        
+        if let userDefaultsTestSuiteName {
+            defaults = .init(suiteName: userDefaultsTestSuiteName)!
+            defaults.removePersistentDomain(forName: userDefaultsTestSuiteName)
+            context = try .init(.init(for: schema, configurations: .init(isStoredInMemoryOnly: true)))
         } else {
-            let (config, defaults) = try configureSwiftDataContainer(appGroupId: appGroupId)
-            let container = try ModelContainer(for: SwiftDataHomebrewTap.self, configurations: config)
-            self.context = .init(container)
+            // TODO: -
+//            try migrateAppGroupSwiftDataStoreIfNeeded(from: oldAppGroupId, to: appGroupId)
+            let (container, defaults) = try makeAppGroupModelContainer(schema: schema, appGroupId: appGroupId)
+            
             self.defaults = defaults
+            self.context = .init(container)
         }
     }
 }
 
+
+// MARK: - Init
+public extension NnexContext {
+    convenience init( userDefaultsTestSuiteName: String? = nil) throws {
+        try self.init(schema: .init(versionedSchema: CurrentSchema.self), userDefaultsTestSuiteName: userDefaultsTestSuiteName)
+    }
+}
+
+
 // MARK: - UserDefaults
-extension NnexContext {
+public extension NnexContext {
     /// Saves the folder path for the tap list.
     /// - Parameter path: The folder path to save.
-    public func saveTapListFolderPath(path: String) {
+    func saveTapListFolderPath(path: String) {
         defaults.set(path, forKey: tapListFolderPathKey)
     }
 
     /// Loads the folder path for the tap list.
     /// - Returns: The saved folder path or nil if not set.
-    public func loadTapListFolderPath() -> String? {
+    func loadTapListFolderPath() -> String? {
         guard let path = defaults.string(forKey: tapListFolderPathKey), !path.isEmpty else { return nil }
         return path
     }
 
     /// Saves the default build type.
     /// - Parameter buildType: The build type to save.
-    public func saveDefaultBuildType(_ buildType: BuildType) {
+    func saveDefaultBuildType(_ buildType: BuildType) {
         defaults.set(buildType, forKey: defaultBuildTypeKey)
     }
 
     /// Loads the default build type.
     /// - Returns: The saved build type or a default value if not set.
-    public func loadDefaultBuildType() -> BuildType {
+    func loadDefaultBuildType() -> BuildType {
         return defaults.object(forKey: defaultBuildTypeKey) as? BuildType ?? .universal
     }
 }
 
+
 // MARK: - SwiftData
-extension NnexContext {
+public extension NnexContext {
     /// Loads all saved taps from the SwiftData context.
     /// - Returns: An array of SwiftDataHomebrewTap objects.
-    public func loadTaps() throws -> [SwiftDataHomebrewTap] {
+    func loadTaps() throws -> [SwiftDataHomebrewTap] {
         return try context.fetch(FetchDescriptor<SwiftDataHomebrewTap>())
     }
 
     /// Loads all saved formulas from the SwiftData context.
     /// - Returns: An array of SwiftDataHomebrewFormula objects.
-    public func loadFormulas() throws -> [SwiftDataHomebrewFormula] {
+    func loadFormulas() throws -> [SwiftDataHomebrewFormula] {
         return try context.fetch(FetchDescriptor<SwiftDataHomebrewFormula>())
     }
 
@@ -83,7 +92,7 @@ extension NnexContext {
     /// - Parameters:
     ///   - tap: The tap to save.
     ///   - formulas: An optional array of formulas to associate with the tap.
-    public func saveNewTap(_ tap: SwiftDataHomebrewTap, formulas: [SwiftDataHomebrewFormula] = []) throws {
+    func saveNewTap(_ tap: SwiftDataHomebrewTap, formulas: [SwiftDataHomebrewFormula] = []) throws {
         context.insert(tap)
         for formula in formulas {
             context.insert(formula)
@@ -95,7 +104,7 @@ extension NnexContext {
 
     /// Deletes the specified tap and its associated formulas.
     /// - Parameter tap: The tap to delete.
-    public func deleteTap(_ tap: SwiftDataHomebrewTap) throws {
+    func deleteTap(_ tap: SwiftDataHomebrewTap) throws {
         for formula in tap.formulas {
             context.delete(formula)
         }
@@ -107,19 +116,19 @@ extension NnexContext {
     /// - Parameters:
     ///   - formula: The formula to save.
     ///   - tap: The tap to associate with the formula.
-    public func saveNewFormula(_ formula: SwiftDataHomebrewFormula, in tap: SwiftDataHomebrewTap) throws {
+    func saveNewFormula(_ formula: SwiftDataHomebrewFormula, in tap: SwiftDataHomebrewTap) throws {
         context.insert(formula)
         tap.formulas.append(formula)
         formula.tap = tap
         try context.save()
     }
     
-    public func deleteFormula(_ formula: SwiftDataHomebrewFormula) throws {
+    func deleteFormula(_ formula: SwiftDataHomebrewFormula) throws {
         context.delete(formula)
         try context.save()
     }
     
-    public func saveChanges() throws {
+    func saveChanges() throws {
         try context.save()
     }
 }
