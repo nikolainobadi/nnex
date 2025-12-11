@@ -12,11 +12,13 @@ struct ReleaseVersionHandler {
     private let shell: any NnexShell
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
+    private let fileSystem: any FileSystem
     
-    init(picker: any NnexPicker, gitHandler: any GitHandler, shell: any NnexShell) {
+    init(picker: any NnexPicker, gitHandler: any GitHandler, shell: any NnexShell, fileSystem: any FileSystem) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
+        self.fileSystem = fileSystem
     }
 }
 
@@ -71,7 +73,7 @@ private extension ReleaseVersionHandler {
     ///   - projectPath: The path to the project folder.
     /// - Throws: An error if version handling fails.
     func handleAutoVersionUpdate(resolvedVersionInfo: ReleaseVersionInfo, projectPath: String) throws {
-        let autoVersionHandler = AutoVersionHandler(shell: shell)
+        let autoVersionHandler = AutoVersionHandler(shell: shell, fileSystem: fileSystem)
         
         // Try to detect current version in the executable
         guard let currentVersion = try autoVersionHandler.detectArgumentParserVersion(projectPath: projectPath) else {

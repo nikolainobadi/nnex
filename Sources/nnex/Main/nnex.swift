@@ -36,6 +36,14 @@ extension Nnex {
         return try contextFactory.makeContext()
     }
     
+    static func makeFileSystem() -> any FileSystem {
+        return contextFactory.makeFileSystem()
+    }
+    
+    static func makeFolderBrowser(picker: any NnexPicker, fileSystem: any FileSystem) -> any DirectoryBrowser {
+        return contextFactory.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
+    }
+    
     static func makeGitHandler() -> GitHandler {
         return contextFactory.makeGitHandler()
     }

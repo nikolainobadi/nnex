@@ -13,15 +13,24 @@ struct PublishExecutionManager {
     private let shell: any NnexShell
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
-    private let publishInfoLoader: PublishInfoLoader
+    private let fileSystem: any FileSystem
     private let trashHandler: any TrashHandler
+    private let publishInfoLoader: PublishInfoLoader
     
-    init(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, publishInfoLoader: PublishInfoLoader, trashHandler: any TrashHandler) {
+    init(
+        shell: any NnexShell,
+        picker: any NnexPicker,
+        gitHandler: any GitHandler,
+        fileSystem: any FileSystem,
+        trashHandler: any TrashHandler,
+        publishInfoLoader: PublishInfoLoader
+    ) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
-        self.publishInfoLoader = publishInfoLoader
+        self.fileSystem = fileSystem
         self.trashHandler = trashHandler
+        self.publishInfoLoader = publishInfoLoader
     }
 }
 
@@ -40,7 +49,7 @@ extension PublishExecutionManager {
         try gitHandler.checkForGitHubCLI()
         try ensureNoUncommittedChanges(at: projectFolder.path)
         
-        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell)
+        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell, fileSystem: fileSystem)
         let (resolvedVersionInfo, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: version, projectPath: projectFolder.path)
         
         let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType, skipTests: skipTests)
