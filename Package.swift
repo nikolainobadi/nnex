@@ -28,7 +28,7 @@ let package = Package(
         .package(url: "https://github.com/nikolainobadi/NnShellKit.git", from: "2.2.0"),
         .package(url: "https://github.com/nikolainobadi/NnSwiftDataKit", from: "0.9.0"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
-        .package(url: "https://github.com/nikolainobadi/SwiftPickerKit.git", branch: "open-mock-picker")
+        .package(url: "https://github.com/nikolainobadi/SwiftPickerKit.git", from: "0.9.0")
     ],
     targets: [
         .executableTarget(

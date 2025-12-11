@@ -18,16 +18,14 @@ public final class NnexContext {
     init(schema: Schema, userDefaultsTestSuiteName: String?) throws {
         let identifier = "com.nobadi.nnex"
         let oldAppGroupId = "R8SJ24LQF3.\(identifier)"
-//        let appGroupId = "group.\(identifier)" // TODO: -
-        let appGroupId = oldAppGroupId
+        let appGroupId = "group.\(identifier)"
         
         if let userDefaultsTestSuiteName {
             defaults = .init(suiteName: userDefaultsTestSuiteName)!
             defaults.removePersistentDomain(forName: userDefaultsTestSuiteName)
             context = try .init(.init(for: schema, configurations: .init(isStoredInMemoryOnly: true)))
         } else {
-            // TODO: -
-//            try migrateAppGroupSwiftDataStoreIfNeeded(from: oldAppGroupId, to: appGroupId)
+            try migrateAppGroupSwiftDataStoreIfNeeded(from: oldAppGroupId, to: appGroupId)
             let (container, defaults) = try makeAppGroupModelContainer(schema: schema, appGroupId: appGroupId)
             
             self.defaults = defaults
