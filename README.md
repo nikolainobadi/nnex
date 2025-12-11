@@ -19,11 +19,6 @@ Instead of manually managing taps and formulae, let **nnex** do the heavy liftin
 
 **nnex** requires both **Homebrew** and the **GitHub CLI (gh)** to function properly. Please ensure they are installed and configured on your system before using **nnex** (you'll be prompted to install them if you use **nnex** without them).
 
-**Stability Notice (v0.9.2)**  
-`nnex` is functional and ready to use, but its features and API may evolve as it becomes more flexible and robust.  
-Breaking changes are possible before reaching v1.0.0.  
-Your feedback and suggestions are welcome as the project continues to improve!  
-
 If you're curious about some of the struggles I went through to get SwiftData to work in a standalone Swift Package and in a CI workflow, I wrote an article outlining my journey that you can [check out here.](https://medium.com/@nikolai.nobadi/integrating-swiftdata-into-standalone-swift-packages-6cbcb45e5893)
 
 ## Table of Contents
@@ -50,10 +45,10 @@ brew install nikolainobadi/tap/nnex
 ```
 
 ## Commands
-**nnex** utilizes four subcommands: `Brew`, `Build`, and `Config`.
+**nnex** utilizes three subcommands: `Brew`, `Build`, and `Config`.
 
 - **Brew commands** are used to interact with Homebrew and GitHub
-- **Build commands** handle local binary building 
+- **Build commands** handle local binary building
 - **Config commands** are used to set preferences
 
 The tool follows a clean architecture with separation of concerns between command parsing, business logic, and infrastructure.
