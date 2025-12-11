@@ -5,13 +5,6 @@
 //  Created by Nikolai Nobadi on 8/12/25.
 //
 
-//
-//  AutoVersionHandler.swift
-//  nnex
-//
-//  Created by Nikolai Nobadi on 8/12/25.
-//
-
 import Foundation
 
 public struct AutoVersionHandler {
