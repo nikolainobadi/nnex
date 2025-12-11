@@ -7,7 +7,6 @@
 
 import NnexKit
 import GitShellKit
-import Foundation
 
 struct CreateTapManager {
     private let shell: any NnexShell

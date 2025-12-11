@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 8/26/25.
 //
 
-import Files
 import NnexKit
 import Foundation
 
@@ -15,6 +14,7 @@ struct PublishExecutionManager {
     private let gitHandler: any GitHandler
     private let fileSystem: any FileSystem
     private let trashHandler: any TrashHandler
+    private let folderBrowser: any DirectoryBrowser
     private let publishInfoLoader: PublishInfoLoader
     
     init(
@@ -23,6 +23,7 @@ struct PublishExecutionManager {
         gitHandler: any GitHandler,
         fileSystem: any FileSystem,
         trashHandler: any TrashHandler,
+        folderBrowser: any DirectoryBrowser,
         publishInfoLoader: PublishInfoLoader
     ) {
         self.shell = shell
@@ -30,6 +31,7 @@ struct PublishExecutionManager {
         self.gitHandler = gitHandler
         self.fileSystem = fileSystem
         self.trashHandler = trashHandler
+        self.folderBrowser = folderBrowser
         self.publishInfoLoader = publishInfoLoader
     }
 }
@@ -109,7 +111,7 @@ private extension PublishExecutionManager {
     /// - Returns: A tuple containing an array of asset URLs and the version number from the GitHub release.
     /// - Throws: An error if the upload fails.
     func uploadRelease(folder: any Directory, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
-        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler)
+        let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler, folderBrowser: folderBrowser)
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
 

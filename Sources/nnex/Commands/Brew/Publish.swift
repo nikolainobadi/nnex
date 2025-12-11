@@ -41,6 +41,7 @@ extension Nnex.Brew {
             let gitHandler = Nnex.makeGitHandler()
             let context = try Nnex.makeContext()
             let fileSystem = Nnex.makeFileSystem()
+            let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
             let buildType = buildType ?? context.loadDefaultBuildType()
             let projectFolder = try Nnex.makeFileSystem().getProjectFolder(at: path)
             let trashHandler = Nnex.makeTrashHandler()
@@ -51,6 +52,7 @@ extension Nnex.Brew {
                 gitHandler: gitHandler,
                 fileSystem: fileSystem,
                 trashHandler: trashHandler,
+                folderBrowser: folderBrowser,
                 publishInfoLoader: publishInfoLoader
             )
             

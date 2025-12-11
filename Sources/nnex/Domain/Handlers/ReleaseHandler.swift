@@ -13,11 +13,13 @@ struct ReleaseHandler {
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
     private let trashHandler: any TrashHandler
+    private let folderBrowser: any DirectoryBrowser
     
-    init(picker: any NnexPicker, gitHandler: any GitHandler, trashHandler: any TrashHandler) {
+    init(picker: any NnexPicker, gitHandler: any GitHandler, trashHandler: any TrashHandler, folderBrowser: any DirectoryBrowser) {
         self.picker = picker
         self.gitHandler = gitHandler
         self.trashHandler = trashHandler
+        self.folderBrowser = folderBrowser
     }
 }
 
@@ -76,7 +78,7 @@ private extension ReleaseHandler {
             return .init(content: notes, isFromFile: false)
         }
         let fileUtility = ReleaseNotesFileUtility(picker: picker, fileSystem: DefaultFileSystemProvider(), dateProvider: DefaultDateProvider())
-        return try ReleaseNotesHandler(picker: picker, projectName: projectName, fileUtility: fileUtility).getReleaseNoteInfo()
+        return try ReleaseNotesHandler(picker: picker, projectName: projectName, fileUtility: fileUtility, folderBrowser: folderBrowser).getReleaseNoteInfo()
     }
     
     func maybeTrashReleaseNotes(_ info: ReleaseNoteInfo) throws {

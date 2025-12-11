@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 3/24/25.
 //
 
-import Files
 import NnexKit
 import Foundation
 import GitCommandGen
@@ -13,12 +12,14 @@ import GitCommandGen
 struct ReleaseNotesHandler {
     private let picker: any NnexPicker
     private let projectName: String
+    private let folderBrowser: any DirectoryBrowser
     private let fileUtility: ReleaseNotesFileUtility
     
-    init(picker: any NnexPicker, projectName: String, fileUtility: ReleaseNotesFileUtility) {
+    init(picker: any NnexPicker, projectName: String, fileUtility: ReleaseNotesFileUtility, folderBrowser: any DirectoryBrowser) {
         self.picker = picker
         self.projectName = projectName
         self.fileUtility = fileUtility
+        self.folderBrowser = folderBrowser
     }
 }
 
@@ -32,12 +33,9 @@ extension ReleaseNotesHandler {
             
             return .init(content: notes, isFromFile: false)
         case .selectFile:
-            let homeDirectoryURL = FileManager.default.homeDirectoryForCurrentUser
-            guard let selection = picker.browseDirectories(prompt: "Select the file containing your release notes.", startURL: homeDirectoryURL, showPromptText: true, showSelectedItemText: true, selectionType: .onlyFiles) else {
-                throw NnexError.selectionRequired
-            }
+            let filePath = try folderBrowser.browseForFile(prompt: "Select the file containing your release notes.")
             
-            return .init(content: selection.url.path(), isFromFile: true)
+            return .init(content: filePath, isFromFile: true)
         case .fromPath:
             let filePath = try picker.getRequiredInput(prompt: "Enter the path to the file for the \(projectName) release notes.")
             

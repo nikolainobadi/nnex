@@ -344,6 +344,7 @@ private extension PublishExecutionManagerTests {
         let picker = factory.makePicker()
         let gitHandler = factory.makeGitHandler()
         let fileSystem = factory.makeFileSystem()
+        let folderBrowser = factory.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
         let trashHandler = factory.makeTrashHandler()
         let publishInfoLoader = PublishInfoLoader(
             shell: shell,
@@ -360,6 +361,7 @@ private extension PublishExecutionManagerTests {
             gitHandler: gitHandler,
             fileSystem: fileSystem,
             trashHandler: trashHandler,
+            folderBrowser: folderBrowser,
             publishInfoLoader: publishInfoLoader
         )
     }
