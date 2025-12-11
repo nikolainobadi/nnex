@@ -45,21 +45,20 @@ extension PublishExecutionManager {
         message: String?,
         skipTests: Bool
     ) throws {
-        // TODO: - 
-//        try gitHandler.checkForGitHubCLI()
-//        try ensureNoUncommittedChanges(at: projectFolder.path)
-//        
-//        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell, fileSystem: fileSystem)
-//        let (resolvedVersionInfo, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: version, projectPath: projectFolder.path)
-//        
-//        let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType, skipTests: skipTests)
-//        let binaryOutput = try PublishUtilities.buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests, shell: shell)
-//        let archivedBinaries = try PublishUtilities.createArchives(from: binaryOutput, shell: shell)
-//        let (assetURLs, versionNumber) = try uploadRelease(folder: projectFolder, archivedBinaries: archivedBinaries, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
-//
-//        let formulaContent = try PublishUtilities.makeFormulaContent(formula: formula, version: versionNumber, archivedBinaries: archivedBinaries, assetURLs: assetURLs)
-//        
-//        try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
+        try gitHandler.checkForGitHubCLI()
+        try ensureNoUncommittedChanges(at: projectFolder.path)
+        
+        let versionHandler = ReleaseVersionHandler(picker: picker, gitHandler: gitHandler, shell: shell, fileSystem: fileSystem)
+        let (resolvedVersionInfo, previousVersion) = try versionHandler.resolveVersionInfo(versionInfo: version, projectPath: projectFolder.path)
+        
+        let (tap, formula, buildType) = try getTapAndFormula(projectFolder: projectFolder, buildType: buildType, skipTests: skipTests)
+        let binaryOutput = try PublishUtilities.buildBinary(formula: formula, buildType: buildType, skipTesting: skipTests, shell: shell)
+        let archivedBinaries = try PublishUtilities.createArchives(from: binaryOutput, shell: shell)
+        let (assetURLs, versionNumber) = try uploadRelease(folder: projectFolder, archivedBinaries: archivedBinaries, versionInfo: resolvedVersionInfo, previousVersion: previousVersion, releaseNotesSource: .init(notes: notes, notesFile: notesFile))
+
+        let formulaContent = try PublishUtilities.makeFormulaContent(formula: formula, version: versionNumber, archivedBinaries: archivedBinaries, assetURLs: assetURLs)
+        
+        try publishFormula(formulaContent, formulaName: formula.name, message: message, tap: tap)
     }
 }
 
@@ -92,12 +91,11 @@ private extension PublishExecutionManager {
     ///   - skipTests: Whether to skip tests during loading.
     /// - Returns: A tuple containing the tap, formula, and build type.
     /// - Throws: An error if the tap or formula cannot be found.
-    func getTapAndFormula(projectFolder: any Directory, buildType: BuildType, skipTests: Bool) throws -> (SwiftDataHomebrewTap, SwiftDataHomebrewFormula, BuildType) {
-        fatalError() // TODO: - 
-//        let (tap, formula) = try publishInfoLoader.loadPublishInfo()
+    func getTapAndFormula(projectFolder: any Directory, buildType: BuildType, skipTests: Bool) throws -> (HomebrewTap, HomebrewFormula, BuildType) {
+        let (tap, formula) = try publishInfoLoader.loadPublishInfo()
         
         // Note: The formula's localProjectPath update is now handled by PublishInfoLoader if needed
-//        return (tap, formula, buildType)
+        return (tap, formula, buildType)
     }
 
     /// Uploads a release to GitHub and returns the asset URLs and version number.
@@ -111,6 +109,7 @@ private extension PublishExecutionManager {
     /// - Throws: An error if the upload fails.
     func uploadRelease(folder: any Directory, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
         let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, folderBrowser: folderBrowser)
+        
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }
 
@@ -122,7 +121,7 @@ private extension PublishExecutionManager {
     ///   - message: An optional commit message.
     ///   - tap: The Homebrew tap to publish to.
     /// - Throws: An error if the formula cannot be published.
-    func publishFormula(_ content: String, formulaName: String, message: String?, tap: SwiftDataHomebrewTap) throws {
+    func publishFormula(_ content: String, formulaName: String, message: String?, tap: HomebrewTap) throws {
         let publisher = FormulaPublisher(gitHandler: gitHandler, fileSystem: fileSystem)
         let commitMessage = try getMessage(message: message)
         let formulaPath = try publisher.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tap.localPath)
