@@ -6,6 +6,7 @@
 //
 
 import NnexKit
+import Foundation
 import SwiftPickerKit
 
 struct DefaultContextFactory: ContextFactory {
@@ -23,6 +24,14 @@ struct DefaultContextFactory: ContextFactory {
 
     func makeContext() throws -> NnexContext {
         return try .init()
+    }
+    
+    func makeFileSystem() -> any FileSystem {
+        return DefaultFileSystem()
+    }
+    
+    func makeFolderBrowser(picker: any NnexPicker, fileSystem: any FileSystem) -> any DirectoryBrowser {
+        return DefaultDirectoryBrowser(picker: picker, fileSystem: fileSystem, homeDirectoryURL: FileManager.default.homeDirectoryForCurrentUser)
     }
     
     func makeProjectDetector() -> any ProjectDetector {
