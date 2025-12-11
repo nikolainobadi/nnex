@@ -103,8 +103,7 @@ private extension PublishInfoLoader {
     /// - Returns: The executable name as a string.
     /// - Throws: An error if the executable name cannot be determined.
     func getExecutableName() throws -> String {
-        let content = try projectFolder.readFile(named: "Package.swift")
-        let names = try ExecutableDetector.getExecutables(packageManifestContent: content)
+        let names = try ExecutableNameResolver.getExecutableNames(from: projectFolder)
         
         guard names.count > 1 else {
             return names.first!

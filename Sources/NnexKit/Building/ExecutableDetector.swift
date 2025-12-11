@@ -7,8 +7,8 @@
 
 import Foundation
 
-public enum ExecutableDetector {
-    public static func getExecutables(packageManifestContent: String) throws -> [String] {
+enum ExecutableDetector {
+    static func getExecutables(packageManifestContent: String) throws -> [String] {
         let pattern = #"\.executable\s*\(\s*name:\s*"([^"]+)""#
         let regex = try! NSRegularExpression(pattern: pattern, options: [])
         let matches = regex.matches(in: packageManifestContent, options: [], range: NSRange(location: 0, length: packageManifestContent.utf16.count))
