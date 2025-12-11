@@ -5,9 +5,9 @@
 //  Created by Nikolai Nobadi on 12/9/25.
 //
 
+import NnexKit
 import GitShellKit
 import NnShellTesting
-@testable import NnexKit
 
 extension MockShell: @retroactive GitShell {}
 extension MockShell: NnexShell {
