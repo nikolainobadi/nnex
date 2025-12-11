@@ -110,7 +110,7 @@ extension MockContextFactory: ContextFactory {
     }
     
     func makeFolderBrowser(picker: any NnexPicker, fileSystem: any FileSystem) -> any DirectoryBrowser {
-        fatalError() // TODO: -
+        return DefaultDirectoryBrowser(picker: picker, fileSystem: fileSystem, homeDirectoryURL: FileManager.default.homeDirectoryForCurrentUser)
     }
     
     func makeProjectDetector() -> any ProjectDetector {

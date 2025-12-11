@@ -27,10 +27,14 @@ extension Nnex.Brew {
             let picker = Nnex.makePicker()
             let gitHandler = Nnex.makeGitHandler()
             let context = try Nnex.makeContext()
+            let fileSystem = Nnex.makeFileSystem()
+            let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
             let manager = CreateTapManager(
                 shell: shell,
                 picker: picker,
                 gitHandler: gitHandler,
+                fileSystem: fileSystem,
+                folderBrowser: folderBrowser,
                 context: context
             )
             

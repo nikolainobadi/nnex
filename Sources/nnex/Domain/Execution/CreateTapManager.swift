@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 8/26/25.
 //
 
-import Files
 import NnexKit
 import GitShellKit
 import Foundation
@@ -14,12 +13,23 @@ struct CreateTapManager {
     private let shell: any NnexShell
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
+    private let fileSystem: any FileSystem
+    private let folderBrowser: any DirectoryBrowser
     private let context: NnexContext
     
-    init(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, context: NnexContext) {
+    init(
+        shell: any NnexShell,
+        picker: any NnexPicker,
+        gitHandler: any GitHandler,
+        fileSystem: any FileSystem,
+        folderBrowser: any DirectoryBrowser,
+        context: NnexContext
+    ) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
+        self.fileSystem = fileSystem
+        self.folderBrowser = folderBrowser
         self.context = context
     }
 }
@@ -33,8 +43,8 @@ extension CreateTapManager {
         let tapName = try getTapName(name: name)
         let tapListFolder = try getTapListFolder()
         let homebrewTapName = tapName.homebrewTapName
-        let tapFolder = try tapListFolder.createSubfolder(named: homebrewTapName)
-        try tapFolder.createSubfolder(named: "Formula")
+        let tapFolder = try tapListFolder.createSubfolderIfNeeded(named: homebrewTapName)
+        _ = try tapFolder.createSubfolderIfNeeded(named: "Formula")
 
         print("Created folder for new tap named \(tapName) at \(tapFolder.path)")
         
@@ -98,23 +108,23 @@ private extension CreateTapManager {
     /// Retrieves the folder where new Homebrew taps will be created.
     /// - Returns: A Folder instance for storing taps.
     /// - Throws: An error if the folder cannot be accessed or created.
-    func getTapListFolder() throws -> Folder {
+    func getTapListFolder() throws -> any Directory {
         if let path = context.loadTapListFolderPath() {
-            return try Folder(path: path)
+            return try fileSystem.directory(at: path)
         }
 
-        let homeFolder = Folder.home
+        let homeFolder = fileSystem.homeDirectory
         let addNewPath = "SET CUSTOM PATH"
         let defaultTapFolderName = "NnexHomebrewTaps"
         let defaultPath = homeFolder.path + defaultTapFolderName
         let prompt = "Missing Taplist folder path. Where would you like new Homebrew Taps to be created?"
         let selection = try picker.requiredSingleSelection(prompt, items: [addNewPath, defaultPath])
 
-        var tapListFolder: Folder
+        var tapListFolder: any Directory
         if selection == addNewPath {
-            tapListFolder = try picker.requiredFolderSelection(prompt: "Select the folder where your Homebrew Taps should be created")
+            tapListFolder = try folderBrowser.browseForDirectory(prompt: "Select the folder where your Homebrew Taps should be created")
         } else {
-            tapListFolder = try homeFolder.createSubfolder(named: defaultTapFolderName)
+            tapListFolder = try homeFolder.createSubfolderIfNeeded(named: defaultTapFolderName)
         }
 
         print("Created Homebrew Taplist folder at \(tapListFolder.path)")
