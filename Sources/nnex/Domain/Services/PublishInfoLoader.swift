@@ -5,25 +5,24 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
-import Files
 import NnexKit
 
 struct PublishInfoLoader {
     private let shell: any NnexShell
     private let picker: any NnexPicker
-    private let projectFolder: Folder
+    private let projectFolder: any Directory
     private let gitHandler: any GitHandler
     private let context: NnexContext
     private let skipTests: Bool
     
-    /// Initializes a new instance of PublishInfoLoader.
-    /// - Parameters:
-    ///   - shell: The shell instance for executing commands.
-    ///   - picker: The picker instance for user input.
-    ///   - projectFolder: The folder containing the project to be published.
-    ///   - context: The context for loading saved taps and formulas.
-    ///   - gitHandler: The Git handler for managing repository operations.
-    init(shell: any NnexShell, picker: any NnexPicker, projectFolder: Folder, context: NnexContext, gitHandler: any GitHandler, skipTests: Bool) {
+    init(
+        shell: any NnexShell,
+        picker: any NnexPicker,
+        projectFolder: any Directory,
+        context: NnexContext,
+        gitHandler: any GitHandler,
+        skipTests: Bool
+    ) {
         self.shell = shell
         self.picker = picker
         self.projectFolder = projectFolder
@@ -77,7 +76,7 @@ private extension PublishInfoLoader {
     /// - Parameter folder: The project folder for which to create a formula.
     /// - Returns: A SwiftDataHomebrewFormula instance representing the created formula.
     /// - Throws: An error if the creation process fails.
-    func createNewFormula(for folder: Folder) throws -> SwiftDataHomebrewFormula {
+    func createNewFormula(for folder: any Directory) throws -> SwiftDataHomebrewFormula {
         let name = try getExecutableName()
         let details = try picker.getRequiredInput(prompt: "Enter the description for this formula.")
         let homepage = try gitHandler.getRemoteURL(path: folder.path)
@@ -101,7 +100,7 @@ private extension PublishInfoLoader {
     /// - Returns: The executable name as a string.
     /// - Throws: An error if the executable name cannot be determined.
     func getExecutableName() throws -> String {
-        let content = try projectFolder.file(named: "Package.swift").readAsString()
+        let content = try projectFolder.readFile(named: "Package.swift")
         let names = try ExecutableDetector.getExecutables(packageManifestContent: content)
         
         guard names.count > 1 else {

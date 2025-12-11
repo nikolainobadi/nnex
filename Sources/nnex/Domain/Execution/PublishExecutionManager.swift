@@ -38,7 +38,7 @@ struct PublishExecutionManager {
 // MARK: - Action
 extension PublishExecutionManager {
     func executePublish(
-        projectFolder: Folder,
+        projectFolder: any Directory,
         version: ReleaseVersionInfo?,
         buildType: BuildType,
         notes: String?,
@@ -92,7 +92,7 @@ private extension PublishExecutionManager {
     ///   - skipTests: Whether to skip tests during loading.
     /// - Returns: A tuple containing the tap, formula, and build type.
     /// - Throws: An error if the tap or formula cannot be found.
-    func getTapAndFormula(projectFolder: Folder, buildType: BuildType, skipTests: Bool) throws -> (SwiftDataHomebrewTap, SwiftDataHomebrewFormula, BuildType) {
+    func getTapAndFormula(projectFolder: any Directory, buildType: BuildType, skipTests: Bool) throws -> (SwiftDataHomebrewTap, SwiftDataHomebrewFormula, BuildType) {
         let (tap, formula) = try publishInfoLoader.loadPublishInfo()
         
         // Note: The formula's localProjectPath update is now handled by PublishInfoLoader if needed
@@ -108,7 +108,7 @@ private extension PublishExecutionManager {
     ///   - releaseNotesSource: The source of release notes.
     /// - Returns: A tuple containing an array of asset URLs and the version number from the GitHub release.
     /// - Throws: An error if the upload fails.
-    func uploadRelease(folder: Folder, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
+    func uploadRelease(folder: any Directory, archivedBinaries: [ArchivedBinary], versionInfo: ReleaseVersionInfo, previousVersion: String?, releaseNotesSource: ReleaseNotesSource) throws -> (assetURLs: [String], versionNumber: String) {
         let handler = ReleaseHandler(picker: picker, gitHandler: gitHandler, trashHandler: trashHandler)
         return try handler.uploadRelease(folder: folder, archivedBinaries: archivedBinaries, versionInfo: versionInfo, previousVersion: previousVersion, releaseNotesSource: releaseNotesSource)
     }

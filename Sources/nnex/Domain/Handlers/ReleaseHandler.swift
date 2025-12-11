@@ -5,7 +5,6 @@
 //  Created by Nikolai Nobadi on 3/24/25.
 //
 
-import Files
 import NnexKit
 import Foundation
 import GitCommandGen
@@ -25,7 +24,7 @@ struct ReleaseHandler {
 // MARK: - Action
 extension ReleaseHandler {
     func uploadRelease(
-        folder: Folder,
+        folder: any Directory,
         archivedBinaries: [ArchivedBinary],
         versionInfo: ReleaseVersionInfo,
         previousVersion: String?,

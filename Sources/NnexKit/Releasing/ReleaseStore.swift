@@ -5,12 +5,9 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
-/// Manages the process of uploading a release to a remote repository.
 public struct ReleaseStore {
     private let gitHandler: any GitHandler
 
-    /// Initializes a new instance of ReleaseStore with a Git handler.
-    /// - Parameter gitHandler: The Git handler used for managing releases.
     public init(gitHandler: any GitHandler) {
         self.gitHandler = gitHandler
     }

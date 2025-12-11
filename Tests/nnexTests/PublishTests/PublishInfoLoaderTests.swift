@@ -129,7 +129,7 @@ private extension PublishInfoLoaderTests {
         let sut = PublishInfoLoader(
             shell: shell,
             picker: picker,
-            projectFolder: projectFolder,
+            projectFolder: FilesDirectoryAdapter(folder: projectFolder),
             context: context,
             gitHandler: gitHandler,
             skipTests: skipTests

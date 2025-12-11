@@ -42,7 +42,7 @@ extension Nnex.Brew {
             let context = try Nnex.makeContext()
             let fileSystem = Nnex.makeFileSystem()
             let buildType = buildType ?? context.loadDefaultBuildType()
-            let projectFolder = try Nnex.Brew.getProjectFolder(at: path)
+            let projectFolder = try Nnex.makeFileSystem().getProjectFolder(at: path)
             let trashHandler = Nnex.makeTrashHandler()
             let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, projectFolder: projectFolder, context: context, gitHandler: gitHandler, skipTests: skipTests)
             let manager = PublishExecutionManager(
@@ -67,6 +67,17 @@ extension Nnex.Brew {
     }
 }
 
+
+// MARK: - Private Methods
+private extension FileSystem {
+    func getProjectFolder(at path: String?) throws -> any Directory {
+        if let path {
+            return try directory(at: path)
+        }
+        
+        return currentDirectory
+    }
+}
 
 
 // MARK: - Extension Dependencies
