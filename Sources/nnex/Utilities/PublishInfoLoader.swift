@@ -142,24 +142,7 @@ private extension PublishInfoLoader {
 }
 
 
-// MARK: - Dependencies
-protocol HomebrewTapStore {
-    func loadTaps() throws -> [HomebrewTap]
-    func updateFormula(_ formula: HomebrewFormula) throws
-    func saveNewFormula(_ formula: HomebrewFormula, in tap: HomebrewTap) throws
-}
-
-
 // MARK: - Extension Dependenies
 enum FormulaTestType: CaseIterable {
     case custom, packageDefault, noTests
-}
-
-final class FakeStore: HomebrewTapStore {
-    func loadTaps() throws -> [HomebrewTap] {
-        return []
-    }
-    
-    func updateFormula(_ formula: HomebrewFormula) throws { }
-    func saveNewFormula(_ formula: HomebrewFormula, in tap: HomebrewTap) throws { }
 }
