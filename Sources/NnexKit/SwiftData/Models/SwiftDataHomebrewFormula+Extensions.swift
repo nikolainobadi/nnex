@@ -1,12 +1,12 @@
 //
-//  SwiftDataFormula+Extensions.swift
+//  SwiftDataHomebrewFormula+Extensions.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 3/25/25.
 //
 
-public extension SwiftDataFormula {
-    /// Initializes a SwiftDataFormula instance from a BrewFormula.
+public extension SwiftDataHomebrewFormula {
+    /// Initializes a SwiftDataHomebrewFormula instance from a BrewFormula.
     /// - Parameter brewFormula: The BrewFormula to convert.
     convenience init(from brewFormula: BrewFormula) {
         var uploadType = FormulaUploadType.binary

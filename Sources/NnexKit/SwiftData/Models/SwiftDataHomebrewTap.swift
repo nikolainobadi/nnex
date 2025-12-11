@@ -9,7 +9,7 @@ import SwiftData
 
 /// Represents a Homebrew Tap with associated formulas.
 @Model
-public final class SwiftDataTap {
+public final class SwiftDataHomebrewTap {
     /// The name of the tap (unique identifier).
     @Attribute(.unique) public var name: String
 
@@ -20,9 +20,9 @@ public final class SwiftDataTap {
     @Attribute(.unique) public var remotePath: String
 
     /// The list of formulas associated with this tap.
-    @Relationship(deleteRule: .cascade, inverse: \SwiftDataFormula.tap) public var formulas: [SwiftDataFormula] = []
+    @Relationship(deleteRule: .cascade, inverse: \SwiftDataHomebrewFormula.tap) public var formulas: [SwiftDataHomebrewFormula] = []
 
-    /// Initializes a new SwiftDataTap instance.
+    /// Initializes a new SwiftDataHomebrewTap instance.
     /// - Parameters:
     ///   - name: The name of the tap.
     ///   - localPath: The local file path of the tap.

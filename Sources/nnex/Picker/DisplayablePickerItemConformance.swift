@@ -9,13 +9,13 @@ import Files
 import NnexKit
 import SwiftPickerKit
 
-extension SwiftDataTap: DisplayablePickerItem {
+extension SwiftDataHomebrewTap: DisplayablePickerItem {
     public var displayName: String {
         return name
     }
 }
 
-extension SwiftDataFormula:  DisplayablePickerItem {
+extension SwiftDataHomebrewFormula:  DisplayablePickerItem {
     public var displayName: String {
         return name
     }

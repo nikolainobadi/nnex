@@ -39,7 +39,7 @@
 //
 //// MARK: - Helpers
 //private extension BrewTapListTests {
-//    func makeTap() -> SwiftDataTap {
+//    func makeTap() -> SwiftDataHomebrewTap {
 //        return .init(name: "test-tap", localPath: "/usr/local/test", remotePath: "https://github.com/test")
 //    }
 //}

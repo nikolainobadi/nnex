@@ -58,8 +58,8 @@ extension PublishExecutionManagerTests {
         )
         
         let context = try factory.makeContext()
-        let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let existingFormula = SwiftDataFormula(
+        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        let existingFormula = SwiftDataHomebrewFormula(
             name: executableName,
             details: "Test formula",
             homepage: "https://github.com/test/repo",
@@ -114,7 +114,7 @@ extension PublishExecutionManagerTests {
         )
         
         let context = try factory.makeContext()
-        let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
         
         try context.saveNewTap(existingTap)
         
@@ -157,8 +157,8 @@ extension PublishExecutionManagerTests {
         )
         
         let context = try factory.makeContext()
-        let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let existingFormula = SwiftDataFormula(
+        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        let existingFormula = SwiftDataHomebrewFormula(
             name: executableName,
             details: "Test formula",
             homepage: "https://github.com/test/repo",
@@ -211,8 +211,8 @@ extension PublishExecutionManagerTests {
         )
         
         let context = try factory.makeContext()
-        let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let existingFormula = SwiftDataFormula(
+        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        let existingFormula = SwiftDataHomebrewFormula(
             name: executableName,
             details: "Test formula",
             homepage: "https://github.com/test/repo",
@@ -304,8 +304,8 @@ extension PublishExecutionManagerTests {
         
         let factory = MockContextFactory(shell: MockShell(shouldThrowErrorOnFinal: true))
         let context = try factory.makeContext()
-        let existingTap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "")
-        let existingFormula = SwiftDataFormula(
+        let existingTap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "")
+        let existingFormula = SwiftDataHomebrewFormula(
             name: executableName,
             details: "Test formula",
             homepage: "https://github.com/test/repo",

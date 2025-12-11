@@ -1,5 +1,5 @@
 //
-//  SwiftDataFormula.swift
+//  SwiftDataHomebrewFormula.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 3/22/25.
@@ -9,7 +9,7 @@ import SwiftData
 
 /// Represents a Homebrew formula with metadata and build configuration.
 @Model
-public final class SwiftDataFormula {
+public final class SwiftDataHomebrewFormula {
     /// The name of the formula.
     public var name: String
 
@@ -35,9 +35,9 @@ public final class SwiftDataFormula {
     public var extraBuildArgs: [String]
 
     /// The tap associated with the formula.
-    public var tap: SwiftDataTap?
+    public var tap: SwiftDataHomebrewTap?
 
-    /// Initializes a new instance of SwiftDataFormula.
+    /// Initializes a new instance of SwiftDataHomebrewFormula.
     /// - Parameters:
     ///   - name: The name of the formula.
     ///   - details: A description of the formula.

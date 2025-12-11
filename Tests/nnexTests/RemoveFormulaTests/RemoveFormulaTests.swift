@@ -123,8 +123,8 @@ private extension RemoveFormulaTests {
 
     func createTestTapAndFormula(factory: MockContextFactory, formulaName: String, createFormulaFile: Bool = false) throws {
         let context = try factory.makeContext()
-        let tap = SwiftDataTap(name: tapName, localPath: tapFolder.path, remotePath: "https://github.com/user/\(tapName)")
-        let formula = SwiftDataFormula(name: formulaName, details: "formula details", homepage: "https://github.com/user/\(formulaName)", license: "MIT", localProjectPath: "/path/to/project", uploadType: .binary, testCommand: nil, extraBuildArgs: [])
+        let tap = SwiftDataHomebrewTap(name: tapName, localPath: tapFolder.path, remotePath: "https://github.com/user/\(tapName)")
+        let formula = SwiftDataHomebrewFormula(name: formulaName, details: "formula details", homepage: "https://github.com/user/\(formulaName)", license: "MIT", localProjectPath: "/path/to/project", uploadType: .binary, testCommand: nil, extraBuildArgs: [])
 
         try context.saveNewTap(tap, formulas: [formula])
 
