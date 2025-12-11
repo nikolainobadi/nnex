@@ -122,7 +122,7 @@ private extension PublishExecutionManager {
     ///   - tap: The Homebrew tap to publish to.
     /// - Throws: An error if the formula cannot be published.
     func publishFormula(_ content: String, formulaName: String, message: String?, tap: SwiftDataHomebrewTap) throws {
-        let publisher = FormulaPublisher(gitHandler: gitHandler)
+        let publisher = FormulaPublisher(gitHandler: gitHandler, fileSystem: fileSystem)
         let commitMessage = try getMessage(message: message)
         let formulaPath = try publisher.publishFormula(content, formulaName: formulaName, commitMessage: commitMessage, tapFolderPath: tap.localPath)
 

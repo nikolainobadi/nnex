@@ -5,16 +5,13 @@
 //  Created by Nikolai Nobadi on 3/20/25.
 //
 
-import Files
-
-/// Handles publishing Homebrew formulas to a specified tap.
 public struct FormulaPublisher {
     private let gitHandler: any GitHandler
-
-    /// Initializes a new instance of FormulaPublisher.
-    /// - Parameter gitHandler: The Git handler used to commit and push formula files.
-    public init(gitHandler: any GitHandler) {
+    private let fileSystem: any FileSystem
+    
+    public init(gitHandler: any GitHandler, fileSystem: any FileSystem) {
         self.gitHandler = gitHandler
+        self.fileSystem = fileSystem
     }
 }
 
@@ -30,20 +27,19 @@ public extension FormulaPublisher {
     /// - Throws: An error if publishing fails.
     func publishFormula(_ content: String, formulaName: String, commitMessage: String?, tapFolderPath: String) throws -> String {
         let fileName = "\(formulaName).rb"
-        let tapFolder = try Folder(path: tapFolderPath)
-        let formulaFolder = try tapFolder.createSubfolderIfNeeded(withName: "Formula")
+        let tapFolder = try fileSystem.directory(at: tapFolderPath)
+        let formulaFolder = try tapFolder.createSubfolderIfNeeded(named: "Formula")
 
         if formulaFolder.containsFile(named: fileName) {
-            try formulaFolder.file(named: fileName).delete()
+            try formulaFolder.deleteFile(named: fileName)
         }
 
-        let newFile = try formulaFolder.createFile(named: fileName)
-        try newFile.write(content)
+        let filePath = try formulaFolder.createFile(named: fileName, contents: content)
 
         if let commitMessage {
             try gitHandler.commitAndPush(message: commitMessage, path: tapFolderPath)
         }
 
-        return newFile.path
+        return filePath
     }
 }
