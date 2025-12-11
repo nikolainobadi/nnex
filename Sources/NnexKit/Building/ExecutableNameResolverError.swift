@@ -7,14 +7,14 @@
 
 import Foundation
 
-enum ExecutableNameResolverError: Error, LocalizedError, Equatable {
+public enum ExecutableNameResolverError: Error, LocalizedError, Equatable {
     case missingPackageSwift(path: String)
     case failedToReadPackageSwift(reason: String)
     case emptyPackageSwift
     case failedToParseExecutables(reason: String)
     case noExecutablesFound
     
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .missingPackageSwift(let path):
             return "No Package.swift file found in '\(path)'. This does not appear to be a Swift package."

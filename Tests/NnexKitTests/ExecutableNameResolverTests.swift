@@ -8,23 +8,10 @@
 import Testing
 import Foundation
 import NnexSharedTestHelpers
-@testable import nnex
-@preconcurrency import Files
+@testable import NnexKit
 
-@MainActor
-final class ExecutableNameResolverTests {
-    private let projectFolder: Folder
+struct ExecutableNameResolverTests {
     private let projectName = "testProject-executableResolver"
-    
-    init() throws {
-        let tempFolder = Folder.temporary
-        self.projectFolder = try tempFolder.createSubfolder(named: "\(projectName)-\(UUID().uuidString)")
-    }
-    
-    deinit {
-        deleteFolderContents(projectFolder)
-        try? projectFolder.delete()
-    }
 }
 
 
@@ -32,61 +19,48 @@ final class ExecutableNameResolverTests {
 extension ExecutableNameResolverTests {
     @Test("Throws error when Package.swift is missing")
     func throwsErrorWhenPackageSwiftMissing() throws {
-        let sut = makeSUT()
-        let folder = projectFolder
-        let path = projectFolder.path
+        let directory = MockDirectory(path: "/test/project")
 
-        #expect(throws: ExecutableNameResolverError.missingPackageSwift(path: path)) {
-            try sut.getExecutableNames(from: folder)
+        #expect(throws: ExecutableNameResolverError.missingPackageSwift(path: directory.path)) {
+            try ExecutableNameResolver.getExecutableNames(from: directory)
         }
     }
-    
+
     @Test("Throws error when Package.swift cannot be read")
     func throwsErrorWhenPackageSwiftCannotBeRead() throws {
-        // Create a Package.swift file but make it unreadable by creating it as a directory
-        try projectFolder.createSubfolder(named: "Package.swift")
-
-        let sut = makeSUT()
-        let folder = projectFolder
+        let directory = MockDirectory(path: "/test/project", containedFiles: ["Package.swift"])
 
         #expect(throws: (any Error).self) {
-            try sut.getExecutableNames(from: folder)
+            try ExecutableNameResolver.getExecutableNames(from: directory)
         }
-
-        // Clean up
-        try projectFolder.subfolder(named: "Package.swift").delete()
     }
-    
+
     @Test("Throws error when Package.swift is empty")
     func throwsErrorWhenPackageSwiftIsEmpty() throws {
-        try projectFolder.createFile(named: "Package.swift", contents: "".data(using: .utf8)!)
-
-        let sut = makeSUT()
-        let folder = projectFolder
+        let directory = MockDirectory(path: "/test/project")
+        try directory.createFile(named: "Package.swift", contents: "")
 
         #expect(throws: ExecutableNameResolverError.emptyPackageSwift) {
-            try sut.getExecutableNames(from: folder)
+            try ExecutableNameResolver.getExecutableNames(from: directory)
         }
     }
-    
+
     @Test("Throws error when Package.swift contains only whitespace")
     func throwsErrorWhenPackageSwiftContainsOnlyWhitespace() throws {
-        try projectFolder.createFile(named: "Package.swift", contents: "   \n\t  \n   ".data(using: .utf8)!)
-
-        let sut = makeSUT()
-        let folder = projectFolder
+        let directory = MockDirectory(path: "/test/project")
+        try directory.createFile(named: "Package.swift", contents: "   \n\t  \n   ")
 
         #expect(throws: ExecutableNameResolverError.emptyPackageSwift) {
-            try sut.getExecutableNames(from: folder)
+            try ExecutableNameResolver.getExecutableNames(from: directory)
         }
     }
-    
+
     @Test("Throws error when no executables found in Package.swift")
     func throwsErrorWhenNoExecutablesFound() throws {
         let packageContent = """
         // swift-tools-version: 6.0
         import PackageDescription
-        
+
         let package = Package(
             name: "TestPackage",
             products: [
@@ -97,34 +71,31 @@ extension ExecutableNameResolverTests {
             ]
         )
         """
-        try projectFolder.createFile(named: "Package.swift", contents: packageContent.data(using: .utf8)!)
+        let directory = MockDirectory(path: "/test/project")
+        try directory.createFile(named: "Package.swift", contents: packageContent)
 
-        let sut = makeSUT()
-        let folder = projectFolder
-
-        // The error is wrapped, so we check for any ExecutableNameResolverError
         #expect(throws: (any Error).self) {
-            try sut.getExecutableNames(from: folder)
+            try ExecutableNameResolver.getExecutableNames(from: directory)
         }
     }
-    
+
     @Test("Returns single executable name when one executable found")
     func returnsSingleExecutableName() throws {
         let executableName = "TestExecutable"
-        try createPackageSwift(executableName: executableName)
-        
-        let sut = makeSUT()
-        let names = try sut.getExecutableNames(from: projectFolder)
-        
+        let directory = MockDirectory(path: "/test/project")
+        try createPackageSwift(in: directory, executableName: executableName)
+
+        let names = try ExecutableNameResolver.getExecutableNames(from: directory)
+
         #expect(names == [executableName])
     }
-    
+
     @Test("Returns multiple executable names when multiple executables found")
     func returnsMultipleExecutableNames() throws {
         let packageContent = """
         // swift-tools-version: 6.0
         import PackageDescription
-        
+
         let package = Package(
             name: "TestPackage",
             products: [
@@ -137,23 +108,23 @@ extension ExecutableNameResolverTests {
             ]
         )
         """
-        try projectFolder.createFile(named: "Package.swift", contents: packageContent.data(using: .utf8)!)
-        
-        let sut = makeSUT()
-        let names = try sut.getExecutableNames(from: projectFolder)
-        
+        let directory = MockDirectory(path: "/test/project")
+        try directory.createFile(named: "Package.swift", contents: packageContent)
+
+        let names = try ExecutableNameResolver.getExecutableNames(from: directory)
+
         #expect(names.count == 2)
         #expect(names.contains("FirstExecutable"))
         #expect(names.contains("SecondExecutable"))
     }
-    
+
     @Test("Handles Package.swift with comments and formatting")
     func handlesPackageSwiftWithCommentsAndFormatting() throws {
         let packageContent = """
         // swift-tools-version: 6.0
         // This is a comment
         import PackageDescription
-        
+
         let package = Package(
             name: "TestPackage",
             platforms: [
@@ -180,11 +151,11 @@ extension ExecutableNameResolverTests {
             ]
         )
         """
-        try projectFolder.createFile(named: "Package.swift", contents: packageContent.data(using: .utf8)!)
-        
-        let sut = makeSUT()
-        let names = try sut.getExecutableNames(from: projectFolder)
-        
+        let directory = MockDirectory(path: "/test/project")
+        try directory.createFile(named: "Package.swift", contents: packageContent)
+
+        let names = try ExecutableNameResolver.getExecutableNames(from: directory)
+
         #expect(names.count == 2)
         #expect(names.contains("MainApp"))
         #expect(names.contains("HelperTool"))
@@ -194,15 +165,11 @@ extension ExecutableNameResolverTests {
 
 // MARK: - Private Methods
 private extension ExecutableNameResolverTests {
-    func makeSUT() -> ExecutableNameResolver {
-        return .init()
-    }
-    
-    func createPackageSwift(executableName: String) throws {
+    func createPackageSwift(in directory: MockDirectory, executableName: String) throws {
         let packageContent = """
         // swift-tools-version: 6.0
         import PackageDescription
-        
+
         let package = Package(
             name: "\(projectName)",
             platforms: [.macOS(.v14)],
@@ -214,6 +181,6 @@ private extension ExecutableNameResolverTests {
             ]
         )
         """
-        try projectFolder.createFile(named: "Package.swift", contents: packageContent.data(using: .utf8)!)
+        try directory.createFile(named: "Package.swift", contents: packageContent)
     }
 }

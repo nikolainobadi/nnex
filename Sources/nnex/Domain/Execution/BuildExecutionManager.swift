@@ -5,23 +5,24 @@
 //  Created by Nikolai Nobadi on 8/26/25.
 //
 
-import Files
 import NnexKit
 import Foundation
 
 struct BuildExecutionManager {
     private let shell: any NnexShell
     private let picker: any NnexPicker
+    private let fileSystem: any FileSystem
     private let copyUtility: BinaryCopyUtility
     
-    init(shell: any NnexShell, picker: any NnexPicker) {
+    init(shell: any NnexShell, picker: any NnexPicker, fileSystem: any FileSystem) {
         self.shell = shell
         self.picker = picker
-        self.copyUtility = BinaryCopyUtility(shell: shell)
+        self.fileSystem = fileSystem
+        self.copyUtility = .init(shell: shell, fileSystem: fileSystem)
     }
     
     func executeBuild(projectPath: String?, buildType: BuildType, clean: Bool, openInFinder: Bool) throws {
-        let projectFolder = try Nnex.Brew.getProjectFolder(at: projectPath)
+        let projectFolder = try getProjectFolder(at: projectPath)
         let executableName = try getExecutableName(for: projectFolder)
         let outputLocation = try selectOutputLocation(buildType: buildType)
         let config = BuildConfig(projectName: executableName, projectPath: projectFolder.path, buildType: buildType, extraBuildArgs: [], skipClean: !clean, testCommand: nil)
@@ -37,27 +38,34 @@ struct BuildExecutionManager {
 
 // MARK: - Private Methods
 private extension BuildExecutionManager {
+    func getProjectFolder(at path: String?) throws -> any Directory {
+        if let path {
+            return try fileSystem.directory(at: path)
+        }
+        
+        return fileSystem.currentDirectory
+    }
+    
     func displayBuildResult(_ binaryOutput: BinaryOutput, openInFinder: Bool) {
         switch binaryOutput {
-        case .single(let binaryInfo):
-            print("New binary was built at \(binaryInfo.path)")
+        case .single(let path):
+            print("New binary was built at \(path)")
             if openInFinder {
-                try? shell.runAndPrint(bash: "open -R \(binaryInfo.path)")
+                try? shell.runAndPrint(bash: "open -R \(path)")
             }
         case .multiple(let binaries):
             print("Universal binary built:")
-            for (arch, binaryInfo) in binaries {
-                print("  \(arch.name): \(binaryInfo.path)")
+            for (arch, path) in binaries {
+                print("  \(arch.name): \(path)")
             }
-            if openInFinder, let firstBinary = binaries.values.first {
-                try? shell.runAndPrint(bash: "open -R \(firstBinary.path)")
+            if openInFinder, let firstPath = binaries.values.first {
+                try? shell.runAndPrint(bash: "open -R \(firstPath)")
             }
         }
     }
     
-    func getExecutableName(for projectFolder: Folder) throws -> String {
-        let resolver = ExecutableNameResolver()
-        let names = try resolver.getExecutableNames(from: projectFolder)
+    func getExecutableName(for folder: any Directory) throws -> String {
+        let names = try ExecutableNameResolver.getExecutableNames(from: folder)
         
         guard names.count > 1 else {
             return names.first!
@@ -89,7 +97,7 @@ private extension BuildExecutionManager {
     func handleCustomLocationInput() throws -> BuildOutputLocation {
         let parentPath = try picker.getRequiredInput(prompt: "Enter the path to the parent directory where you want to place the binary:")
         
-        guard let parentFolder = try? Folder(path: parentPath) else {
+        guard let parentFolder = try? fileSystem.directory(at: parentPath) else {
             throw BuildExecutionError.invalidCustomPath(path: parentPath)
         }
         

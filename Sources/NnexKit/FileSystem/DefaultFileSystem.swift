@@ -23,6 +23,10 @@ extension DefaultFileSystem: FileSystem {
         return FilesDirectoryAdapter(folder: Folder.home)
     }
     
+    public var currentDirectory: any Directory {
+        return FilesDirectoryAdapter(folder: Folder.current)
+    }
+    
     public func directory(at path: String) throws -> any Directory {
         return try FilesDirectoryAdapter(folder: Folder(path: path))
     }
@@ -39,4 +43,9 @@ extension DefaultFileSystem: FileSystem {
     public func writeFile(at path: String, contents: String) throws {
         try contents.write(toFile: path, atomically: true, encoding: .utf8)
     }
+    
+    public func moveToTrash(at path: String) throws {
+        try fileManager.trashItem(at: .init(fileURLWithPath: path), resultingItemURL: nil)
+    }
 }
+

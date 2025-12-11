@@ -113,7 +113,7 @@ extension PublishUtilitiesTests {
         try binaryFile.write("fake binary content")
         
         let shell = MockShell(results: ["", sha256Output])  // tar command result, then shasum result
-        let binaryOutput = BinaryOutput.single(.init(path: binaryFile.path))
+        let binaryOutput = BinaryOutput.single(binaryFile.path)
         
         let archives = try PublishUtilities.createArchives(from: binaryOutput, shell: shell)
         
@@ -134,11 +134,7 @@ extension PublishUtilitiesTests {
         try intelFile.write("fake intel binary content")
         
         let shell = MockShell(results: ["", sha256Output, "", sha256Output])  // tar, shasum, tar, shasum
-        let binaryOutput = BinaryOutput.multiple([
-            .arm: .init(path: armFile.path),
-            .intel: .init(path: intelFile.path)
-        ])
-        
+        let binaryOutput = BinaryOutput.multiple([.arm: armFile.path, .intel: intelFile.path])
         let archives = try PublishUtilities.createArchives(from: binaryOutput, shell: shell)
         
         #expect(archives.count == 2)
@@ -157,7 +153,7 @@ extension PublishUtilitiesTests {
         try binaryFile.write("fake binary content")
         
         let shell = MockShell(shouldThrowErrorOnFinal: true)
-        let binaryOutput = BinaryOutput.single(.init(path: binaryFile.path))
+        let binaryOutput = BinaryOutput.single(binaryFile.path)
         
         #expect(throws: (any Error).self) {
             try PublishUtilities.createArchives(from: binaryOutput, shell: shell)
