@@ -140,17 +140,18 @@ extension ReleaseHandlerTests {
 
 // MARK: - Version Handling
 extension ReleaseHandlerTests {
-    @Test("Extracts version string from version case") // TODO: - 
+    @Test("Extracts version string from version case")
     func extractsVersionFromVersionCase() throws {
+        let releaseNumber = "v2.5.0"
         let (sut, folder, gitHandler, _) = makeSUT(assetURL: testAssetURL)
         let binary = makeArchivedBinary()
-        let versionInfo = ReleaseVersionInfo.version("v2.5.0")
+        let versionInfo = ReleaseVersionInfo.version(releaseNumber)
         let releaseNotesSource = ReleaseNotesSource(notes: testReleaseNotes, notesFile: nil)
 
         let (_, versionNumber) = try sut.uploadRelease(folder: folder, archivedBinaries: [binary], versionInfo: versionInfo, previousVersion: testPreviousVersion, releaseNotesSource: releaseNotesSource)
 
-        #expect(versionNumber == "2.5.0")
-        #expect(gitHandler.releaseVersion == "2.5.0")
+        #expect(versionNumber == releaseNumber)
+        #expect(gitHandler.releaseVersion == releaseNumber)
     }
 
     @Test("Handles version string without v prefix")
