@@ -10,7 +10,6 @@ import Foundation
 import NnShellTesting
 import NnexSharedTestHelpers
 @testable import NnexKit
-@preconcurrency import Files
 
 struct BinaryCopyUtilityTests {
     private let executableName = "testExecutable"
