@@ -65,19 +65,17 @@ extension ReleaseHandler {
 
 // MARK: - Private
 private extension ReleaseHandler {
-    func getReleaseNoteInfo(
-        projectName: String,
-        releaseNotesSource: ReleaseNotesSource,
-        releaseNumber: String,
-        projectPath: String
-    ) throws -> ReleaseNoteInfo {
+    func getReleaseNoteInfo(projectName: String, releaseNotesSource: ReleaseNotesSource, releaseNumber: String, projectPath: String) throws -> ReleaseNoteInfo {
         if let notesFile = releaseNotesSource.notesFile {
             return .init(content: notesFile, isFromFile: true)
         }
+        
         if let notes = releaseNotesSource.notes {
             return .init(content: notes, isFromFile: false)
         }
-        let fileUtility = ReleaseNotesFileUtility(picker: picker, fileSystem: DefaultFileSystemProvider(), dateProvider: DefaultDateProvider())
+        
+        let fileUtility = ReleaseNotesFileUtility(picker: picker, fileSystem: fileSystem, dateProvider: DefaultDateProvider())
+        
         return try ReleaseNotesHandler(picker: picker, projectName: projectName, fileUtility: fileUtility, folderBrowser: folderBrowser).getReleaseNoteInfo()
     }
     
@@ -92,6 +90,7 @@ private extension ReleaseHandler {
         case .version(let versionString):
             return versionString.trimmingCharacters(in: CharacterSet(charactersIn: "v"))
         case .increment:
+            // TODO: - this should be handled better
             // For increment case, we'll need to resolve this at a higher level
             // For now, return a placeholder - the actual version will be resolved later
             return "0.0.0"
