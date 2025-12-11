@@ -6,9 +6,9 @@
 //
 
 public extension SwiftDataHomebrewFormula {
-    /// Initializes a SwiftDataHomebrewFormula instance from a BrewFormula.
-    /// - Parameter brewFormula: The BrewFormula to convert.
-    convenience init(from brewFormula: BrewFormula) {
+    /// Initializes a SwiftDataHomebrewFormula instance from a DecodableFormulaTemplate.
+    /// - Parameter brewFormula: The DecodableFormulaTemplate to convert.
+    convenience init(from brewFormula: DecodableFormulaTemplate) {
         var uploadType = CurrentSchema.FormulaUploadType.binary
         
         if let stableURL = brewFormula.versions.stable {
