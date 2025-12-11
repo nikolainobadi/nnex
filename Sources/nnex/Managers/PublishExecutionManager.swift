@@ -93,10 +93,11 @@ private extension PublishExecutionManager {
     /// - Returns: A tuple containing the tap, formula, and build type.
     /// - Throws: An error if the tap or formula cannot be found.
     func getTapAndFormula(projectFolder: any Directory, buildType: BuildType, skipTests: Bool) throws -> (SwiftDataHomebrewTap, SwiftDataHomebrewFormula, BuildType) {
-        let (tap, formula) = try publishInfoLoader.loadPublishInfo()
+        fatalError() // TODO: - 
+//        let (tap, formula) = try publishInfoLoader.loadPublishInfo()
         
         // Note: The formula's localProjectPath update is now handled by PublishInfoLoader if needed
-        return (tap, formula, buildType)
+//        return (tap, formula, buildType)
     }
 
     /// Uploads a release to GitHub and returns the asset URLs and version number.
