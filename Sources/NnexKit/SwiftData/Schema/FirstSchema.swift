@@ -11,8 +11,8 @@ public enum FirstSchema: VersionedSchema {
     public static let versionIdentifier: Schema.Version = .init(1, 0, 0)
     public static var models: [any PersistentModel.Type] {
         return [
-            HomebrewTap.self,
-            HomebrewFormula.self
+            SwiftDataTap.self,
+            SwiftDataFormula.self
         ]
     }
 }
@@ -21,11 +21,11 @@ public enum FirstSchema: VersionedSchema {
 // MARK: - Tap
 extension FirstSchema {
     @Model
-    public final class HomebrewTap {
+    public final class SwiftDataTap {
         @Attribute(.unique) public var name: String
         @Attribute(.unique) public var localPath: String
         @Attribute(.unique) public var remotePath: String
-        @Relationship(deleteRule: .cascade, inverse: \HomebrewFormula.tap) public var formulas: [HomebrewFormula] = []
+        @Relationship(deleteRule: .cascade, inverse: \SwiftDataFormula.tap) public var formulas: [SwiftDataFormula] = []
 
         public init(name: String, localPath: String, remotePath: String) {
             self.name = name
@@ -39,7 +39,7 @@ extension FirstSchema {
 // MARK: - Formula
 extension FirstSchema {
     @Model
-    public final class HomebrewFormula {
+    public final class SwiftDataFormula {
         public var name: String
         public var details: String
         public var homepage: String
@@ -48,7 +48,7 @@ extension FirstSchema {
         public var uploadType: FormulaUploadType
         public var testCommand: TestCommand?
         public var extraBuildArgs: [String]
-        public var tap: HomebrewTap?
+        public var tap: SwiftDataTap?
 
         public init(
             name: String,
