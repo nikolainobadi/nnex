@@ -11,7 +11,7 @@ struct PublishInfoLoader {
     private let shell: any NnexShell
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
-    private let store: any HomebrewTapStore
+    private let store: any PublishInfoStore
     private let projectFolder: any Directory
     private let skipTests: Bool
     
@@ -19,7 +19,7 @@ struct PublishInfoLoader {
         shell: any NnexShell,
         picker: any NnexPicker,
         gitHandler: any GitHandler,
-        store: any HomebrewTapStore,
+        store: any PublishInfoStore,
         projectFolder: any Directory,
         skipTests: Bool
     ) {

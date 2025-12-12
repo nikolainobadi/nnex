@@ -8,7 +8,7 @@
 import NnexKit
 @testable import nnex
 
-final class MockHomebrewTapStore: HomebrewTapStore {
+final class MockHomebrewTapStore: PublishInfoStore {
     private let tapsToLoad: [HomebrewTap]
     
     private(set) var formulaToUpdate: HomebrewFormula?

@@ -6,7 +6,6 @@
 //
 
 import NnexKit
-import GitShellKit
 import ArgumentParser
 
 extension Nnex.Brew {
@@ -19,32 +18,20 @@ extension Nnex.Brew {
         @Option(name: .shortAndLong, help: "Details about the Homebrew Tap to include when uploading to GitHub.")
         var details: String?
         
-        @Flag(help: "Specify the repository visibility: --public (default) or --private.")
-        var visibility: RepoVisibility = .publicRepo
+        @Flag(name: .customLong("private"), help: "Set the repository visibility to private.")
+        var isPrivate: Bool = false
         
         func run() throws {
-            let shell = Nnex.makeShell()
             let picker = Nnex.makePicker()
             let gitHandler = Nnex.makeGitHandler()
             let context = try Nnex.makeContext()
             let fileSystem = Nnex.makeFileSystem()
             let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
-            let manager = CreateTapManager(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, folderBrowser: folderBrowser, context: context)
+            let store = HomebrewTapStoreAdapter(context: context)
+            let manager = HomebrewTapManager(store: store, gitHandler: gitHandler)
+            let controller = HomebrewTapController(picker: picker, fileSystem: fileSystem, service: manager, folderBrowser: folderBrowser)
             
-            try manager.executeCreateTap(name: name, details: details, visibility: visibility)
-        }
-    }
-}
-
-
-// MARK: - Extension Dependencies
-extension RepoVisibility: @retroactive EnumerableFlag {
-    public static func name(for value: RepoVisibility) -> NameSpecification {
-        switch value {
-        case .publicRepo:
-            return .customLong("public")
-        case .privateRepo:
-            return .customLong("private")
+            try controller.createNewTap(name: name, details: details, parentPath: context.loadTapListFolderPath(), isPrivate: isPrivate)
         }
     }
 }
