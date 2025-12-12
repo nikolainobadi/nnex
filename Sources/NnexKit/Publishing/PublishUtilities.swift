@@ -58,7 +58,8 @@ public enum PublishUtilities {
                 throw NnexError.missingSha256 // Should create a better error for missing URL
             }
             return FormulaContentGenerator.makeFormulaFileContent(
-                name: formulaName,
+                formulaName: formulaName,
+                installName: formulaName, // TODO: -
                 details: formula.details,
                 homepage: formula.homepage,
                 license: formula.license,
@@ -93,7 +94,8 @@ public enum PublishUtilities {
             }
             
             return FormulaContentGenerator.makeFormulaFileContent(
-                name: formulaName,
+                formulaName: formulaName,
+                installName: formulaName, // TODO: - 
                 details: formula.details,
                 homepage: formula.homepage,
                 license: formula.license,

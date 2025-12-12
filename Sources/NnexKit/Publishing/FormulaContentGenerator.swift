@@ -7,7 +7,8 @@
 
 public enum FormulaContentGenerator {
     public static func makeFormulaFileContent(
-        name: String,
+        formulaName: String,
+        installName: String,
         details: String,
         homepage: String,
         license: String,
@@ -17,7 +18,7 @@ public enum FormulaContentGenerator {
     ) -> String {
         let sanitizedVersion = sanitizeVersion(version)
         return """
-        class \(FormulaNameSanitizer.sanitizeFormulaName(name)) < Formula
+        class \(FormulaNameSanitizer.sanitizeFormulaName(formulaName)) < Formula
             desc "\(details)"
             homepage "\(homepage)"
             url "\(assetURL)"
@@ -26,18 +27,19 @@ public enum FormulaContentGenerator {
             license "\(license)"
 
             def install
-                bin.install "\(name)"
+                bin.install "\(installName)"
             end
 
             test do
-                system "#{bin}/\(name)", "--help"
+                system "#{bin}/\(installName)", "--help"
             end
         end
         """
     }
 
     public static func makeFormulaFileContent(
-        name: String,
+        formulaName: String,
+        installName: String,
         details: String,
         homepage: String,
         license: String,
@@ -53,7 +55,7 @@ public enum FormulaContentGenerator {
         if hasArm && hasIntel {
             let sanitizedVersion = sanitizeVersion(version)
             return """
-            class \(FormulaNameSanitizer.sanitizeFormulaName(name)) < Formula
+            class \(FormulaNameSanitizer.sanitizeFormulaName(formulaName)) < Formula
                 desc "\(details)"
                 homepage "\(homepage)"
                 version "\(sanitizedVersion)"
@@ -72,17 +74,18 @@ public enum FormulaContentGenerator {
                 end
 
                 def install
-                    bin.install "\(name)"
+                    bin.install "\(installName)"
                 end
 
                 test do
-                    system "#{bin}/\(name)", "--help"
+                    system "#{bin}/\(installName)", "--help"
                 end
             end
             """
         } else if hasArm {
             return makeFormulaFileContent(
-                name: name,
+                formulaName: formulaName,
+                installName: installName,
                 details: details,
                 homepage: homepage,
                 license: license,
@@ -92,7 +95,8 @@ public enum FormulaContentGenerator {
             )
         } else if hasIntel {
             return makeFormulaFileContent(
-                name: name,
+                formulaName: formulaName,
+                installName: installName,
                 details: details,
                 homepage: homepage,
                 license: license,
@@ -102,7 +106,8 @@ public enum FormulaContentGenerator {
             )
         } else {
             return makeFormulaFileContent(
-                name: name,
+                formulaName: formulaName,
+                installName: installName,
                 details: details,
                 homepage: homepage,
                 license: license,
@@ -118,6 +123,6 @@ public enum FormulaContentGenerator {
 // MARK: - Private Methods
 private extension FormulaContentGenerator {
     static func sanitizeVersion(_ version: String) -> String {
-        version.hasPrefix("v") ? String(version.dropFirst()) : version
+        return version.hasPrefix("v") ? String(version.dropFirst()) : version
     }
 }

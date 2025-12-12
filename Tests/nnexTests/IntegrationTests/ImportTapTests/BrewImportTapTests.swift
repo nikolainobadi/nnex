@@ -71,7 +71,7 @@ extension BrewImportTapTests {
         let license = "MIT"
         let testFactory = MockContextFactory()
         let context = try testFactory.makeContext()
-        let formulaContent = FormulaContentGenerator.makeFormulaFileContent(name: name, details: details, homepage: homepage, license: license, version: "1.0.0", assetURL: "assetURL", sha256: "sha256")
+        let formulaContent = FormulaContentGenerator.makeFormulaFileContent(formulaName: name, installName: name, details: details, homepage: homepage, license: license, version: "1.0.0", assetURL: "assetURL", sha256: "sha256")
 
         let formulaFolder = try tapFolder.createSubfolder(named: "Formula")
         let formulaFile = try formulaFolder.createFile(named: "\(name).rb")
