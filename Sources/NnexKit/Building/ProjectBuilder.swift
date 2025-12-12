@@ -23,7 +23,7 @@ public struct ProjectBuilder {
 
 // MARK: - Build
 public extension ProjectBuilder {
-    func build() throws -> BinaryOutput {
+    func build() throws -> BuildResult {
         if !config.skipClean {
             try cleanProject()
         }
@@ -32,6 +32,16 @@ public extension ProjectBuilder {
             try build(for: arch)
         }
 
+        let output = try makeBinaryOutpu()
+        
+        return .init(executableName: config.projectName, binaryOutput: output)
+    }
+}
+
+
+// MARK: - Private Methods
+private extension ProjectBuilder {
+    func makeBinaryOutpu() throws -> BinaryOutput {
         switch config.buildType {
         case .arm64, .x86_64:
             let arch = config.buildType.archs.first!
@@ -40,7 +50,7 @@ public extension ProjectBuilder {
             try runTests()
             
             return .single(path)
-
+            
         case .universal:
             var results: [ReleaseArchitecture: String] = [:]
             for arch in config.buildType.archs {
@@ -52,11 +62,7 @@ public extension ProjectBuilder {
             return .multiple(results)
         }
     }
-}
-
-
-// MARK: - Private Methods
-private extension ProjectBuilder {
+    
     func log(_ message: String) {
         if let progressDelegate = progressDelegate {
             progressDelegate.didUpdateProgress(message)

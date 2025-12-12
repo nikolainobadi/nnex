@@ -33,12 +33,12 @@ struct BuildBinaryController {
 // MARK: - Actions
 extension BuildBinaryController {
     func buildBinary(path: String?, buildType: BuildType, clean: Bool, openInFinder: Bool) throws {
-        let projectFolder = try fileSystem.getDirectoryAtPathOrCurrent(path: path)
-        let executableName = try getExecutableName(for: projectFolder)
-        let outputLocation = try selectOutputLocation(buildType: buildType)
-        let config = BuildConfig(projectName: executableName, projectPath: projectFolder.path, buildType: buildType, extraBuildArgs: [], skipClean: !clean, testCommand: nil)
-        let builder = ProjectBuilder(shell: shell, config: config)
-        let _ = try builder.build()
+//        let projectFolder = try fileSystem.getDirectoryAtPathOrCurrent(path: path)
+//        let executableName = try getExecutableName(for: projectFolder)
+//        let outputLocation = try selectOutputLocation(buildType: buildType)
+//        let config = BuildConfig(projectName: executableName, projectPath: projectFolder.path, buildType: buildType, extraBuildArgs: [], skipClean: !clean, testCommand: nil)
+//        let builder = ProjectBuilder(shell: shell, config: config)
+//        let _ = try builder.build()
         
         // TODO: -
     }
