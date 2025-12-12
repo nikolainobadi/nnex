@@ -20,7 +20,10 @@ extension HomebrewTapStoreAdapter: HomebrewTapStore {
         context.saveTapListFolderPath(path: path)
     }
     
-    public func saveNewTap(_ tap: HomebrewTap) throws {
-        try context.saveNewTap(HomebrewTapMapper.toSwiftData(tap))
+    public func saveNewTap(_ tap: HomebrewTap, formulas: [HomebrewFormula]) throws {
+        let swiftDataTap = HomebrewTapMapper.toSwiftData(tap)
+        let swiftDataFormulas = formulas.map(HomebrewFormulaMapper.toSwiftData)
+        
+        try context.saveNewTap(swiftDataTap, formulas: swiftDataFormulas)
     }
 }

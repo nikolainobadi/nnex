@@ -5,18 +5,22 @@
 //  Created by Nikolai Nobadi on 12/12/25.
 //
 
+import Foundation
+
 public struct HomebrewTapManager {
+    private let shell: any NnexShell
     private let store: any HomebrewTapStore
     private let gitHandler: any GitHandler
     
-    public init(store: any HomebrewTapStore, gitHandler: any GitHandler) {
+    public init(shell: any NnexShell, store: any HomebrewTapStore, gitHandler: any GitHandler) {
+        self.shell = shell
         self.store = store
         self.gitHandler = gitHandler
     }
 }
 
 
-// MARK: - CreateTap
+// MARK: - HomebrewTapService
 extension HomebrewTapManager: HomebrewTapService {
     public func saveTapListFolderPath(path: String) {
         store.saveTapListFolderPath(path: path)
@@ -28,7 +32,17 @@ extension HomebrewTapManager: HomebrewTapService {
         let tapFolder = try createTapFolder(named: name, in: parentFolder)
         let remotePath = try createRemoteRepository(folder: tapFolder, details: details, isPrivate: isPrivate)
         
-        try store.saveNewTap(.init(folder: tapFolder, remotePath: remotePath))
+        try store.saveNewTap(.init(folder: tapFolder, remotePath: remotePath), formulas: [])
+    }
+    
+    public func importTap(from folder: any Directory) throws -> HomebrewTapImportResult {
+        try gitHandler.ghVerification()
+        
+        let (tap, warnings) = try makeTap(from: folder)
+        
+        try store.saveNewTap(tap, formulas: tap.formulas)
+        
+        return .init(tap: tap, warnings: warnings)
     }
 }
 
@@ -49,19 +63,28 @@ private extension HomebrewTapManager {
         try gitHandler.gitInit(path: path)
         return try gitHandler.remoteRepoInit(tapName: folder.name, path: path, projectDetails: details, visibility: isPrivate ? .privateRepo : .publicRepo)
     }
+    
+    func makeTap(from folder: any Directory) throws -> (HomebrewTap, [String]) {
+        let decoder = HomebrewFormulaDecoder(shell: shell)
+        let tapName = folder.name.removingHomebrewPrefix
+        let remotePath = try gitHandler.getRemoteURL(path: folder.path)
+        let (formulas, warnings) = try decoder.decodeFormulas(in: folder)
+        
+        return (.init(name: tapName, localPath: folder.path, remotePath: remotePath, formulas: formulas), warnings)
+    }
 }
 
 
 // MARK: - Dependencies
 public protocol HomebrewTapStore {
     func saveTapListFolderPath(path: String)
-    func saveNewTap(_ tap: HomebrewTap) throws
+    func saveNewTap(_ tap: HomebrewTap, formulas: [HomebrewFormula]) throws
 }
 
 
 // MARK: - Extension Dependencies
 private extension HomebrewTap {
-    init(folder: any Directory, remotePath: String) {
-        self.init(name: folder.name, localPath: folder.path, remotePath: remotePath, formulas: [])
+    init(folder: any Directory, remotePath: String, formulas: [HomebrewFormula] = []) {
+        self.init(name: folder.name, localPath: folder.path, remotePath: remotePath, formulas: formulas)
     }
 }

@@ -31,6 +31,14 @@ extension HomebrewTapController {
         
         try service.createNewTap(named: name, details: details, in: parentFolder, isPrivate: isPrivate)
     }
+    
+    func importTap(path: String?) throws {
+        let tapFolder = try selectHomebrewFolder(path: path)
+        
+        let result = try service.importTap(from: tapFolder)
+        
+        result.warnings.forEach { print($0) }
+    }
 }
 
 
@@ -72,5 +80,13 @@ private extension HomebrewTapController {
         service.saveTapListFolderPath(path: tapListFolder.path)
         
         return tapListFolder
+    }
+    
+    func selectHomebrewFolder(path: String?) throws -> any Directory {
+        if let path {
+            return try fileSystem.directory(at: path)
+        }
+        
+        return try folderBrowser.browseForDirectory(prompt: "Select the Homebrew Tap folder you would like to import.")
     }
 }

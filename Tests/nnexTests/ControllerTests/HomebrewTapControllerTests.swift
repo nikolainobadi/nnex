@@ -106,6 +106,31 @@ final class HomebrewTapControllerTests {
         
         #expect(service.savedTapData == nil)
     }
+    
+    @Test("Imports tap using provided path")
+    func importTapWithPath() throws {
+        let tapFolder = MockDirectory(path: "/taps/homebrew-myTap")
+        let fileSystem = MockFileSystem(directoryToLoad: tapFolder)
+        let (sut, service) = makeSUT(directoryToLoad: tapFolder, fileSystem: fileSystem)
+        
+        try sut.importTap(path: tapFolder.path)
+        
+        let imported = try #require(service.importedFolder)
+        
+        #expect(imported.path == tapFolder.path)
+    }
+    
+    @Test("Imports tap after browsing for directory")
+    func importTapWithBrowse() throws {
+        let browsedDirectory = MockDirectory(path: "/taps/homebrew-myTap")
+        let (sut, service) = makeSUT(browsedDirectory: browsedDirectory)
+        
+        try sut.importTap(path: nil)
+        
+        let imported = try #require(service.importedFolder)
+        
+        #expect(imported.path == browsedDirectory.path)
+    }
 }
 
 
@@ -129,6 +154,7 @@ private extension HomebrewTapControllerTests {
         private let throwError: Bool
         
         private(set) var savedPath: String?
+        private(set) var importedFolder: (any Directory)?
         private(set) var savedTapData: (name: String, details: String, parent: any Directory, isPrivate: Bool)?
         
         init(throwError: Bool) {
@@ -143,6 +169,14 @@ private extension HomebrewTapControllerTests {
             if throwError { throw NSError(domain: "Test", code: 0) }
             
             savedTapData = (name, details, parentFolder, isPrivate)
+        }
+        
+        func importTap(from folder: any Directory) throws -> HomebrewTapImportResult {
+            if throwError { throw NSError(domain: "Test", code: 0) }
+            
+            importedFolder = folder
+            
+            return .init(tap: .init(name: folder.name, localPath: folder.path, remotePath: "", formulas: []), warnings: [])
         }
     }
 }

@@ -21,6 +21,7 @@ final class MockContextFactory {
     private let inputResponses: [String]
     private let permissionResponses: [Bool]
     private let gitHandler: MockGitHandler
+    private let browsedDirectory: MockDirectory?
     private var shell: MockShell?
     private var picker: MockSwiftPicker?
     private var context: NnexContext?
@@ -35,7 +36,8 @@ final class MockContextFactory {
         permissionResponses: [Bool] = [],
         gitHandler: MockGitHandler = .init(),
         shell: MockShell? = nil,
-        fileSystem: MockFileSystem? = nil
+        fileSystem: MockFileSystem? = nil,
+        browsedDirectory: MockDirectory? = nil
     ) {
         self.shell = shell
         self.runResults = runResults
@@ -46,6 +48,7 @@ final class MockContextFactory {
         self.selectedItemIndex = selectedItemIndex
         self.permissionResponses = permissionResponses
         self.selectedItemIndices = selectedItemIndices
+        self.browsedDirectory = browsedDirectory
     }
 }
 
@@ -108,7 +111,10 @@ extension MockContextFactory: ContextFactory {
     }
     
     func makeFolderBrowser(picker: any NnexPicker, fileSystem: any FileSystem) -> any DirectoryBrowser {
-        // TODO: - change to mock when possible
+        if let browsedDirectory {
+            return MockDirectoryBrowser(filePathToReturn: nil, directoryToReturn: browsedDirectory)
+        }
+        
         return DefaultDirectoryBrowser(picker: picker, fileSystem: fileSystem, homeDirectoryURL: FileManager.default.homeDirectoryForCurrentUser)
     }
 }

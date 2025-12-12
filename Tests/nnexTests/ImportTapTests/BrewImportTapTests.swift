@@ -12,7 +12,7 @@ import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
 
-@MainActor // needs to be MainActor to ensure proper interactions with SwiftData
+@MainActor
 final class BrewImportTapTests {
     private let tapName = "testTap"
     private let tapFolder: Folder
@@ -50,9 +50,9 @@ extension BrewImportTapTests {
         #expect(newTap.formulas.isEmpty)
     }
     
-    @Test("Imports empty tap from existing folder from selection", .disabled()) // TODO: - 
+    @Test("Imports empty tap from existing folder from selection")
     func importsEmptyTapFromSelection() throws {
-        let testFactory = MockContextFactory()
+        let testFactory = MockContextFactory(browsedDirectory: MockDirectory(path: tapFolder.path))
         let context = try testFactory.makeContext()
         
         try runCommand(testFactory)
@@ -62,8 +62,6 @@ extension BrewImportTapTests {
         #expect(newTap.name == tapName)
         #expect(newTap.formulas.isEmpty)
     }
-    
-    
     
     @Test("Imports tap from existing folder and decodes existing formula when path is passed as arg")
     func importTapWithFormula() throws {
