@@ -12,7 +12,7 @@ import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
 
-@MainActor // needs to be MainActor to ensure proper interactions with SwiftData
+@MainActor 
 final class PublishTests: BasePublishTestSuite {
     private let tapName = "testTap"
     private let assetURL = "assetURL"

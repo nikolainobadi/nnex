@@ -15,7 +15,8 @@ enum HomebrewFormulaMapper {
             localProjectPath: formula.localProjectPath,
             uploadType: .init(rawValue: formula.uploadType.rawValue) ?? .tarball,
             testCommand: toDomainTestCommand(formula.testCommand),
-            extraBuildArgs: formula.extraBuildArgs
+            extraBuildArgs: formula.extraBuildArgs,
+            tapLocalPath: formula.tap?.localPath ?? ""
         )
     }
     
@@ -58,4 +59,3 @@ private extension HomebrewFormulaMapper {
         }
     }
 }
-

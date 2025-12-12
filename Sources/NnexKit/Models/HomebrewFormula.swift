@@ -14,6 +14,7 @@ public struct HomebrewFormula {
     public var uploadType: FormulaUploadType
     public var testCommand: TestCommand?
     public var extraBuildArgs: [String]
+    public var tapLocalPath: String
     
     public init(
         name: String,
@@ -23,7 +24,8 @@ public struct HomebrewFormula {
         localProjectPath: String,
         uploadType: FormulaUploadType,
         testCommand: TestCommand?,
-        extraBuildArgs: [String]
+        extraBuildArgs: [String],
+        tapLocalPath: String = ""
     ) {
         self.name = name
         self.details = details
@@ -33,6 +35,7 @@ public struct HomebrewFormula {
         self.uploadType = uploadType
         self.testCommand = testCommand
         self.extraBuildArgs = extraBuildArgs
+        self.tapLocalPath = tapLocalPath
     }
 }
 

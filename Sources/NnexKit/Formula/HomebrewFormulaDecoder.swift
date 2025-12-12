@@ -30,7 +30,7 @@ extension HomebrewFormulaDecoder {
                 return nil
             }
             
-            return makeHomebrewFormula(from: brewFormula)
+            return makeHomebrewFormula(from: brewFormula, tapLocalPath: tapFolder.path)
         }
         
         return (formulas, warnings)
@@ -83,7 +83,7 @@ private extension HomebrewFormulaDecoder {
         return nil
     }
     
-    func makeHomebrewFormula(from template: DecodableFormulaTemplate) -> HomebrewFormula {
+    func makeHomebrewFormula(from template: DecodableFormulaTemplate, tapLocalPath: String) -> HomebrewFormula {
         let uploadType: HomebrewFormula.FormulaUploadType
         
         if let stable = template.versions.stable, stable.contains(".tar.gz") {
@@ -100,7 +100,8 @@ private extension HomebrewFormulaDecoder {
             localProjectPath: "",
             uploadType: uploadType,
             testCommand: nil,
-            extraBuildArgs: []
+            extraBuildArgs: [],
+            tapLocalPath: tapLocalPath
         )
     }
 }
