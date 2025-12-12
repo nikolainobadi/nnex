@@ -15,3 +15,15 @@ public protocol FileSystem {
     func readFile(at path: String) throws -> String
     func writeFile(at path: String, contents: String) throws
 }
+
+
+// MARK: - Helpers
+public extension FileSystem {
+    func getDirectoryAtPathOrCurrent(path: String?) throws -> any Directory {
+        guard let path else {
+            return currentDirectory
+        }
+        
+        return try directory(at: path)
+    }
+}
