@@ -43,6 +43,7 @@ extension PublishInfoLoader {
         let tap = try getTap(allTaps: allTaps)
         if var formula = tap.formulas.first(where: { $0.name.matches(projectFolder.name) }) {
             // Update the formula's localProjectPath if needed
+            // this is necessary if formulae have been imported and do not have the correct localProjectPath set
             if formula.localProjectPath.isEmpty || formula.localProjectPath != projectFolder.path {
                 formula.localProjectPath = projectFolder.path
                 try store.updateFormula(formula)
