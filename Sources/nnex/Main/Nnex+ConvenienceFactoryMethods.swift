@@ -20,4 +20,14 @@ extension Nnex {
         
         return .init(picker: picker, fileSystem: fileSystem, service: manager, folderBrowser: folderBrowser)
     }
+    
+    static func makeHomebrewFormulaController(context: NnexContext? = nil) throws -> HomebrewFormulaController {
+        let picker = makePicker()
+        let fileSystem = makeFileSystem()
+        let context = try context ?? makeContext()
+        let store = HomebrewFormulaStoreAdapter(context: context)
+        let manager = HomebrewFormulaManager(store: store)
+        
+        return .init(picker: picker, fileSystem: fileSystem, service: manager)
+    }
 }
