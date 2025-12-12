@@ -6,7 +6,6 @@
 //
 
 import NnexKit
-import GitShellKit
 import ArgumentParser
 
 extension Nnex.Brew {
