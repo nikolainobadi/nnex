@@ -26,8 +26,7 @@ extension Nnex {
         let fileSystem = makeFileSystem()
         let context = try context ?? makeContext()
         let store = HomebrewFormulaStoreAdapter(context: context)
-        let manager = HomebrewFormulaManager(store: store)
         
-        return .init(picker: picker, fileSystem: fileSystem, service: manager)
+        return .init(picker: picker, fileSystem: fileSystem, service: store)
     }
 }

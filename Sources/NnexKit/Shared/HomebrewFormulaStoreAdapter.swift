@@ -15,7 +15,7 @@ public struct HomebrewFormulaStoreAdapter {
 
 
 // MARK: - HomebrewFormulaStore
-extension HomebrewFormulaStoreAdapter: HomebrewFormulaStore {
+extension HomebrewFormulaStoreAdapter: HomebrewFormulaService {
     public func loadFormulas() throws -> [HomebrewFormula] {
         let swiftDataFormulas = try context.loadFormulas()
         
