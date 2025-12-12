@@ -44,32 +44,10 @@ extension Nnex.Brew {
             let resolvedBuildType = buildType ?? context.loadDefaultBuildType()
             let projectFolder = try fileSystem.getProjectFolder(at: path)
             let store = PublishInfoStoreAdapter(context: context)
-            let publishInfoLoader = PublishInfoLoader(
-                shell: shell,
-                picker: picker,
-                gitHandler: gitHandler,
-                store: store,
-                projectFolder: projectFolder,
-                skipTests: skipTests
-            )
-            let manager = PublishExecutionManager(
-                shell: shell,
-                picker: picker,
-                gitHandler: gitHandler,
-                fileSystem: fileSystem,
-                folderBrowser: folderBrowser,
-                publishInfoLoader: publishInfoLoader
-            )
+            let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, gitHandler: gitHandler, store: store, projectFolder: projectFolder, skipTests: skipTests)
+            let manager = PublishExecutionManager(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, folderBrowser: folderBrowser, publishInfoLoader: publishInfoLoader)
             
-            try manager.executePublish(
-                projectFolder: projectFolder,
-                version: version,
-                buildType: resolvedBuildType,
-                notes: notes,
-                notesFile: notesFile,
-                message: message,
-                skipTests: skipTests
-            )
+            try manager.executePublish(projectFolder: projectFolder, version: version, buildType: resolvedBuildType, notes: notes, notesFile: notesFile, message: message, skipTests: skipTests)
         }
     }
 }
