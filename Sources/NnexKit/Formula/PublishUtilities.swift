@@ -19,7 +19,7 @@ public enum PublishUtilities {
         let config = BuildConfig(projectName: formula.name, projectPath: formula.localProjectPath, buildType: buildType, extraBuildArgs: formula.extraBuildArgs, skipClean: false, testCommand: testCommand)
         let builder = ProjectBuilder(shell: shell, config: config)
         
-        return try builder.build()
+        return try builder.build().binaryOutput
     }
 
     /// Creates tar.gz archives from binary output.

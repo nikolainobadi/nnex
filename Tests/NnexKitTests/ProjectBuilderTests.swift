@@ -16,6 +16,7 @@ struct ProjectBuilderTests {
     private let customTestCommand = "swift test --filter SomeTests"
 }
 
+
 // MARK: - Success Tests
 extension ProjectBuilderTests {
     @Test("Successfully builds a universal binary")
@@ -28,8 +29,9 @@ extension ProjectBuilderTests {
         
         let sut = makeSUT(runResults: shellResults).sut
         let result = try sut.discardableBuild()
+        let output = result.binaryOutput
         
-        switch result {
+        switch output {
         case .single:
             Issue.record("Expected .multiple BinaryOutput but found .single")
         case .multiple(let dict):
@@ -44,8 +46,9 @@ extension ProjectBuilderTests {
     func buildSingleBinary(buildType: BuildType) throws {
         let sut = makeSUT(buildType: buildType, runResults: ["", ""]).sut
         let result = try sut.discardableBuild()
+        let output = result.binaryOutput
         
-        switch result {
+        switch output {
         case .single(let path):
             #expect(path.contains(projectPath))
             #expect(path.contains("\(buildType.rawValue)-apple-macosx"))
@@ -60,11 +63,12 @@ extension ProjectBuilderTests {
         // Need results for: clean, build arm64, build x86_64, test
         let (sut, shell) = makeSUT(runResults: ["", "", "", ""])
         let result = try sut.discardableBuild()
+        let output = result.binaryOutput
         let expectedCommandPart = extraArgs.joined(separator: " ")
         
         #expect(shell.executedCommands.contains { $0.contains(expectedCommandPart) })
         
-        switch result {
+        switch output {
         case .single:
             Issue.record("Expected .multiple BinaryOutput but found .single")
         case .multiple(let dict):
@@ -216,37 +220,6 @@ extension ProjectBuilderTests {
             try sut.discardableBuild()
         }
     }
-    
-//    @Test("Throws TestFailureError when tests fail")
-//    func testFailureThrowsTestFailureError() throws {
-//        // Create a custom mock shell that succeeds for build commands but throws ShellError for test commands
-//        let shell = TestFailureMockShell()
-//        
-//        let config = BuildConfig(
-//            projectName: projectName,
-//            projectPath: projectPath,
-//            buildType: .arm64,
-//            extraBuildArgs: [],
-//            skipClean: false,
-//            testCommand: .defaultCommand
-//        )
-//        
-//        let sut = ProjectBuilder(shell: shell, config: config)
-//        
-//        var caughtError: TestFailureError?
-//        do {
-//            try sut.discardableBuild()
-//        } catch let error as TestFailureError {
-//            caughtError = error
-//        } catch {
-//            Issue.record("Expected TestFailureError but got \(type(of: error)): \(error)")
-//        }
-//        
-//        #expect(caughtError != nil, "Should have caught a TestFailureError")
-//        #expect(caughtError?.command.contains("swift test") == true, "Error should contain the test command")
-//        #expect(caughtError?.output.contains("Test failed") == true, "Error should contain test output")
-//        #expect(caughtError?.errorDescription?.contains("Tests failed when running") == true, "Error should have descriptive message")
-//    }
 }
 
 
@@ -273,7 +246,7 @@ private extension ProjectBuilderTests {
 // MARK: - Extension Helpers
 public extension ProjectBuilder {
     @discardableResult
-    func discardableBuild() throws -> BinaryOutput {
+    func discardableBuild() throws -> BuildResult {
         return try build()
     }
 }

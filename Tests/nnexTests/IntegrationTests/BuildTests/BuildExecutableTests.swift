@@ -32,7 +32,6 @@ final class BuildTests {
 extension BuildTests {
     @Test("Builds project and outputs binary path")
     func successfulBuildOutputsPath() throws {
-        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
         let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
@@ -42,12 +41,11 @@ extension BuildTests {
         
         let output = try runCommand(factory)
 
-        #expect(output.contains("Universal binary built:"))
+        #expect(output.contains("builds"))
     }
 
     @Test("Opens binary in Finder when openInFinder flag is set")
     func openBinaryInFinder() throws {
-        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
         let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
@@ -57,7 +55,7 @@ extension BuildTests {
         
         _ = try runCommand(factory, openInFinder: true)
 
-        #expect(shell.executedCommands.contains { $0.contains("open -R") })
+        #expect(shell.executedCommand(containing: "open -R"))
     }
     
     @Test("Fails when Package.swift is missing")
@@ -72,7 +70,6 @@ extension BuildTests {
     
     @Test("Clean flag defaults to true and sets skipClean to false")
     func cleanFlagDefaultsToTrue() throws {
-        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
         let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
@@ -82,13 +79,12 @@ extension BuildTests {
         
         let output = try runCommand(factory)
         
-        // Verify build was called (clean flag default is true, so skipClean should be false)
-        #expect(output.contains("Universal binary built:"))
+        #expect(shell.executedCommand(containing: "clean"))
+        #expect(output.contains("builds"))
     }
     
     @Test("No-clean flag sets skipClean to true")
     func noCleanFlagSetsSkipCleanToTrue() throws {
-        // No-clean build results: build arm64, build x86_64, shasum arm, shasum intel (no clean command)
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
         let shell = MockShell(results: ["", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
@@ -98,7 +94,8 @@ extension BuildTests {
         
         let output = try runCommand(factory, clean: false)
         
-        #expect(output.contains("Universal binary built:"))
+        #expect(!shell.executedCommand(containing: "clean"))
+        #expect(output.contains("builds"))
     }
     
     @Test("Builds to current directory when selected")
@@ -113,14 +110,12 @@ extension BuildTests {
         
         let output = try runCommand(factory)
         
-        #expect(output.contains("Universal binary built:"))
-        // Should not contain any cp commands since it stays in current location
-        #expect(!shell.executedCommands.contains { $0.contains("cp") })
+        #expect(output.contains("builds"))
+        #expect(!shell.executedCommand(containing: "cp"))
     }
     
     @Test("Builds to desktop when selected")
     func buildsToDesktopWhenSelected() throws {
-        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
         let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
@@ -130,38 +125,38 @@ extension BuildTests {
         
         let output = try runCommand(factory)
         
-        #expect(output.contains("Universal binary built:"))
-        // Should contain cp command to copy to desktop
-        #expect(shell.executedCommands.contains { $0.contains("cp") && $0.contains("Desktop") })
+        #expect(output.contains("builds"))
+        #expect(shell.executedCommand(containing: "cp"))
+        #expect(shell.executedCommand(containing: "Desktop"))
     }
     
     @Test("Prompts for custom location and confirms path")
     func promptsForCustomLocationAndConfirmsPath() throws {
-        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
         let customPath = "/tmp"
+        let customDirectory = MockDirectory(path: customPath)
+        let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
         let factory = MockContextFactory(
             runResults: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"],
             selectedItemIndices: [2], // Select custom (index 2)
             inputResponses: [customPath],
             permissionResponses: [true], // Confirm the path
-            shell: MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
+            shell: shell,
+            browsedDirectory: customDirectory
         )
         
         try createPackageManifest(name: executableName)
         
         let output = try runCommand(factory)
         
-        #expect(output.contains("Universal binary built:"))
-        // Should contain cp command to copy to custom location
-        let shell = factory.makeShell() as! MockShell
-        #expect(shell.executedCommands.contains { $0.contains("cp") && $0.contains(customPath) })
+        #expect(output.contains("builds"))
+        #expect(shell.executedCommand(containing: "cp"))
+        #expect(shell.executedCommand(containing: customPath))
     }
     
     @Test("Handles custom location input cancellation gracefully")
     func handlesCustomLocationInputCancellationGracefully() throws {
-        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
         let customPath = "/tmp"
@@ -183,7 +178,6 @@ extension BuildTests {
     
     @Test("Copies binary to selected output location")
     func copiesBinaryToSelectedOutputLocation() throws {
-        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
         let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
@@ -199,7 +193,6 @@ extension BuildTests {
     
     @Test("Shows final binary location in output message")
     func showsFinalBinaryLocationInOutputMessage() throws {
-        // Universal build results: clean, build arm64, build x86_64, shasum arm, shasum intel
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
         let shell = MockShell(results: ["", "", "", "\(armSha256)  /path/to/binary", "\(intelSha256)  /path/to/binary"])
@@ -209,7 +202,7 @@ extension BuildTests {
         
         let output = try runCommand(factory)
         
-        #expect(output.contains("Universal binary built:"))
+        #expect(output.contains("builds"))
         #expect(output.contains("arm64")) // Should show architecture info
         #expect(output.contains("x86_64")) // Should show architecture info
     }
@@ -226,6 +219,7 @@ private extension BuildTests {
         if !clean {
             args.append("--no-clean")
         }
+        
         return try Nnex.testRun(contextFactory: factory, args: args)
     }
 

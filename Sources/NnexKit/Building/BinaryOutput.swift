@@ -5,7 +5,7 @@
 //  Created by Nikolai Nobadi on 12/10/25.
 //
 
-public enum BinaryOutput {
+public enum BinaryOutput: Equatable {
     public typealias BinaryPath = String
     
     case single(BinaryPath)
