@@ -18,12 +18,8 @@ struct BuildManager {
 
 // MARK: - BuildExecutable
 extension BuildManager {
-    func buildExecutable(config: BuildConfig, outputLocation: BuildOutputLocation?) throws -> BuildResult {
+    func buildExecutable(config: BuildConfig, outputLocation: BuildOutputLocation) throws -> BuildResult {
         let result = try ProjectBuilder(shell: shell, config: config).build()
-        
-        guard let outputLocation else {
-            return result
-        }
         
         switch outputLocation {
         case .currentDirectory:

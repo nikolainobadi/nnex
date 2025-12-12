@@ -60,8 +60,6 @@ private extension BuildExecutableController {
         }
     }
     
-    // TODO: - this may need to be updated for clarity
-    // does currentDirectory mean at the root? or in a build folder in the root?
     func selectOutputLocation(buildType: BuildType) throws -> BuildOutputLocation {
         let options: [BuildOutputLocation] = [.currentDirectory(buildType), .desktop, .custom("")]
         let selection = try picker.requiredSingleSelection("Where would you like to place the built binary?", items: options)
@@ -74,17 +72,9 @@ private extension BuildExecutableController {
     }
     
     func handleCustomLocationInput() throws -> BuildOutputLocation {
-        // TODO: - change this to use directory browser
-        let parentPath = try picker.getRequiredInput(prompt: "Enter the path to the parent directory where you want to place the binary:")
+        let parentFolder = try folderBrowser.browseForDirectory(prompt: "Select the folder where you would like to save the build.")
         
-        guard let parentFolder = try? fileSystem.directory(at: parentPath) else {
-            throw BuildExecutionError.invalidCustomPath(path: parentPath)
-        }
-        
-        let confirmed = picker.getPermission(prompt: "The binary will be placed at: \(parentFolder.path). Continue?")
-        guard confirmed else {
-            throw BuildExecutionError.buildCancelledByUser
-        }
+        try picker.requiredPermission(prompt: "The binary will be placed at: \(parentFolder.path). Continue?")
         
         return .custom(parentFolder.path)
     }
@@ -114,5 +104,5 @@ private extension BuildExecutableController {
 
 // MARK: - Dependencies
 protocol BuildExecutableService {
-    func buildExecutable(config: BuildConfig, outputLocation: BuildOutputLocation?) throws -> BuildResult
+    func buildExecutable(config: BuildConfig, outputLocation: BuildOutputLocation) throws -> BuildResult
 }
