@@ -16,11 +16,17 @@ public struct HomebrewFormulaStoreAdapter {
 
 // MARK: - HomebrewFormulaStore
 extension HomebrewFormulaStoreAdapter: HomebrewFormulaStore {
-    public func loadFormulas() throws -> [SwiftDataHomebrewFormula] {
-        try context.loadFormulas()
+    public func loadFormulas() throws -> [HomebrewFormula] {
+        let swiftDataFormulas = try context.loadFormulas()
+        
+        return swiftDataFormulas.map(HomebrewFormulaMapper.toDomain)
     }
     
-    public func deleteFormula(_ formula: SwiftDataHomebrewFormula) throws {
-        try context.deleteFormula(formula)
+    public func deleteFormula(_ formula: HomebrewFormula) throws {
+        let swiftDataFormulas = try context.loadFormulas()
+        
+        guard let target = swiftDataFormulas.first(where: { $0.name == formula.name }) else { return }
+        
+        try context.deleteFormula(target)
     }
 }

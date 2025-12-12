@@ -16,11 +16,11 @@ public struct HomebrewFormulaManager {
 
 // MARK: - HomebrewFormulaService
 extension HomebrewFormulaManager: HomebrewFormulaService {
-    public func loadFormulas() throws -> [SwiftDataHomebrewFormula] {
+    public func loadFormulas() throws -> [HomebrewFormula] {
         try store.loadFormulas()
     }
     
-    public func deleteFormula(_ formula: SwiftDataHomebrewFormula) throws {
+    public func deleteFormula(_ formula: HomebrewFormula) throws {
         try store.deleteFormula(formula)
     }
 }
@@ -28,6 +28,6 @@ extension HomebrewFormulaManager: HomebrewFormulaService {
 
 // MARK: - Dependencies
 public protocol HomebrewFormulaStore {
-    func loadFormulas() throws -> [SwiftDataHomebrewFormula]
-    func deleteFormula(_ formula: SwiftDataHomebrewFormula) throws
+    func loadFormulas() throws -> [HomebrewFormula]
+    func deleteFormula(_ formula: HomebrewFormula) throws
 }

@@ -6,6 +6,6 @@
 //
 
 public protocol HomebrewFormulaService {
-    func loadFormulas() throws -> [SwiftDataHomebrewFormula]
-    func deleteFormula(_ formula: SwiftDataHomebrewFormula) throws
+    func loadFormulas() throws -> [HomebrewFormula]
+    func deleteFormula(_ formula: HomebrewFormula) throws
 }

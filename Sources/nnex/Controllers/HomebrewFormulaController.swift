@@ -33,15 +33,15 @@ extension HomebrewFormulaController {
 
 // MARK: - Private Helpers
 private extension HomebrewFormulaController {
-    func selectFormula() throws -> SwiftDataHomebrewFormula {
+    func selectFormula() throws -> HomebrewFormula {
         let formulas = try service.loadFormulas()
         
         return try picker.requiredSingleSelection("Select a formula to remove", items: formulas)
     }
     
-    func deleteFormulaFileIfNeeded(_ formula: SwiftDataHomebrewFormula) throws {
-        guard let tap = formula.tap,
-              let tapDirectory = try? fileSystem.directory(at: tap.localPath),
+    func deleteFormulaFileIfNeeded(_ formula: HomebrewFormula) throws {
+        guard !formula.tapLocalPath.isEmpty,
+              let tapDirectory = try? fileSystem.directory(at: formula.tapLocalPath),
               let formulaDirectory = try? tapDirectory.subdirectory(named: "Formula") else {
             return
         }

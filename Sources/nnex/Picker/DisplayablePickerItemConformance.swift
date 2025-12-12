@@ -70,6 +70,12 @@ extension SwiftDataHomebrewFormula:  DisplayablePickerItem {
     }
 }
 
+extension HomebrewFormula: DisplayablePickerItem {
+    public var displayName: String {
+        return name
+    }
+}
+
 extension ReleaseNotesHandler.NoteContentType: DisplayablePickerItem {
     var displayName: String {
         switch self {
