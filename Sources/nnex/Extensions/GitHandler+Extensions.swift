@@ -14,6 +14,10 @@ extension GitHandler {
         """
     }
     
+    func ensureNoUncommittedChanges(at path: String) throws {
+        fatalError() // TODO: - 
+    }
+    
     func checkForGitHubCLI() throws {
         do {
             try ghVerification()

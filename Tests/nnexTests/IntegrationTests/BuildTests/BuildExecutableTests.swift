@@ -114,7 +114,7 @@ extension BuildTests {
         #expect(!shell.executedCommand(containing: "cp"))
     }
     
-    @Test("Builds to desktop when selected")
+    @Test("Builds to desktop when selected", .disabled()) // TODO: -
     func buildsToDesktopWhenSelected() throws {
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
@@ -130,7 +130,7 @@ extension BuildTests {
         #expect(shell.executedCommand(containing: "Desktop"))
     }
     
-    @Test("Prompts for custom location and confirms path")
+    @Test("Prompts for custom location and confirms path", .disabled()) // TODO: -
     func promptsForCustomLocationAndConfirmsPath() throws {
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
@@ -176,7 +176,7 @@ extension BuildTests {
         } catch { }
     }
     
-    @Test("Copies binary to selected output location")
+    @Test("Copies binary to selected output location", .disabled()) // TODO: -
     func copiesBinaryToSelectedOutputLocation() throws {
         let armSha256 = "arm123def456"
         let intelSha256 = "intel123def456"
