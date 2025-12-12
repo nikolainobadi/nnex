@@ -22,16 +22,10 @@ extension Nnex.Brew {
         var isPrivate: Bool = false
         
         func run() throws {
-            let picker = Nnex.makePicker()
-            let gitHandler = Nnex.makeGitHandler()
             let context = try Nnex.makeContext()
-            let fileSystem = Nnex.makeFileSystem()
-            let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
-            let store = HomebrewTapStoreAdapter(context: context)
-            let manager = HomebrewTapManager(store: store, gitHandler: gitHandler)
-            let controller = HomebrewTapController(picker: picker, fileSystem: fileSystem, service: manager, folderBrowser: folderBrowser)
+            let parentPath = context.loadTapListFolderPath()
             
-            try controller.createNewTap(name: name, details: details, parentPath: context.loadTapListFolderPath(), isPrivate: isPrivate)
+            try Nnex.makeHomebrewTapController(context: context).createNewTap(name: name, details: details, parentPath: parentPath, isPrivate: isPrivate)
         }
     }
 }

@@ -8,4 +8,5 @@
 public protocol HomebrewTapService {
     func saveTapListFolderPath(path: String)
     func createNewTap(named name: String, details: String, in parentFolder: any Directory, isPrivate: Bool) throws
+    func importTap(from folder: any Directory) throws -> HomebrewTapImportResult
 }
