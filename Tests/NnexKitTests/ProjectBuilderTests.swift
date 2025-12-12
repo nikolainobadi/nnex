@@ -16,6 +16,7 @@ struct ProjectBuilderTests {
     private let customTestCommand = "swift test --filter SomeTests"
 }
 
+
 // MARK: - Success Tests
 extension ProjectBuilderTests {
     @Test("Successfully builds a universal binary")
