@@ -70,6 +70,25 @@ extension FormulaContentGeneratorTests {
         #expect(content.contains("class MyTool < Formula"))
     }
 
+    @Test("Uses distinct install name when different from formula name for single binary")
+    func usesDistinctInstallNameForSingleBinary() {
+        let content = FormulaContentGenerator.makeFormulaFileContent(
+            formulaName: "my-formula",
+            installName: "my-binary",
+            details: testDetails,
+            homepage: testHomepage,
+            license: testLicense,
+            version: testVersion,
+            assetURL: testAssetURL,
+            sha256: testSHA256
+        )
+
+        #expect(content.contains("class MyFormula < Formula"))
+        #expect(content.contains("bin.install \"my-binary\""))
+        #expect(content.contains("system \"#{bin}/my-binary\", \"--help\""))
+        #expect(!content.contains("bin.install \"my-formula\""))
+    }
+
     @Test("Handles empty strings in single binary formula")
     func handlesEmptyStringsInSingleBinary() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
@@ -132,6 +151,28 @@ extension FormulaContentGeneratorTests {
 
         // Check structure
         #expect(content.contains("on_macos do"))
+    }
+
+    @Test("Uses distinct install name when different from formula name for multi-arch")
+    func usesDistinctInstallNameForMultiArch() {
+        let content = FormulaContentGenerator.makeFormulaFileContent(
+            formulaName: "my-formula",
+            installName: "my-binary",
+            details: testDetails,
+            homepage: testHomepage,
+            license: testLicense,
+            version: testVersion,
+            armURL: testArmURL,
+            armSHA256: testArmSHA256,
+            intelURL: testIntelURL,
+            intelSHA256: testIntelSHA256
+        )
+
+        #expect(content.contains("class MyFormula < Formula"))
+        #expect(content.contains("bin.install \"my-binary\""))
+        #expect(content.contains("system \"#{bin}/my-binary\", \"--help\""))
+        #expect(!content.contains("bin.install \"my-formula\""))
+        #expect(!content.contains("system \"#{bin}/my-formula\""))
     }
     
     @Test("Falls back to single binary formula when only ARM is provided")
