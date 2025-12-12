@@ -23,6 +23,8 @@ extension HomebrewTapManager: HomebrewTapService {
     }
     
     public func createNewTap(named name: String, details: String, in parentFolder: any Directory, isPrivate: Bool) throws {
+        try gitHandler.ghVerification()
+        
         let tapFolder = try createTapFolder(named: name, in: parentFolder)
         let remotePath = try createRemoteRepository(folder: tapFolder, details: details, isPrivate: isPrivate)
         

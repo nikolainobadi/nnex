@@ -19,6 +19,21 @@ final class HomebrewTapManagerTests {
         #expect(store.savedPath == nil)
     }
     
+    @Test("Does not create tap when GitHub CLI is missing")
+    func createNewTapMissingGHCLIFails() {
+        let parent = MockDirectory(path: "/taps")
+        let (sut, store, gitHandler) = makeSUT(ghIsInstalled: false)
+        
+        #expect(throws: NnexError.self) {
+            try sut.createNewTap(named: "tap", details: "details", in: parent, isPrivate: false)
+        }
+        
+        #expect(store.savedTap == nil)
+        #expect(gitHandler.gitInitPath == nil)
+        #expect(gitHandler.remoteTapName == nil)
+        #expect(parent.subdirectories.isEmpty)
+    }
+    
     @Test("Saves tap list folder path")
     func saveTapListFolderPath() {
         let (sut, store, _) = makeSUT()
@@ -83,9 +98,9 @@ final class HomebrewTapManagerTests {
 
 // MARK: - SUT
 private extension HomebrewTapManagerTests {
-    func makeSUT(storeThrows: Bool = false, gitThrows: Bool = false, remoteURL: String = "remotePath") -> (sut: HomebrewTapManager, store: MockStore, gitHandler: MockGitHandler) {
+    func makeSUT(storeThrows: Bool = false, gitThrows: Bool = false, ghIsInstalled: Bool = true, remoteURL: String = "remotePath") -> (sut: HomebrewTapManager, store: MockStore, gitHandler: MockGitHandler) {
         let store = MockStore(throwError: storeThrows)
-        let gitHandler = MockGitHandler(remoteURL: remoteURL, throwError: gitThrows)
+        let gitHandler = MockGitHandler(remoteURL: remoteURL, ghIsInstalled: ghIsInstalled, throwError: gitThrows)
         let sut = HomebrewTapManager(store: store, gitHandler: gitHandler)
         
         return (sut, store, gitHandler)
