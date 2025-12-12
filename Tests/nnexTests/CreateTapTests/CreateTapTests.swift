@@ -12,7 +12,7 @@ import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
 
-@MainActor // needs to be MainActor to ensure proper interactions with SwiftData
+@MainActor
 final class CreateTapTests {
     private let tapListFolder: Folder
     private let tapDetails = "new tap details"
