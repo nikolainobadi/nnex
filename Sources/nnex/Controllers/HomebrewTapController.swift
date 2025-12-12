@@ -8,14 +8,12 @@
 import NnexKit
 
 struct HomebrewTapController {
-    private let shell: any NnexShell
     private let picker: any NnexPicker
     private let fileSystem: any FileSystem
     private let service: any HomebrewTapService
     private let folderBrowser: any DirectoryBrowser
     
-    init(shell: any NnexShell, picker: any NnexPicker, fileSystem: any FileSystem, service: any HomebrewTapService, folderBrowser: any DirectoryBrowser) {
-        self.shell = shell
+    init(picker: any NnexPicker, fileSystem: any FileSystem, service: any HomebrewTapService, folderBrowser: any DirectoryBrowser) {
         self.picker = picker
         self.fileSystem = fileSystem
         self.service = service
