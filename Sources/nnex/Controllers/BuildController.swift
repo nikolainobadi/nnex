@@ -1,5 +1,5 @@
 //
-//  BuildExecutableController.swift
+//  BuildController.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 12/12/25.
@@ -7,19 +7,19 @@
 
 import NnexKit
 
-struct BuildExecutableController {
+struct BuildController {
     private let shell: any NnexShell
     private let picker: any NnexPicker
     private let fileSystem: any FileSystem
+    private let buildService: any BuildService
     private let folderBrowser: any DirectoryBrowser
-    private let buildService: any BuildExecutableService
     
     init(
         shell: any NnexShell,
         picker: any NnexPicker,
         fileSystem: any FileSystem,
-        folderBrowser: any DirectoryBrowser,
-        buildService: any BuildExecutableService
+        buildService: any BuildService,
+        folderBrowser: any DirectoryBrowser
     ) {
         self.shell = shell
         self.picker = picker
@@ -31,7 +31,7 @@ struct BuildExecutableController {
 
 
 // MARK: - Actions
-extension BuildExecutableController {
+extension BuildController {
     func buildExecutable(path: String?, buildType: BuildType, clean: Bool, openInFinder: Bool) throws {
         let projectFolder = try fileSystem.getDirectoryAtPathOrCurrent(path: path)
         let executableName = try getExecutableName(for: projectFolder)
@@ -45,7 +45,7 @@ extension BuildExecutableController {
 
 
 // MARK: - Private Methods
-private extension BuildExecutableController {
+private extension BuildController {
     func getExecutableName(for folder: any Directory) throws -> String {
         let names = try ExecutableNameResolver.getExecutableNames(from: folder)
         
@@ -103,6 +103,6 @@ private extension BuildExecutableController {
 
 
 // MARK: - Dependencies
-protocol BuildExecutableService {
+protocol BuildService {
     func buildExecutable(config: BuildConfig, outputLocation: BuildOutputLocation) throws -> BuildResult
 }
