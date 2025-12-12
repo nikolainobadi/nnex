@@ -5,8 +5,8 @@
 //  Created by Nikolai Nobadi on 4/21/25.
 //
 
-import ArgumentParser
 import NnexKit
+import ArgumentParser
 
 extension Nnex {
     struct Build: ParsableCommand {
@@ -32,9 +32,15 @@ extension Nnex {
             let context = try Nnex.makeContext()
             let fileSystem = Nnex.makeFileSystem()
             let buildType = buildType ?? context.loadDefaultBuildType()
-            let manager = BuildExecutionManager(shell: shell, picker: picker, fileSystem: fileSystem)
+            let manager = BuildManager(shell: shell, fileSystem: fileSystem)
+            let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
+            let controller = BuildController(shell: shell, picker: picker, fileSystem: fileSystem, buildService: manager, folderBrowser: folderBrowser)
             
-            try manager.executeBuild(projectPath: path, buildType: buildType, clean: clean, openInFinder: openInFinder)
+            try controller.buildExecutable(path: path, buildType: buildType, clean: clean, openInFinder: openInFinder)
         }
     }
 }
+
+
+// MARK: - Extension Dependencies
+extension BuildManager: BuildService { }

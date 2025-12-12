@@ -5,11 +5,11 @@
 //  Created by Nikolai Nobadi on 12/12/25.
 //
 
-struct BuildManager {
+public struct BuildManager {
     private let shell: any NnexShell
     private let fileSystem: any FileSystem
     
-    init(shell: any NnexShell, fileSystem: any FileSystem) {
+    public init(shell: any NnexShell, fileSystem: any FileSystem) {
         self.shell = shell
         self.fileSystem = fileSystem
     }
@@ -17,7 +17,7 @@ struct BuildManager {
 
 
 // MARK: - BuildExecutable
-extension BuildManager {
+public extension BuildManager {
     func buildExecutable(config: BuildConfig, outputLocation: BuildOutputLocation) throws -> BuildResult {
         let result = try ProjectBuilder(shell: shell, config: config).build()
         
