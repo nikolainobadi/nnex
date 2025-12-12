@@ -13,22 +13,82 @@ import NnexSharedTestHelpers
 final class HomebrewTapManagerTests {
     @Test("Starting values empty")
     func emptyStartingValues() {
-        let (_, store) = makeSUT()
+        let (_, store, _) = makeSUT()
         
         #expect(store.savedTap == nil)
         #expect(store.savedPath == nil)
+    }
+    
+    @Test("Saves tap list folder path")
+    func saveTapListFolderPath() {
+        let (sut, store, _) = makeSUT()
+        let path = "/path/to/taps"
+        
+        sut.saveTapListFolderPath(path: path)
+        
+        #expect(store.savedPath == path)
+    }
+    
+    @Test("Creates tap folder, initializes git, and saves tap")
+    func createNewTapSuccess() throws {
+        let tapName = "myTap"
+        let tapList = MockDirectory(path: "/taps")
+        let remotePath = "https://github.com/user/homebrew-myTap"
+        let (sut, store, gitHandler) = makeSUT(remoteURL: remotePath)
+        
+        try sut.createNewTap(named: tapName, details: "details", in: tapList, isPrivate: true)
+        
+        let createdTapFolder = try #require(tapList.subdirectories.first as? MockDirectory)
+        let formulaFolder = try #require(createdTapFolder.subdirectories.first)
+        let savedTap = try #require(store.savedTap)
+        
+        #expect(createdTapFolder.name == tapName.homebrewTapName)
+        #expect(formulaFolder.name == "Formula")
+        #expect(gitHandler.gitInitPath == createdTapFolder.path)
+        #expect(gitHandler.remoteTapName == createdTapFolder.name)
+        #expect(gitHandler.remoteTapPath == createdTapFolder.path)
+        #expect(savedTap.name == createdTapFolder.name)
+        #expect(savedTap.localPath == createdTapFolder.path)
+        #expect(savedTap.remotePath == remotePath)
+    }
+    
+    @Test("Throws when git handler fails during tap creation")
+    func createNewTapGitError() {
+        let tapList = MockDirectory(path: "/taps")
+        let (sut, store, gitHandler) = makeSUT(gitThrows: true)
+        
+        #expect(throws: (any Error).self) {
+            try sut.createNewTap(named: "tap", details: "details", in: tapList, isPrivate: false)
+        }
+        
+        #expect(store.savedTap == nil)
+        #expect(store.savedPath == nil)
+        #expect(gitHandler.remoteTapName == nil)
+    }
+    
+    @Test("Throws when persisting new tap fails")
+    func createNewTapStoreError() {
+        let tapList = MockDirectory(path: "/taps")
+        let (sut, store, gitHandler) = makeSUT(storeThrows: true)
+        
+        #expect(throws: (any Error).self) {
+            try sut.createNewTap(named: "tap", details: "details", in: tapList, isPrivate: false)
+        }
+        
+        #expect(store.savedTap == nil)
+        #expect(gitHandler.remoteTapName == tapList.subdirectories.first?.name)
     }
 }
 
 
 // MARK: - SUT
 private extension HomebrewTapManagerTests {
-    func makeSUT(throwError: Bool = false) -> (sut: HomebrewTapManager, store: MockStore) {
-        let store = MockStore(throwError: throwError)
-        let gitHandler = MockGitHandler()
+    func makeSUT(storeThrows: Bool = false, gitThrows: Bool = false, remoteURL: String = "remotePath") -> (sut: HomebrewTapManager, store: MockStore, gitHandler: MockGitHandler) {
+        let store = MockStore(throwError: storeThrows)
+        let gitHandler = MockGitHandler(remoteURL: remoteURL, throwError: gitThrows)
         let sut = HomebrewTapManager(store: store, gitHandler: gitHandler)
         
-        return (sut, store)
+        return (sut, store, gitHandler)
     }
 }
 
@@ -41,7 +101,7 @@ private extension HomebrewTapManagerTests {
         private(set) var savedPath: String?
         private(set) var savedTap: HomebrewTap?
         
-        init(throwError: Bool) {
+        init(throwError: Bool = false) {
             self.throwError = throwError
         }
         
