@@ -43,7 +43,7 @@ extension Nnex.Brew {
             let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
             let resolvedBuildType = buildType ?? context.loadDefaultBuildType()
             let projectFolder = try fileSystem.getProjectFolder(at: path)
-            let store = HomebrewTapStoreAdapter(context: context)
+            let store = PublishInfoStoreAdapter(context: context)
             let publishInfoLoader = PublishInfoLoader(
                 shell: shell,
                 picker: picker,

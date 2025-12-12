@@ -1,5 +1,5 @@
 //
-//  HomebrewTapStoreAdapter.swift
+//  PublishInfoStoreAdapter.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 12/11/25.
@@ -7,13 +7,17 @@
 
 import Foundation
 
-public final class HomebrewTapStoreAdapter: PublishInfoStore {
+public final class PublishInfoStoreAdapter {
     private let context: NnexContext
     
     public init(context: NnexContext) {
         self.context = context
     }
-    
+}
+
+
+// MARK: - PublishInfoStore
+extension PublishInfoStoreAdapter: PublishInfoStore {
     public func loadTaps() throws -> [HomebrewTap] {
         let swiftDataTaps = try context.loadTaps()
         
@@ -51,7 +55,7 @@ public final class HomebrewTapStoreAdapter: PublishInfoStore {
 
 
 // MARK: - Helpers
-private extension HomebrewTapStoreAdapter {
+private extension PublishInfoStoreAdapter {
     func toSwiftDataTestCommand(_ testCommand: HomebrewFormula.TestCommand?) -> CurrentSchema.TestCommand? {
         guard let testCommand else { return nil }
         

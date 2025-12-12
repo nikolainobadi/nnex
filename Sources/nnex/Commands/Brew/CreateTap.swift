@@ -29,9 +29,11 @@ extension Nnex.Brew {
             let context = try Nnex.makeContext()
             let fileSystem = Nnex.makeFileSystem()
             let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
-            let manager = CreateTapManager(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, folderBrowser: folderBrowser, context: context)
+            let store = HomebrewTapStoreAdapter(context: context)
+            let manager = HomebrewTapManager(store: store, gitHandler: gitHandler)
+            let controller = HomebrewTapController(shell: shell, picker: picker, fileSystem: fileSystem, service: manager, folderBrowser: folderBrowser)
             
-            try manager.executeCreateTap(name: name, details: details, visibility: visibility)
+            try controller.createNewTap(name: name, details: details, parentPath: context.loadTapListFolderPath(), isPrivate: false)
         }
     }
 }
