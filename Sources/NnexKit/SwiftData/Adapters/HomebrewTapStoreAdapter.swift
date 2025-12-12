@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class HomebrewTapStoreAdapter: HomebrewTapStore {
+public final class HomebrewTapStoreAdapter: PublishInfoStore {
     private let context: NnexContext
     
     public init(context: NnexContext) {

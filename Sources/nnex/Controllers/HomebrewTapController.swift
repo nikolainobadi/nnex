@@ -13,6 +13,14 @@ struct HomebrewTapController {
     private let fileSystem: any FileSystem
     private let service: any HomebrewTapService
     private let folderBrowser: any DirectoryBrowser
+    
+    init(shell: any NnexShell, picker: any NnexPicker, fileSystem: any FileSystem, service: any HomebrewTapService, folderBrowser: any DirectoryBrowser) {
+        self.shell = shell
+        self.picker = picker
+        self.fileSystem = fileSystem
+        self.service = service
+        self.folderBrowser = folderBrowser
+    }
 }
 
 
@@ -23,7 +31,7 @@ extension HomebrewTapController {
         let details = try details ?? picker.getRequiredInput(prompt: "Enter the details for this new tap.")
         let parentFolder = try selectParentFolder(parentPath: parentPath)
         
-        try service.createNewTap(named: name, details: details, in: parentFolder)
+        try service.createNewTap(named: name, details: details, in: parentFolder, isPrivate: isPrivate)
     }
 }
 
@@ -63,14 +71,8 @@ private extension HomebrewTapController {
             tapListFolder = try fileSystem.homeDirectory.createSubfolderIfNeeded(named: defaultTapListFolderName)
         }
         
-        // TODO: - save tapListFolderPath in defaults?
+        service.saveTapListFolderPath(path: tapListFolder.path)
         
         return tapListFolder
     }
-}
-
-
-// MARK: - Dependencies
-protocol HomebrewTapService {
-    func createNewTap(named name: String, details: String, in parentFolder: any Directory) throws
 }
