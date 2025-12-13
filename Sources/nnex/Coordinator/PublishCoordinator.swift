@@ -14,6 +14,7 @@ struct PublishCoordinator {
     private let gitHandler: any GitHandler
     private let dateProvider: any DateProvider
     private let folderBrowser: any DirectoryBrowser
+    private let temporaryProtocol: any TemporaryPublishProtocol
 }
 
 
@@ -27,8 +28,8 @@ extension PublishCoordinator {
         let nextVersionNumber = try selectNextVersionNumber(projectPath: projectFolder.path)
         let buildResult = try buildExecutable(projectFolder: projectFolder, buildType: buildType)
         let archives = try makeArchives(result: buildResult)
-        let releaseInfo = try selectReleaseInfo(executableName: buildResult.executableName, nextVersionNumber: nextVersionNumber, notes: notes, notesFilePath: notesFilePath)
-        let releaseResult = try uploadRelease(archives: archives, releaseInfo: releaseInfo, path: projectFolder.path)
+        let noteSoure = try selectReleaseNoteSource(notes: notes, notesFilePath: notesFilePath, projectName: projectFolder.name)
+        let releaseResult = try uploadRelease(archives: archives, executableName: buildResult.executableName, releaseNumber: nextVersionNumber, noteSource: noteSoure, projectPath: projectFolder.path)
         let formula = try getFormula(projectFolder: projectFolder, skipTests: skipTests)
         let formulaContent = try makeFormulaContent(formula: formula, releaseResult: releaseResult, archives: archives)
         
@@ -51,13 +52,87 @@ private extension PublishCoordinator {
 private extension PublishCoordinator {
     func selectNextVersionNumber(projectPath: String) throws -> String {
         let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: projectPath)
-        print(previousVersion ?? "no previous version")
-        try handleAutoVersionUpdate()
-        fatalError() // TODO: -
+        let versionInput = try getVersionInput(previousVersion: previousVersion)
+        let releaseVersionString = try getReleaseVersionString(resolvedVersionInfo: versionInput, projectPath: projectPath)
+        
+        try handleAutoVersionUpdate(releaseVersionString: releaseVersionString, projectPath: projectPath)
+        
+        return releaseVersionString
     }
     
-    func handleAutoVersionUpdate() throws {
-        // TODO: -
+    func getVersionInput(previousVersion: String?) throws -> ReleaseVersionInfo {
+        var prompt = "\nEnter the version number for this release."
+
+        if let previousVersion {
+            prompt.append("\nPrevious release: \(previousVersion.yellow) (To increment, type either \("major".bold), \("minor".bold), or \("patch".bold))")
+        } else {
+            prompt.append(" (v1.1.0 or 1.1.0)")
+        }
+
+        let input = try picker.getRequiredInput(prompt: prompt)
+
+        if let versionPart = ReleaseVersionInfo.VersionPart(string: input) {
+            return .increment(versionPart)
+        }
+
+        return .version(input)
+    }
+    
+    func handleAutoVersionUpdate(releaseVersionString: String, projectPath: String) throws {
+        let autoVersionHandler = AutoVersionHandler(shell: shell, fileSystem: fileSystem)
+        
+        // Try to detect current version in the executable
+        guard let currentVersion = try autoVersionHandler.detectArgumentParserVersion(projectPath: projectPath) else {
+            // No version found in source code, nothing to update
+            return
+        }
+        
+        // Check if versions differ
+        guard autoVersionHandler.shouldUpdateVersion(currentVersion: currentVersion, releaseVersion: releaseVersionString) else {
+            // Versions are the same, no update needed
+            return
+        }
+        
+        // Ask user if they want to update the version
+        let prompt = """
+        
+        Current executable version: \(currentVersion.yellow)
+        Release version: \(releaseVersionString.green)
+        
+        Would you like to update the version in the source code?
+        """
+        
+        guard picker.getPermission(prompt: prompt) else {
+            return
+        }
+        
+        // Update the version in source code
+        guard try autoVersionHandler.updateArgumentParserVersion(projectPath: projectPath, newVersion: releaseVersionString) else {
+            print("Failed to update version in source code.")
+            return
+        }
+        
+        // Commit the version update
+        try commitVersionUpdate(version: releaseVersionString, projectPath: projectPath)
+        
+        print("✅ Updated version to \(releaseVersionString.green) and committed changes.")
+    }
+    
+    func getReleaseVersionString(resolvedVersionInfo: ReleaseVersionInfo, projectPath: String) throws -> String {
+        switch resolvedVersionInfo {
+        case .version(let versionString):
+            return versionString
+        case .increment(let versionPart):
+            guard let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: projectPath) else {
+                throw NnexError.noPreviousVersionToIncrement
+            }
+            return try VersionHandler.incrementVersion(for: versionPart, path: projectPath, previousVersion: previousVersion)
+        }
+    }
+    
+    func commitVersionUpdate(version: String, projectPath: String) throws {
+        let commitMessage = "Update version to \(version)"
+        try gitHandler.commitAndPush(message: commitMessage, path: projectPath)
     }
 }
 
@@ -65,9 +140,9 @@ private extension PublishCoordinator {
 // MARK: - BuildResult
 private extension PublishCoordinator {
     func buildExecutable(projectFolder: any Directory, buildType: BuildType) throws -> BuildResult {
-        let existingFormula = loadExistingFormula(named: projectFolder.name)
+        let existingFormula = temporaryProtocol.loadExistingFormula(named: projectFolder.name)
         
-        return try buildExecutable(
+        return try temporaryProtocol.buildExecutable(
             projectFolder: projectFolder,
             buildType: buildType,
             clean: true,
@@ -76,37 +151,11 @@ private extension PublishCoordinator {
             testCommand: existingFormula?.testCommand
         )
     }
-    
-    func loadExistingFormula(named name: String) -> HomebrewFormula? {
-        return nil // TODO: -
-    }
-    
-    func buildExecutable(projectFolder: any Directory, buildType: BuildType, clean: Bool, outputLocation: BuildOutputLocation?, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult {
-        fatalError() // TODO: -
-    }
 }
 
 
-// MARK: - Release
+// MARK: - ReleaseNotes
 private extension PublishCoordinator {
-    func selectReleaseInfo(executableName: String, nextVersionNumber: String, notes: String?, notesFilePath: String?) throws -> NewReleaseInfo {
-        let noteSource = try selectReleaseNoteSource(notes: notes, notesFilePath: notesFilePath, projectName: executableName)
-        
-        return .init(executableName: executableName, noteSource: noteSource)
-    }
-    
-    func uploadRelease(archives: [ArchivedBinary], releaseInfo: NewReleaseInfo, path: String) throws -> ReleaseResult {
-        let releaseNumber = try extractReleaseNumber(from: releaseInfo)
-        
-        let assetURLs = try createNewRelease(number: releaseNumber, binaries: archives, noteSource: releaseInfo.noteSource, projectPath: path)
-        
-        return .init(assetURLs: assetURLs, versionNumber: releaseNumber, executableName: releaseInfo.executableName)
-    }
-    
-    func extractReleaseNumber(from info: NewReleaseInfo) throws -> String {
-        fatalError()
-    }
-    
     func selectReleaseNoteSource(notes: String?, notesFilePath: String?, projectName: String) throws -> ReleaseNoteSource {
         if let notes {
             return .exact(notes)
@@ -132,11 +181,20 @@ private extension PublishCoordinator {
         case .createFile:
             let fileUtility = ReleaseNotesFileUtility(picker: picker, fileSystem: fileSystem, dateProvider: dateProvider)
             let filePath = try fileUtility.createAndOpenNewNoteFile(projectName: projectName)
+            let confirmedPath = try fileUtility.validateAndConfirmNoteFilePath(filePath)
             
-            print("filePath: \(filePath)") // TODO: -
-            fatalError()
-//            return try fileUtility.validateAndConfirmNoteFile(releaseNotesFile)
+            return .filePath(confirmedPath)
         }
+    }
+}
+
+
+// MARK: - Release
+private extension PublishCoordinator {
+    func uploadRelease(archives: [ArchivedBinary], executableName: String, releaseNumber: String, noteSource: ReleaseNoteSource, projectPath: String) throws -> ReleaseResult {
+        let assetURLs = try createNewRelease(number: releaseNumber, binaries: archives, noteSource: noteSource, projectPath: projectPath)
+        
+        return .init(assetURLs: assetURLs, versionNumber: releaseNumber, executableName: executableName)
     }
     
     func createNewRelease(number: String, binaries: [ArchivedBinary], noteSource: ReleaseNoteSource, projectPath: String) throws -> [String] {
@@ -148,7 +206,7 @@ private extension PublishCoordinator {
 // MARK: - FormulaContent
 private extension PublishCoordinator {
     func getFormula(projectFolder: any Directory, skipTests: Bool) throws -> HomebrewFormula {
-        let allTaps = try loadAllTaps()
+        let allTaps = try temporaryProtocol.loadAllTaps()
         let tap = try getTap(allTaps: allTaps, projectName: projectFolder.name)
         
         if var formula = tap.formulas.first(where: { $0.name.matches(projectFolder.name) }) {
@@ -156,7 +214,7 @@ private extension PublishCoordinator {
             // this is necessary if formulae have been imported and do not have the correct localProjectPath set
             if formula.localProjectPath.isEmpty || formula.localProjectPath != projectFolder.path {
                 formula.localProjectPath = projectFolder.path
-                try updateFormula(formula)
+                try temporaryProtocol.updateFormula(formula)
             }
            
             return formula
@@ -165,20 +223,8 @@ private extension PublishCoordinator {
         try picker.requiredPermission(prompt: "Could not find existing formula for \(projectFolder.name.yellow) in \(tap.name).\nWould you like to create a new one?")
         
         let newFormula = try createNewFormula(for: projectFolder, skipTests: skipTests)
-        try saveNewFormula(newFormula, in: tap)
+        try temporaryProtocol.saveNewFormula(newFormula, in: tap)
         return newFormula
-    }
-    
-    func updateFormula(_ formula: HomebrewFormula) throws {
-        fatalError() // TODO: -
-    }
-    
-    func saveNewFormula(_ formula: HomebrewFormula, in tap: HomebrewTap) throws {
-        fatalError() // TODO: -
-    }
-    
-    func loadAllTaps() throws -> [HomebrewTap] {
-        return [] // TODO: -
     }
     
     func getTap(allTaps: [HomebrewTap], projectName: String) throws -> HomebrewTap {
@@ -347,6 +393,7 @@ private extension PublishCoordinator {
 private extension PublishCoordinator {
     struct NewReleaseInfo {
         let executableName: String
+        let nextReleaseNumber: String
         let noteSource: ReleaseNoteSource
     }
     
@@ -365,5 +412,39 @@ private extension PublishCoordinator {
 extension PublishCoordinator {
     enum NoteContentType: CaseIterable {
         case direct, selectFile, fromPath, createFile
+    }
+}
+
+protocol TemporaryPublishProtocol {
+    func loadExistingFormula(named name: String) -> HomebrewFormula?
+    func buildExecutable(projectFolder: any Directory, buildType: BuildType, clean: Bool, outputLocation: BuildOutputLocation?, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult
+    func updateFormula(_ formula: HomebrewFormula) throws
+    func saveNewFormula(_ formula: HomebrewFormula, in tap: HomebrewTap) throws
+    func loadAllTaps() throws -> [HomebrewTap]
+}
+
+struct TemporaryPublishAdapter: TemporaryPublishProtocol {
+    private let context: NnexContext
+    private let buildController: BuildController
+    
+    func loadExistingFormula(named name: String) -> HomebrewFormula? {
+        // TODO: - 
+        return nil
+    }
+    
+    func buildExecutable(projectFolder: any Directory, buildType: BuildType, clean: Bool, outputLocation: BuildOutputLocation?, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult {
+        return try buildController.buildExecutable(projectFolder: projectFolder, buildType: buildType, clean: clean, outputLocation: outputLocation, extraBuildArgs: extraBuildArgs, testCommand: testCommand)
+    }
+    
+    func updateFormula(_ formula: HomebrewFormula) throws {
+        // TODO: -
+    }
+    
+    func saveNewFormula(_ formula: HomebrewFormula, in tap: HomebrewTap) throws {
+        // TODO: -
+    }
+    
+    func loadAllTaps() throws -> [HomebrewTap] {
+        return try context.loadTaps().map({ HomebrewTapMapper.toDomain($0) })
     }
 }

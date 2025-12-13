@@ -75,6 +75,24 @@ extension ReleaseNotesFileUtility {
 
         return .init(content: filePath, isFromFile: true)
     }
+    
+    func validateAndConfirmNoteFilePath(_ filePath: String) throws -> String {
+        try picker.requiredPermission(prompt: "Did you add your release notes to \(filePath)?")
+
+        let notesContent = try fileSystem.readFile(at: filePath)
+
+        if notesContent.isEmpty {
+            try picker.requiredPermission(prompt: "The file looks empty. Make sure to save your changes then type 'y' to proceed. Type 'n' to cancel")
+
+            let notesContent = try fileSystem.readFile(at: filePath)
+
+            if notesContent.isEmpty {
+                throw ReleaseNotesError.emptyFileAfterRetry(filePath: filePath)
+            }
+        }
+
+        return filePath
+    }
 }
 
 
