@@ -53,9 +53,9 @@ extension FormulaPublishControllerTests {
         let armArchive = ArchivedBinary(originalPath: "/tmp/.build/arm64-apple-macosx/release/tool", archivePath: "/tmp/tool-arm64.tar.gz", sha256: "arm")
         let intelArchive = ArchivedBinary(originalPath: "/tmp/.build/x86_64-apple-macosx/release/tool", archivePath: "/tmp/tool-x86_64.tar.gz", sha256: "intel")
         let info = FormulaPublishInfo(version: "1.0.0", installName: "tool", assetURLs: ["arm-url", "intel-url"], archives: [armArchive, intelArchive])
-        let result = makeSUT(taps: [tap], directoryMap: [tapPath: tapDirectory])
+        let (sut, _, project) = makeSUT(taps: [tap], directoryMap: [tapPath: tapDirectory])
 
-        try result.sut.publishFormula(projectFolder: result.project, info: info, commitMessage: nil)
+        try sut.publishFormula(projectFolder: project, info: info, commitMessage: nil)
 
         let content = try formulaFolder.readFile(named: "tool.rb")
         #expect(content.contains("arm-url"))
@@ -163,7 +163,7 @@ private extension FormulaPublishControllerTests {
 
     func makePublishInfo(assetURLs: [String]) -> FormulaPublishInfo {
         let archive = ArchivedBinary(originalPath: "/tmp/tool", archivePath: "/tmp/tool.tar.gz", sha256: "abc123")
-        
+
         return .init(version: "1.0.0", installName: "tool", assetURLs: assetURLs, archives: [archive])
     }
 }
