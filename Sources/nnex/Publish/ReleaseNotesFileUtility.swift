@@ -96,11 +96,6 @@ extension ReleaseNotesFileUtility {
 }
 
 
-// MARK: - Dependencies
-protocol DateProvider {
-    var currentDate: Date { get }
-}
-
 
 // MARK: - Extension Dependencies
 private extension Date {
