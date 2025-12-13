@@ -6,6 +6,7 @@
 //
 
 import NnexKit
+import GitShellKit
 
 struct PublishCoordinator {
     private let shell: any NnexShell
@@ -15,17 +16,27 @@ struct PublishCoordinator {
     private let dateProvider: any DateProvider
     private let folderBrowser: any DirectoryBrowser
     private let temporaryProtocol: any TemporaryPublishProtocol
+    
+    init(shell: any NnexShell, picker: any NnexPicker, fileSystem: any FileSystem, gitHandler: any GitHandler, dateProvider: any DateProvider, folderBrowser: any DirectoryBrowser, temporaryProtocol: any TemporaryPublishProtocol) {
+        self.shell = shell
+        self.picker = picker
+        self.fileSystem = fileSystem
+        self.gitHandler = gitHandler
+        self.dateProvider = dateProvider
+        self.folderBrowser = folderBrowser
+        self.temporaryProtocol = temporaryProtocol
+    }
 }
 
 
 // MARK: -
 extension PublishCoordinator {
-    func publish(projectPath: String?, buildType: BuildType, notes: String?, notesFilePath: String?, commitMessage: String?, skipTests: Bool) throws {
+    func publish(projectPath: String?, buildType: BuildType, notes: String?, notesFilePath: String?, commitMessage: String?, skipTests: Bool, version: ReleaseVersionInfo?) throws {
         let projectFolder = try fileSystem.getDirectoryAtPathOrCurrent(path: projectPath)
         
         try verifyPublishRequirements(at: projectFolder.path)
         
-        let nextVersionNumber = try selectNextVersionNumber(projectPath: projectFolder.path)
+        let nextVersionNumber = try selectNextVersionNumber(projectPath: projectFolder.path, versionInfo: version)
         let buildResult = try buildExecutable(projectFolder: projectFolder, buildType: buildType)
         let archives = try makeArchives(result: buildResult)
         let noteSoure = try selectReleaseNoteSource(notes: notes, notesFilePath: notesFilePath, projectName: projectFolder.name)
@@ -42,17 +53,32 @@ extension PublishCoordinator {
 private extension PublishCoordinator {
     func verifyPublishRequirements(at path: String) throws {
         try gitHandler.checkForGitHubCLI()
-        try gitHandler.ensureNoUncommittedChanges(at: path)
+        try ensureNoUncommittedChanges(at: path)
         // TODO: - check for main branch?
+    }
+    
+    func ensureNoUncommittedChanges(at path: String) throws {
+        let result = try shell.bash("cd \"\(path)\" && git status --porcelain")
+        
+        if !result.isEmpty {
+            print("""
+            There are uncommitted changes in the repository at \(path.yellow):
+            
+            \(result)
+            
+            Please commit or stash your changes before publishing.
+            """)
+            throw PublishExecutionError.uncommittedChanges
+        }
     }
 }
 
 
 // MARK: - Next Version Number
 private extension PublishCoordinator {
-    func selectNextVersionNumber(projectPath: String) throws -> String {
+    func selectNextVersionNumber(projectPath: String, versionInfo: ReleaseVersionInfo?) throws -> String {
         let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: projectPath)
-        let versionInput = try getVersionInput(previousVersion: previousVersion)
+        let versionInput = try versionInfo ?? getVersionInput(previousVersion: previousVersion)
         let releaseVersionString = try getReleaseVersionString(resolvedVersionInfo: versionInput, projectPath: projectPath)
         
         try handleAutoVersionUpdate(releaseVersionString: releaseVersionString, projectPath: projectPath)
@@ -198,7 +224,16 @@ private extension PublishCoordinator {
     }
     
     func createNewRelease(number: String, binaries: [ArchivedBinary], noteSource: ReleaseNoteSource, projectPath: String) throws -> [String] {
-        fatalError()
+        let noteInfo: ReleaseNoteInfo
+        
+        switch noteSource {
+        case .exact(let notes):
+            noteInfo = .init(content: notes, isFromFile: false)
+        case .filePath(let filePath):
+            noteInfo = .init(content: filePath, isFromFile: true)
+        }
+        
+        return try gitHandler.createNewRelease(version: number, archivedBinaries: binaries, releaseNoteInfo: noteInfo, path: projectPath)
     }
 }
 
@@ -426,10 +461,16 @@ protocol TemporaryPublishProtocol {
 struct TemporaryPublishAdapter: TemporaryPublishProtocol {
     private let context: NnexContext
     private let buildController: BuildController
+    private let publishInfoStoreAdatper: PublishInfoStoreAdapter
+    
+    init(context: NnexContext, buildController: BuildController, publishInfoStoreAdatper: PublishInfoStoreAdapter) {
+        self.context = context
+        self.buildController = buildController
+        self.publishInfoStoreAdatper = publishInfoStoreAdatper
+    }
     
     func loadExistingFormula(named name: String) -> HomebrewFormula? {
-        // TODO: - 
-        return nil
+        return try? loadAllTaps().flatMap({ $0.formulas }).first(where: { $0.name.matches(name) })
     }
     
     func buildExecutable(projectFolder: any Directory, buildType: BuildType, clean: Bool, outputLocation: BuildOutputLocation?, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult {
@@ -437,14 +478,14 @@ struct TemporaryPublishAdapter: TemporaryPublishProtocol {
     }
     
     func updateFormula(_ formula: HomebrewFormula) throws {
-        // TODO: -
+        try publishInfoStoreAdatper.updateFormula(formula)
     }
     
     func saveNewFormula(_ formula: HomebrewFormula, in tap: HomebrewTap) throws {
-        // TODO: -
+        try publishInfoStoreAdatper.saveNewFormula(formula, in: tap)
     }
     
     func loadAllTaps() throws -> [HomebrewTap] {
-        return try context.loadTaps().map({ HomebrewTapMapper.toDomain($0) })
+        return try publishInfoStoreAdatper.loadTaps()
     }
 }

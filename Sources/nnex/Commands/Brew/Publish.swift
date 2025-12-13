@@ -42,12 +42,21 @@ extension Nnex.Brew {
             let fileSystem = Nnex.makeFileSystem()
             let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
             let resolvedBuildType = buildType ?? context.loadDefaultBuildType()
-            let projectFolder = try fileSystem.getProjectFolder(at: path)
-            let store = PublishInfoStoreAdapter(context: context)
-            let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, gitHandler: gitHandler, store: store, projectFolder: projectFolder, skipTests: skipTests)
-            let manager = PublishExecutionManager(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, folderBrowser: folderBrowser, publishInfoLoader: publishInfoLoader)
             
-            try manager.executePublish(projectFolder: projectFolder, version: version, buildType: resolvedBuildType, notes: notes, notesFile: notesFile, message: message, skipTests: skipTests)
+            let dateProvider = DefaultDateProvider()
+            let manager = BuildManager(shell: shell, fileSystem: fileSystem)
+            let buildController = BuildController(shell: shell, picker: picker, fileSystem: fileSystem, buildService: manager, folderBrowser: folderBrowser)
+            let publishAdapter = PublishInfoStoreAdapter(context: context)
+            let temp = TemporaryPublishAdapter(context: context, buildController: buildController, publishInfoStoreAdatper: publishAdapter)
+            let coordinator = PublishCoordinator(shell: shell, picker: picker, fileSystem: fileSystem, gitHandler: gitHandler, dateProvider: dateProvider, folderBrowser: folderBrowser, temporaryProtocol: temp)
+            
+            try coordinator.publish(projectPath: path, buildType: resolvedBuildType, notes: notes, notesFilePath: notesFile, commitMessage: message, skipTests: skipTests, version: version)
+//            let projectFolder = try fileSystem.getProjectFolder(at: path)
+//            let store = PublishInfoStoreAdapter(context: context)
+//            let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, gitHandler: gitHandler, store: store, projectFolder: projectFolder, skipTests: skipTests)
+//            let manager = PublishExecutionManager(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, folderBrowser: folderBrowser, publishInfoLoader: publishInfoLoader)
+//            
+//            try manager.executePublish(projectFolder: projectFolder, version: version, buildType: resolvedBuildType, notes: notes, notesFile: notesFile, message: message, skipTests: skipTests)
         }
     }
 }
