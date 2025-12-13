@@ -157,9 +157,3 @@ protocol ArtifactDelegate {
     func loadTaps() throws -> [HomebrewTap]
     func buildExecutable(projectFolder: any Directory, buildType: BuildType, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult
 }
-
-struct ReleaseArtifact {
-    let version: String
-    let executableName: String
-    let archives: [ArchivedBinary]
-}

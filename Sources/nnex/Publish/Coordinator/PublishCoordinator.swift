@@ -60,7 +60,7 @@ private extension PublishCoordinator {
             
             Please commit or stash your changes before publishing.
             """)
-            throw PublishExecutionError.uncommittedChanges
+            throw NnexError.invalidTapName // TODO: - 
         }
     }
 }

@@ -27,7 +27,7 @@ extension PublishDelegateAdapter: PublishDelegate {
     }
     
     func uploadRelease(version: String, assets: [ArchivedBinary], notes: String?, notesFilePath: String?, projectFolder: any Directory) throws -> [String] {
-        return try releaseController.uploadRelease(version: version, assets: assets, notes: notes, notesFilePath: notes, projectFolder: projectFolder)
+        return try releaseController.uploadRelease(version: version, assets: assets, notes: notes, notesFilePath: notesFilePath, projectFolder: projectFolder)
     }
     
     func publishFormula(projectFolder: any Directory, info: FormulaPublishInfo, commitMessage: String?) throws {

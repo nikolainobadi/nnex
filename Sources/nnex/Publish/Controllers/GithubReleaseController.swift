@@ -113,15 +113,6 @@ protocol DateProvider {
     var currentDate: Date { get }
 }
 
-enum ReleaseNoteSource {
-    case exact(String)
-    case filePath(String)
-}
-
-enum NoteContentType: CaseIterable {
-    case direct, selectFile, fromPath, createFile
-}
-
 
 // MARK: - Extension Dependencies
 private extension Date {

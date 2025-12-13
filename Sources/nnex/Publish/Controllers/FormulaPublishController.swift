@@ -196,12 +196,3 @@ private extension FormulaPublishController {
         return try picker.getRequiredInput(prompt: "Enter your commit message.")
     }
 }
-
-
-// MARK: - Dependencies
-struct FormulaPublishInfo {
-    let version: String
-    let installName: String
-    let assetURLs: [String]
-    let archives: [ArchivedBinary]
-}
