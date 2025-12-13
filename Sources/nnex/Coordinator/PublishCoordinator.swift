@@ -17,7 +17,7 @@ struct PublishCoordinator {
 
 // MARK: -
 extension PublishCoordinator {
-    func publish(projectPath: String?, buildType: BuildType, commitMessage: String?) throws {
+    func publish(projectPath: String?, buildType: BuildType, commitMessage: String?, skipTests: Bool) throws {
         let projectFolder = try fileSystem.getDirectoryAtPathOrCurrent(path: projectPath)
         
         try verifyPublishRequirements(at: projectFolder.path)
@@ -26,8 +26,8 @@ extension PublishCoordinator {
         let archives = try buildReleaseArchives(projectFolder: projectFolder, buildType: buildType)
         let releaseInfo = try selectReleaseInfo(nextVersionNumber: nextVersionNumber)
         let releaseResult = try uploadRelease(archives: archives, releaseInfo: releaseInfo, path: projectFolder.path)
-        let formula = try getFormula()
-        let formulaContent = try makeFormulaContent(formula: formula, releaseResult: releaseResult)
+        let formula = try getFormula(projectFolder: projectFolder, skipTests: skipTests)
+        let formulaContent = try makeFormulaContent(formula: formula, releaseResult: releaseResult, archives: archives)
         
         try publishFormula(formula, content: formulaContent, message: commitMessage)
     }
@@ -128,12 +128,147 @@ private extension PublishCoordinator {
 
 // MARK: - FormulaContent
 private extension PublishCoordinator {
-    func getFormula() throws -> HomebrewFormula {
+    func getFormula(projectFolder: any Directory, skipTests: Bool) throws -> HomebrewFormula {
+        let allTaps = try loadAllTaps()
+        let tap = try getTap(allTaps: allTaps, projectName: projectFolder.name)
+        
+        if var formula = tap.formulas.first(where: { $0.name.matches(projectFolder.name) }) {
+            // Update the formula's localProjectPath if needed
+            // this is necessary if formulae have been imported and do not have the correct localProjectPath set
+            if formula.localProjectPath.isEmpty || formula.localProjectPath != projectFolder.path {
+                formula.localProjectPath = projectFolder.path
+                try updateFormula(formula)
+            }
+           
+            return formula
+        }
+        
+        try picker.requiredPermission(prompt: "Could not find existing formula for \(projectFolder.name.yellow) in \(tap.name).\nWould you like to create a new one?")
+        
+        let newFormula = try createNewFormula(for: projectFolder, skipTests: skipTests)
+        try saveNewFormula(newFormula, in: tap)
+        return newFormula
+    }
+    
+    func updateFormula(_ formula: HomebrewFormula) throws {
         fatalError() // TODO: -
     }
     
-    func makeFormulaContent(formula: HomebrewFormula, releaseResult: ReleaseResult) throws -> String {
+    func saveNewFormula(_ formula: HomebrewFormula, in tap: HomebrewTap) throws {
         fatalError() // TODO: -
+    }
+    
+    func loadAllTaps() throws -> [HomebrewTap] {
+        return [] // TODO: -
+    }
+    
+    func getTap(allTaps: [HomebrewTap], projectName: String) throws -> HomebrewTap {
+        if let tap = allTaps.first(where: { tap in
+            tap.formulas.contains(where: { $0.name.matches(projectName) })
+        }) {
+            return tap
+        }
+        
+        return try picker.requiredSingleSelection("\(projectName) does not yet have a formula. Select a tap for this formula.", items: allTaps)
+    }
+    
+    func createNewFormula(for folder: any Directory, skipTests: Bool) throws -> HomebrewFormula {
+        let details = try picker.getRequiredInput(prompt: "Enter the description for this formula.")
+        let homepage = try gitHandler.getRemoteURL(path: folder.path)
+        let license = LicenseDetector.detectLicense(in: folder)
+        let testCommand = try getTestCommand(skipTests: skipTests)
+        
+        return .init(
+            name: folder.name,
+            details: details,
+            homepage: homepage,
+            license: license,
+            localProjectPath: folder.path,
+            uploadType: .tarball,
+            testCommand: testCommand,
+            extraBuildArgs: []
+        )
+    }
+    
+    func getTestCommand(skipTests: Bool) throws -> HomebrewFormula.TestCommand? {
+        if skipTests {
+            return nil
+        }
+        
+        switch try picker.requiredSingleSelection("How would you like to handle tests?", items: FormulaTestType.allCases) {
+        case .custom:
+            let command = try picker.getRequiredInput(prompt: "Enter the test command that you would like to use.")
+            
+            return .custom(command)
+        case .packageDefault:
+            return .defaultCommand
+        case .noTests:
+            return nil
+        }
+    }
+    
+    func makeFormulaContent(formula: HomebrewFormula, releaseResult: ReleaseResult, archives: [ArchivedBinary]) throws -> String {
+        let formulaName = formula.name
+        let details = formula.details
+        let homepage = formula.homepage
+        let license = formula.license
+        let assetURLs = releaseResult.assetURLs
+        let version = releaseResult.versionNumber
+        let installName = releaseResult.executableName
+        
+        if archives.count == 1 {
+            guard let assetURL = assetURLs.first, let sha256 = archives.first?.sha256 else {
+                throw NnexError.missingSha256 // Should create a better error for missing URL
+            }
+            
+            return FormulaContentGenerator.makeFormulaFileContent(
+                formulaName: formulaName,
+                installName: installName,
+                details: details,
+                homepage: homepage,
+                license: license,
+                version: version,
+                assetURL: assetURL,
+                sha256: sha256
+            )
+        } else {
+            var armArchive: ArchivedBinary?
+            var intelArchive: ArchivedBinary?
+            
+            for archive in archives {
+                if archive.originalPath.contains("arm64-apple-macosx") {
+                    armArchive = archive
+                } else if archive.originalPath.contains("x86_64-apple-macosx") {
+                    intelArchive = archive
+                }
+            }
+            
+            // Extract URLs - assuming first is ARM, second is Intel when both present
+            var armURL: String?
+            var intelURL: String?
+            
+            if armArchive != nil && intelArchive != nil {
+                armURL = assetURLs.count > 0 ? assetURLs[0] : nil
+                intelURL = assetURLs.count > 1 ? assetURLs[1] : nil
+            } else if armArchive != nil {
+                armURL = assetURLs.first
+            } else if intelArchive != nil {
+                intelURL = assetURLs.first
+            }
+            
+            return FormulaContentGenerator.makeFormulaFileContent(
+                formulaName: formulaName,
+                installName: installName,
+                details: details,
+                homepage: homepage,
+                license: license,
+                version: version,
+                armURL: armURL,
+                armSHA256: armArchive?.sha256,
+                intelURL: intelURL,
+                intelSHA256: intelArchive?.sha256
+            )
+        }
     }
 }
 
@@ -173,22 +308,6 @@ private extension PublishCoordinator {
 
         return try picker.getRequiredInput(prompt: "Enter your commit message.")
     }
-}
-
-// MARK: - BuildExecutable
-private extension PublishCoordinator {
-//    func buildExecutable(projectFolder: any Directory, buildType: BuildType) throws -> BuildResult {
-//        let existingFormula = publishService.loadFormula(named: projectFolder.name)
-//
-//        return try publishBuilder.buildExecutable(
-//            projectFolder: projectFolder,
-//            buildType: buildType,
-//            clean: true,
-//            outputLocation: .currentDirectory(buildType),
-//            extraBuildArgs: existingFormula?.extraBuildArgs ?? [],
-//            testCommand: existingFormula?.testCommand
-//        )
-//    }
 }
 
 
