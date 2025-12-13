@@ -1,5 +1,5 @@
 //
-//  PublishCoordinator.swift
+//  OldPublishCoordinator.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 12/12/25.
@@ -8,7 +8,7 @@
 import NnexKit
 import GitShellKit
 
-struct PublishCoordinator {
+struct OldPublishCoordinator {
     private let shell: any NnexShell
     private let picker: any NnexPicker
     private let fileSystem: any FileSystem
@@ -30,7 +30,7 @@ struct PublishCoordinator {
 
 
 // MARK: -
-extension PublishCoordinator {
+extension OldPublishCoordinator {
     func publish(projectPath: String?, buildType: BuildType, notes: String?, notesFilePath: String?, commitMessage: String?, skipTests: Bool, version: ReleaseVersionInfo?) throws {
         let projectFolder = try fileSystem.getDirectoryAtPathOrCurrent(path: projectPath)
         
@@ -50,7 +50,7 @@ extension PublishCoordinator {
 
 
 // MARK: - Git Methods
-private extension PublishCoordinator {
+private extension OldPublishCoordinator {
     func verifyPublishRequirements(at path: String) throws {
         try gitHandler.checkForGitHubCLI()
         try ensureNoUncommittedChanges(at: path)
@@ -75,7 +75,7 @@ private extension PublishCoordinator {
 
 
 // MARK: - Next Version Number
-private extension PublishCoordinator {
+private extension OldPublishCoordinator {
     func selectNextVersionNumber(projectPath: String, versionInfo: ReleaseVersionInfo?) throws -> String {
         let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: projectPath)
         let versionInput = try versionInfo ?? getVersionInput(previousVersion: previousVersion)
@@ -164,7 +164,7 @@ private extension PublishCoordinator {
 
 
 // MARK: - BuildResult
-private extension PublishCoordinator {
+private extension OldPublishCoordinator {
     func buildExecutable(projectFolder: any Directory, buildType: BuildType) throws -> BuildResult {
         let existingFormula = temporaryProtocol.loadExistingFormula(named: projectFolder.name)
         
@@ -181,7 +181,7 @@ private extension PublishCoordinator {
 
 
 // MARK: - ReleaseNotes
-private extension PublishCoordinator {
+private extension OldPublishCoordinator {
     func selectReleaseNoteSource(notes: String?, notesFilePath: String?, projectName: String) throws -> ReleaseNoteSource {
         if let notes {
             return .exact(notes)
@@ -216,7 +216,7 @@ private extension PublishCoordinator {
 
 
 // MARK: - Release
-private extension PublishCoordinator {
+private extension OldPublishCoordinator {
     func uploadRelease(archives: [ArchivedBinary], executableName: String, releaseNumber: String, noteSource: ReleaseNoteSource, projectPath: String) throws -> ReleaseResult {
         let assetURLs = try createNewRelease(number: releaseNumber, binaries: archives, noteSource: noteSource, projectPath: projectPath)
         
@@ -239,7 +239,7 @@ private extension PublishCoordinator {
 
 
 // MARK: - FormulaContent
-private extension PublishCoordinator {
+private extension OldPublishCoordinator {
     func getFormula(projectFolder: any Directory, skipTests: Bool) throws -> HomebrewFormula {
         let allTaps = try temporaryProtocol.loadAllTaps()
         let tap = try getTap(allTaps: allTaps, projectName: projectFolder.name)
@@ -374,7 +374,7 @@ private extension PublishCoordinator {
 
 
 // MARK: - Private Methods
-private extension PublishCoordinator {
+private extension OldPublishCoordinator {
     func makeArchives(result: BuildResult) throws -> [ArchivedBinary] {
         let archiver = BinaryArchiver(shell: shell)
         
@@ -425,7 +425,7 @@ private extension PublishCoordinator {
 
 
 // MARK: - Dependencies
-private extension PublishCoordinator {
+private extension OldPublishCoordinator {
     struct NewReleaseInfo {
         let executableName: String
         let nextReleaseNumber: String
@@ -444,7 +444,7 @@ private extension PublishCoordinator {
     }
 }
 
-extension PublishCoordinator {
+extension OldPublishCoordinator {
     enum NoteContentType: CaseIterable {
         case direct, selectFile, fromPath, createFile
     }

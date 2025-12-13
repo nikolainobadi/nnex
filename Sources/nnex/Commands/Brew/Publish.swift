@@ -48,7 +48,7 @@ extension Nnex.Brew {
             let buildController = BuildController(shell: shell, picker: picker, fileSystem: fileSystem, buildService: manager, folderBrowser: folderBrowser)
             let publishAdapter = PublishInfoStoreAdapter(context: context)
             let temp = TemporaryPublishAdapter(context: context, buildController: buildController, publishInfoStoreAdatper: publishAdapter)
-            let coordinator = PublishCoordinator(shell: shell, picker: picker, fileSystem: fileSystem, gitHandler: gitHandler, dateProvider: dateProvider, folderBrowser: folderBrowser, temporaryProtocol: temp)
+            let coordinator = OldPublishCoordinator(shell: shell, picker: picker, fileSystem: fileSystem, gitHandler: gitHandler, dateProvider: dateProvider, folderBrowser: folderBrowser, temporaryProtocol: temp)
             
             try coordinator.publish(projectPath: path, buildType: resolvedBuildType, notes: notes, notesFilePath: notesFile, commitMessage: message, skipTests: skipTests, version: version)
 //            let projectFolder = try fileSystem.getProjectFolder(at: path)

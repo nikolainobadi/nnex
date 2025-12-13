@@ -91,7 +91,7 @@ extension ReleaseNotesHandler.NoteContentType: DisplayablePickerItem {
     }
 }
 
-extension PublishCoordinator.NoteContentType: DisplayablePickerItem {
+extension OldPublishCoordinator.NoteContentType: DisplayablePickerItem {
     var displayName: String {
         switch self {
         case .direct:
