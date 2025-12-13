@@ -44,7 +44,7 @@ final class FormulaPublishControllerTests {
         let tap2 = HomebrewTap(name: "Second", localPath: tap2Path, remotePath: "", formulas: [])
         let project = MockDirectory(path: "/projects/tool", containedFiles: ["LICENSE"])
         project.fileContents["LICENSE"] = "MIT License"
-        let fileSystem = MockFileSystem(directoryMap: ["": tap2Directory, tap2Path: tap2Directory])
+        let fileSystem = MockFileSystem(directoryMap: ["": tap2Directory, tap2Path: tap2Directory, project.path: project])
         let picker = FormulaPublishControllerTests.makePicker(inputResults: ["A tool"], selectionIndex: 1, permissionResults: [true, false])
         let gitHandler = MockGitHandler(remoteURL: "https://example.com/repo.git")
         let info = makePublishInfo(assetURLs: ["https://example.com/tool.tar.gz"])

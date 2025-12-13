@@ -32,4 +32,5 @@ public enum NnexError: Error {
     
     case missingExecutable
     case selectionRequired
+    case uncommittedChanges
 }
