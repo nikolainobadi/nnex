@@ -39,6 +39,7 @@ extension OldPublishCoordinator {
         let nextVersionNumber = try selectNextVersionNumber(projectPath: projectFolder.path, versionInfo: version)
         let buildResult = try buildExecutable(projectFolder: projectFolder, buildType: buildType)
         let archives = try makeArchives(result: buildResult)
+        
         let noteSoure = try selectReleaseNoteSource(notes: notes, notesFilePath: notesFilePath, projectName: projectFolder.name)
         let releaseResult = try uploadRelease(archives: archives, executableName: buildResult.executableName, releaseNumber: nextVersionNumber, noteSource: noteSoure, projectPath: projectFolder.path)
         let formula = try getFormula(projectFolder: projectFolder, skipTests: skipTests)

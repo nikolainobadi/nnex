@@ -26,7 +26,7 @@ struct GithubReleaseController {
 }
 
 
-// MARK: -
+// MARK: - UploadRelease
 extension GithubReleaseController {
     func uploadRelease(version: String, assets: [ArchivedBinary], notes: String?, notesFilePath: String?, projectFolder: any Directory) throws -> [String] {
         let noteSource = try selectReleaseNoteSource(notes: notes, notesFilePath: notesFilePath, projectName: projectFolder.name)

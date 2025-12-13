@@ -42,8 +42,20 @@ extension Nnex.Brew {
             let fileSystem = Nnex.makeFileSystem()
             let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
             let resolvedBuildType = buildType ?? context.loadDefaultBuildType()
-            
             let dateProvider = DefaultDateProvider()
+            
+//            let buildService = BuildManager(shell: shell, fileSystem: fileSystem)
+//            let buildController = BuildController(shell: shell, picker: picker, fileSystem: fileSystem, buildService: buildService, folderBrowser: folderBrowser)
+//            let loader = PublishInfoStoreAdapter(context: context)
+//            let artifactDelegate = ArtifactDelegateAdapter(loader: loader, buildController: buildController)
+//            let artifactController = ArtifactController(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, delegate: artifactDelegate)
+//            let releaseController = GithubReleaseController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, dateProvider: dateProvider, folderBrowser: folderBrowser)
+//            let publishController = FormulaPublishController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, store: loader)
+//            let delegate = PublishDelegateAdapter(artifactController: artifactController, releaseController: releaseController, publishController: publishController)
+//            let coordinator = PublishCoordinator(shell: shell, gitHandler: gitHandler, fileSystem: fileSystem, delegate: delegate)
+//            
+//            try coordinator.publish(projectPath: path, buildType: resolvedBuildType, notes: notes, notesFilePath: notesFile, commitMessage: message, skipTests: skipTests, versionInfo: version)
+            
             let manager = BuildManager(shell: shell, fileSystem: fileSystem)
             let buildController = BuildController(shell: shell, picker: picker, fileSystem: fileSystem, buildService: manager, folderBrowser: folderBrowser)
             let publishAdapter = PublishInfoStoreAdapter(context: context)
@@ -51,11 +63,12 @@ extension Nnex.Brew {
             let coordinator = OldPublishCoordinator(shell: shell, picker: picker, fileSystem: fileSystem, gitHandler: gitHandler, dateProvider: dateProvider, folderBrowser: folderBrowser, temporaryProtocol: temp)
             
             try coordinator.publish(projectPath: path, buildType: resolvedBuildType, notes: notes, notesFilePath: notesFile, commitMessage: message, skipTests: skipTests, version: version)
+            
 //            let projectFolder = try fileSystem.getProjectFolder(at: path)
 //            let store = PublishInfoStoreAdapter(context: context)
 //            let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, gitHandler: gitHandler, store: store, projectFolder: projectFolder, skipTests: skipTests)
 //            let manager = PublishExecutionManager(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, folderBrowser: folderBrowser, publishInfoLoader: publishInfoLoader)
-//            
+            
 //            try manager.executePublish(projectFolder: projectFolder, version: version, buildType: resolvedBuildType, notes: notes, notesFile: notesFile, message: message, skipTests: skipTests)
         }
     }

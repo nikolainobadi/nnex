@@ -22,7 +22,7 @@ struct FormulaPublishController {
 }
 
 
-// MARK: -
+// MARK: - PublishFormula
 extension FormulaPublishController {
     func publishFormula(projectFolder: any Directory, info: FormulaPublishInfo, commitMessage: String?) throws {
         let formula = try getFormula(projectFolder: projectFolder, skipTests: true)

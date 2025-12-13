@@ -24,7 +24,7 @@ struct ArtifactController {
 }
 
 
-// MARK: -
+// MARK: - BuildArtifacts
 extension ArtifactController {
     func buildArtifacts(projectFolder folder: any Directory, buildType: BuildType, versionInfo: ReleaseVersionInfo?) throws -> ReleaseArtifact {
         let nextVersionNumber = try selectNextVersionNumber(projectPath: folder.path, versionInfo: versionInfo)
