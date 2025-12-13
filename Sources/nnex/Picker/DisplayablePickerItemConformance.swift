@@ -90,3 +90,18 @@ extension ReleaseNotesHandler.NoteContentType: DisplayablePickerItem {
         }
     }
 }
+
+extension PublishCoordinator.NoteContentType: DisplayablePickerItem {
+    var displayName: String {
+        switch self {
+        case .direct:
+            return "Type notes directly"
+        case .selectFile:
+            return "Browse and select file"
+        case .fromPath:
+            return "Enter path to release notes file"
+        case .createFile:
+            return "Create a new file"
+        }
+    }
+}

@@ -12,19 +12,22 @@ struct PublishCoordinator {
     private let picker: any NnexPicker
     private let fileSystem: any FileSystem
     private let gitHandler: any GitHandler
+    private let dateProvider: any DateProvider
+    private let folderBrowser: any DirectoryBrowser
 }
 
 
 // MARK: -
 extension PublishCoordinator {
-    func publish(projectPath: String?, buildType: BuildType, commitMessage: String?, skipTests: Bool) throws {
+    func publish(projectPath: String?, buildType: BuildType, notes: String?, notesFilePath: String?, commitMessage: String?, skipTests: Bool) throws {
         let projectFolder = try fileSystem.getDirectoryAtPathOrCurrent(path: projectPath)
         
         try verifyPublishRequirements(at: projectFolder.path)
         
         let nextVersionNumber = try selectNextVersionNumber(projectPath: projectFolder.path)
-        let archives = try buildReleaseArchives(projectFolder: projectFolder, buildType: buildType)
-        let releaseInfo = try selectReleaseInfo(nextVersionNumber: nextVersionNumber)
+        let buildResult = try buildExecutable(projectFolder: projectFolder, buildType: buildType)
+        let archives = try makeArchives(result: buildResult)
+        let releaseInfo = try selectReleaseInfo(executableName: buildResult.executableName, nextVersionNumber: nextVersionNumber, notes: notes, notesFilePath: notesFilePath)
         let releaseResult = try uploadRelease(archives: archives, releaseInfo: releaseInfo, path: projectFolder.path)
         let formula = try getFormula(projectFolder: projectFolder, skipTests: skipTests)
         let formulaContent = try makeFormulaContent(formula: formula, releaseResult: releaseResult, archives: archives)
@@ -59,11 +62,12 @@ private extension PublishCoordinator {
 }
 
 
-// MARK: - Archives
+// MARK: - BuildResult
 private extension PublishCoordinator {
-    func buildReleaseArchives(projectFolder: any Directory, buildType: BuildType) throws -> [ArchivedBinary] {
+    func buildExecutable(projectFolder: any Directory, buildType: BuildType) throws -> BuildResult {
         let existingFormula = loadExistingFormula(named: projectFolder.name)
-        let result = try buildExecutable(
+        
+        return try buildExecutable(
             projectFolder: projectFolder,
             buildType: buildType,
             clean: true,
@@ -71,21 +75,6 @@ private extension PublishCoordinator {
             extraBuildArgs: existingFormula?.extraBuildArgs ?? [],
             testCommand: existingFormula?.testCommand
         )
-                     
-        return try makeArchives(result: result)
-    }
-    
-    func makeArchives(result: BuildResult) throws -> [ArchivedBinary] {
-        let archiver = BinaryArchiver(shell: shell)
-        
-        switch result.binaryOutput {
-        case .single(let path):
-            return try archiver.createArchives(from: [path])
-        case .multiple(let binaries):
-            let binaryPaths = ReleaseArchitecture.allCases.compactMap({ binaries[$0] })
-            
-            return try archiver.createArchives(from: binaryPaths)
-        }
     }
     
     func loadExistingFormula(named name: String) -> HomebrewFormula? {
@@ -100,14 +89,16 @@ private extension PublishCoordinator {
 
 // MARK: - Release
 private extension PublishCoordinator {
-    func selectReleaseInfo(nextVersionNumber: String) throws -> NewReleaseInfo {
-        fatalError() // TODO: -
+    func selectReleaseInfo(executableName: String, nextVersionNumber: String, notes: String?, notesFilePath: String?) throws -> NewReleaseInfo {
+        let noteSource = try selectReleaseNoteSource(notes: notes, notesFilePath: notesFilePath, projectName: executableName)
+        
+        return .init(executableName: executableName, noteSource: noteSource)
     }
     
     func uploadRelease(archives: [ArchivedBinary], releaseInfo: NewReleaseInfo, path: String) throws -> ReleaseResult {
         let releaseNumber = try extractReleaseNumber(from: releaseInfo)
-        let noteSource = try selectReleaseNoteSource()
-        let assetURLs = try createNewRelease(number: releaseNumber, binaries: archives, noteSource: noteSource, projectPath: path)
+        
+        let assetURLs = try createNewRelease(number: releaseNumber, binaries: archives, noteSource: releaseInfo.noteSource, projectPath: path)
         
         return .init(assetURLs: assetURLs, versionNumber: releaseNumber, executableName: releaseInfo.executableName)
     }
@@ -116,8 +107,36 @@ private extension PublishCoordinator {
         fatalError()
     }
     
-    func selectReleaseNoteSource() throws -> ReleaseNoteSource {
-        fatalError()
+    func selectReleaseNoteSource(notes: String?, notesFilePath: String?, projectName: String) throws -> ReleaseNoteSource {
+        if let notes {
+            return .exact(notes)
+        }
+        
+        if let notesFilePath {
+            return .filePath(notesFilePath)
+        }
+        
+        switch try picker.requiredSingleSelection("How would you like to add your release notes for \(projectName)?", items: NoteContentType.allCases) {
+        case .direct:
+            let notes = try picker.getRequiredInput(prompt: "Enter your release notes.")
+            
+            return .exact(notes)
+        case .selectFile:
+            let filePath = try folderBrowser.browseForFile(prompt: "Select the file containing your release notes.")
+            
+            return .filePath(filePath)
+        case .fromPath:
+            let filePath = try picker.getRequiredInput(prompt: "Enter the path to the file for the \(projectName) release notes.")
+            
+            return .filePath(filePath)
+        case .createFile:
+            let fileUtility = ReleaseNotesFileUtility(picker: picker, fileSystem: fileSystem, dateProvider: dateProvider)
+            let filePath = try fileUtility.createAndOpenNewNoteFile(projectName: projectName)
+            
+            print("filePath: \(filePath)") // TODO: -
+            fatalError()
+//            return try fileUtility.validateAndConfirmNoteFile(releaseNotesFile)
+        }
     }
     
     func createNewRelease(number: String, binaries: [ArchivedBinary], noteSource: ReleaseNoteSource, projectPath: String) throws -> [String] {
@@ -275,6 +294,19 @@ private extension PublishCoordinator {
 
 // MARK: - Private Methods
 private extension PublishCoordinator {
+    func makeArchives(result: BuildResult) throws -> [ArchivedBinary] {
+        let archiver = BinaryArchiver(shell: shell)
+        
+        switch result.binaryOutput {
+        case .single(let path):
+            return try archiver.createArchives(from: [path])
+        case .multiple(let binaries):
+            let binaryPaths = ReleaseArchitecture.allCases.compactMap({ binaries[$0] })
+            
+            return try archiver.createArchives(from: binaryPaths)
+        }
+    }
+    
     func publishFormula(_ formula: HomebrewFormula, content: String, message: String?) throws {
         let fileName = "\(formula.name).rb"
         let tapFolder = try fileSystem.directory(at: formula.tapLocalPath)
@@ -315,6 +347,7 @@ private extension PublishCoordinator {
 private extension PublishCoordinator {
     struct NewReleaseInfo {
         let executableName: String
+        let noteSource: ReleaseNoteSource
     }
     
     struct ReleaseResult {
@@ -326,5 +359,11 @@ private extension PublishCoordinator {
     enum ReleaseNoteSource {
         case exact(String)
         case filePath(String)
+    }
+}
+
+extension PublishCoordinator {
+    enum NoteContentType: CaseIterable {
+        case direct, selectFile, fromPath, createFile
     }
 }
