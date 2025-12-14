@@ -136,6 +136,14 @@ The tool supports multiple build configurations:
 - This is a known issue with SwiftData in test environments and doesn't affect functionality
 - Tests must be run using `xcodebuild` instead of `swift test` due to SwiftData compatibility requirements
 
+## Test Development Guidelines
+
+### Data Type Verification
+- **Never guess at implementation**: When encountering a data type you haven't read into memory, always look up the file first
+- **Read before using**: Use the Read tool to examine struct/class/enum definitions before using them in tests
+- **Verify initializers**: Check actual initializer signatures rather than assuming parameters
+- **Example**: Before creating a `BuildConfig`, read the file to see its actual properties and initializer
+
 ## Code Style Preferences
 
 ### Extension Organization
