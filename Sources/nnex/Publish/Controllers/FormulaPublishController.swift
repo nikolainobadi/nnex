@@ -12,12 +12,14 @@ struct FormulaPublishController {
     private let gitHandler: any GitHandler
     private let fileSystem: any FileSystem
     private let store: any PublishInfoStore
+    private let formulaFileService: any FormulaFileService
     
-    init(picker: any NnexPicker, gitHandler: any GitHandler, fileSystem: any FileSystem, store: any PublishInfoStore) {
+    init(picker: any NnexPicker, gitHandler: any GitHandler, fileSystem: any FileSystem, store: any PublishInfoStore, formulaFileService: any FormulaFileService) {
         self.store = store
         self.picker = picker
         self.gitHandler = gitHandler
         self.fileSystem = fileSystem
+        self.formulaFileService = formulaFileService
     }
 }
 
@@ -26,14 +28,9 @@ struct FormulaPublishController {
 extension FormulaPublishController {
     func publishFormula(projectFolder: any Directory, info: FormulaPublishInfo, commitMessage: String?) throws {
         let formula = try getFormula(projectFolder: projectFolder, skipTests: true)
-        let content = try makeFormulaContent(formula: formula, info: info)
+        let contents = try makeFormulaContent(formula: formula, info: info)
         let tapFolder = try fileSystem.directory(at: formula.tapLocalPath)
-        let fileName = "\(formula.name).rb"
-        let formulaFolder = try tapFolder.createSubfolderIfNeeded(named: "Formula")
-        
-        try deleteOldFormula(named: fileName, from: formulaFolder)
-        
-        let filePath = try formulaFolder.createFile(named: fileName, contents: content)
+        let filePath = try formulaFileService.resolveFormulaFile(formula: formula, tapFolder: tapFolder, contents: contents)
         
         print("New formula created at \(filePath)")
         
@@ -46,6 +43,18 @@ extension FormulaPublishController {
 
 // MARK: - Private Methods
 private extension FormulaPublishController {
+    func getMessage(message: String?) throws -> String? {
+        if let message {
+            return message
+        }
+
+        guard picker.getPermission(prompt: "\nWould you like to commit and push the tap to \("GitHub".green)?") else {
+            return nil
+        }
+
+        return try picker.getRequiredInput(prompt: "Enter your commit message.")
+    }
+    
     func getFormula(projectFolder: any Directory, skipTests: Bool) throws -> HomebrewFormula {
         let allTaps = try store.loadTaps()
         let tap = try getTap(allTaps: allTaps, projectName: projectFolder.name)
@@ -177,22 +186,11 @@ private extension FormulaPublishController {
             )
         }
     }
-    
-    func deleteOldFormula(named name: String, from folder: any Directory) throws {
-        if folder.containsFile(named: name) {
-            try folder.deleteFile(named: name)
-        }
-    }
-    
-    func getMessage(message: String?) throws -> String? {
-        if let message {
-            return message
-        }
+}
 
-        guard picker.getPermission(prompt: "\nWould you like to commit and push the tap to \("GitHub".green)?") else {
-            return nil
-        }
 
-        return try picker.getRequiredInput(prompt: "Enter your commit message.")
-    }
+// MARK: - Dependencies
+protocol FormulaFileService {
+    typealias FilePath = String
+    func resolveFormulaFile(formula: HomebrewFormula, tapFolder: any Directory, contents: String) throws -> FilePath
 }

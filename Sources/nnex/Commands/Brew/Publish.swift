@@ -34,13 +34,17 @@ extension Nnex.Brew {
         @Flag(name: .customLong("skip-tests"), help: "Skips running tests before publishing.")
         var skipTests = false
 
+        @Flag(name: .long, help: "Simulates the publish process without making any changes to files or remote repositories.")
+        var dryRun = false
+
         func run() throws {
             let shell = Nnex.makeShell()
             let context = try Nnex.makeContext()
-            let gitHandler = Nnex.makeGitHandler()
             let fileSystem = Nnex.makeFileSystem()
+            let gitHandler = makePublishGitHandler(dryRun: dryRun)
             let resolvedBuildType = buildType ?? context.loadDefaultBuildType()
-            let delegate = makePublishDelegate(shell: shell, gitHandler: gitHandler, fileSystem: fileSystem, context: context)
+            let formulaFileService = makeFormulaFileService(dryRun: dryRun, fileSystem: fileSystem)
+            let delegate = makePublishDelegate(shell: shell, gitHandler: gitHandler, fileSystem: fileSystem, formulaFileService: formulaFileService, context: context)
             let coordinator = PublishCoordinator(shell: shell, gitHandler: gitHandler, fileSystem: fileSystem, delegate: delegate)
             
             try coordinator.publish(projectPath: path, buildType: resolvedBuildType, notes: notes, notesFilePath: notesFile, commitMessage: message, skipTests: skipTests, versionInfo: version)
@@ -63,7 +67,21 @@ private extension Nnex.Brew.Publish {
         return .init(shell: shell, picker: picker, fileSystem: fileSystem, delegate: artifactDelegate)
     }
     
-    func makePublishDelegate(shell: any NnexShell, gitHandler: any GitHandler, fileSystem: any FileSystem, context: NnexContext) -> any PublishDelegate {
+    func makePublishGitHandler(dryRun: Bool) -> any GitHandler {
+        let gitHandler = Nnex.makeGitHandler()
+        
+        return dryRun ? DryRunPublishGitHandler(gitHandler: gitHandler) : gitHandler
+    }
+    
+    func makeFormulaFileService(dryRun: Bool, fileSystem: any FileSystem) -> any FormulaFileService {
+        if dryRun {
+            return DryRunFormulaFileService()
+        }
+        
+        return FormulaManager(fileSystem: fileSystem)
+    }
+    
+    func makePublishDelegate(shell: any NnexShell, gitHandler: any GitHandler, fileSystem: any FileSystem, formulaFileService: any FormulaFileService, context: NnexContext) -> PublishDelegateAdapter {
         let picker = Nnex.makePicker()
         let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
         let dateProvider = DefaultDateProvider()
@@ -71,17 +89,19 @@ private extension Nnex.Brew.Publish {
 
         let versionService = AutoVersionHandler(shell: shell, fileSystem: fileSystem)
         let versionController = VersionNumberController(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, versionService: versionService)
+        
         let buildController = makeBuildController(shell: shell, picker: picker, fileSystem: fileSystem, folderBrowser: folderBrowser)
         let artifactController = makeArtifactController(shell: shell, picker: picker, fileSystem: fileSystem, loader: loader, buildController: buildController)
         let releaseController = GithubReleaseController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, dateProvider: dateProvider, folderBrowser: folderBrowser)
-        let publishController = FormulaPublishController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, store: loader)
+        let publishController = FormulaPublishController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, store: loader, formulaFileService: formulaFileService)
         
-        return PublishDelegateAdapter(versionController: versionController, artifactController: artifactController, releaseController: releaseController, publishController: publishController)
+        return .init(versionController: versionController, artifactController: artifactController, releaseController: releaseController, publishController: publishController)
     }
 }
 
 
 // MARK: - Extension Dependencies
+extension FormulaManager: FormulaFileService { }
 extension AutoVersionHandler: VersionNumberService { }
 extension ReleaseVersionInfo: ExpressibleByArgument { }
 extension ReleaseVersionInfo.VersionPart: ExpressibleByArgument { }

@@ -231,12 +231,90 @@ extension PublishTests {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell(includeTestCommand: false, shouldThrowError: true)
         let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
-        
+
         try createTestTapAndFormula(factory: factory, testCommand: .defaultCommand)
-        
+
         do {
             try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
             Issue.record("Expected an error to be thrown")
+        } catch { }
+    }
+}
+
+
+// MARK: - Dry Run Tests
+extension PublishTests {
+    @Test("Does not create formula file when dry-run flag is enabled")
+    func dryRunDoesNotCreateFormulaFile() throws {
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let shell = createMockShell()
+        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+
+        try createTestTapAndFormula(factory: factory)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, dryRun: true)
+
+        let tapFolder = try Folder(path: tapFolder.path)
+
+        #expect(tapFolder.containsSubfolder(named: "Formula") == false)
+    }
+
+    @Test("Does not delete existing formula file when dry-run flag is enabled")
+    func dryRunDoesNotDeleteExistingFormulaFile() throws {
+        let existingFormulaContent = "class OldFormula < Formula\nend"
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let shell = createMockShell()
+        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+
+        try createTestTapAndFormula(factory: factory)
+
+        let formulaFolder = try tapFolder.createSubfolder(named: "Formula")
+        let formulaFile = try formulaFolder.createFile(named: formulaFileName)
+        try formulaFile.write(existingFormulaContent)
+
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, dryRun: true)
+
+        let updatedFormulaFile = try formulaFolder.file(named: formulaFileName)
+        let updatedContent = try updatedFormulaFile.readAsString()
+
+        #expect(updatedContent == existingFormulaContent)
+    }
+
+    @Test("Does not commit and push when dry-run flag is enabled")
+    func dryRunDoesNotCommitAndPush() throws {
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let shell = createMockShell()
+        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+
+        try createTestTapAndFormula(factory: factory)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, dryRun: true)
+
+        #expect(gitHandler.message == nil)
+    }
+
+    @Test("Does not create GitHub release when dry-run flag is enabled")
+    func dryRunDoesNotCreateRelease() throws {
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let shell = createMockShell()
+        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+
+        try createTestTapAndFormula(factory: factory)
+        try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, dryRun: true)
+
+        #expect(gitHandler.releaseVersion == nil)
+        #expect(gitHandler.releaseNoteInfo == nil)
+    }
+
+    @Test("Dry-run still performs verification checks")
+    func dryRunPerformsVerificationChecks() throws {
+        let gitHandler = MockGitHandler(assetURL: assetURL, ghIsInstalled: false)
+        let shell = createMockShell()
+        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+
+        try createTestTapAndFormula(factory: factory)
+
+        do {
+            try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, dryRun: true)
+            Issue.record("Expected an error to be thrown for missing GitHub CLI")
         } catch { }
     }
 }
@@ -289,33 +367,37 @@ extension PublishTests {
 
 // MARK: - Run Command
 private extension PublishTests {
-    func runCommand(_ factory: MockContextFactory, version: ReleaseVersionInfo? = nil, message: String? = nil, notes: String? = nil, notesFile: String? = nil, skipTests: Bool = false, buildType: BuildType? = nil) throws {
+    func runCommand(_ factory: MockContextFactory, version: ReleaseVersionInfo? = nil, message: String? = nil, notes: String? = nil, notesFile: String? = nil, skipTests: Bool = false, buildType: BuildType? = nil, dryRun: Bool = false) throws {
         var args = ["brew", "publish", "-p", projectFolder.path]
-        
+
         if let version {
             args.append(contentsOf: ["-v", version.arg])
         }
-        
+
         if let message {
             args.append(contentsOf: ["-m", message])
         }
-        
+
         if let notes {
             args.append(contentsOf: ["-n", notes])
         }
-        
+
         if let notesFile {
             args.append(contentsOf: ["-F", notesFile])
         }
-        
+
         if skipTests {
             args.append("--skip-tests")
         }
-        
+
         if let buildType {
             args.append(contentsOf: ["-b", buildType.rawValue])
         }
-        
+
+        if dryRun {
+            args.append("--dry-run")
+        }
+
         try Nnex.testRun(contextFactory: factory, args: args)
     }
 }
