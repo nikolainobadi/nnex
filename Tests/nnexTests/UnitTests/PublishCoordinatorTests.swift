@@ -24,9 +24,9 @@ struct PublishCoordinatorTests {
 
 // MARK: - SUT
 private extension PublishCoordinatorTests {
-    func makeSUT(version: String = "2.0.0", artifactToReturn: ReleaseArtifact? = nil, assetURLsToReturn: [String] = [], throwError: Bool = false) -> (sut: PublishCoordinator, delegate: MockDelegate) {
+    func makeSUT(version: String = "2.0.0", artifactToReturn: ReleaseArtifact? = nil, assetURLsToReturn: [String] = [], ghIsInstalled: Bool = true, throwError: Bool = false) -> (sut: PublishCoordinator, delegate: MockDelegate) {
         let shell = MockShell()
-        let gitHandler = MockGitHandler()
+        let gitHandler = MockGitHandler(ghIsInstalled: ghIsInstalled)
         let fileSystem = MockFileSystem()
         let delegate = MockDelegate(
             versionNumber: version,
@@ -38,18 +38,13 @@ private extension PublishCoordinatorTests {
         
         return (sut, delegate)
     }
-}
-
-
-// MARK: - Helpers
-private extension PublishCoordinatorTests {
-    func makeShell(statusOutput: String, path: String = "/projects/app") -> MockShell {
-        let statusCommand = "cd \"\(path)\" && git status --porcelain"
-        return MockShell(commands: [MockCommand(command: statusCommand, output: statusOutput)])
-    }
     
     func makeReleaseArfifact(version: String) -> ReleaseArtifact {
-        return .init(version: version, executableName: "App", archives: [ArchivedBinary(originalPath: "/tmp/app", archivePath: "/tmp/app.tar.gz", sha256: "abc123")])
+        return .init(
+            version: version,
+            executableName: "App",
+            archives: [.init(originalPath: "/tmp/app", archivePath: "/tmp/app.tar.gz", sha256: "abc123")]
+        )
     }
 }
 
