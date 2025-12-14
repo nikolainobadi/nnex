@@ -16,8 +16,30 @@ struct PublishCoordinatorTests {
     @Test("Starting values are empty")
     func startingValuesEmpty() {
         let (_, delegate) = makeSUT()
-        
+
         #expect(delegate.publishResults == nil)
+    }
+}
+
+
+// MARK: - Publish Flow
+extension PublishCoordinatorTests {
+    @Test("Publishes formula with correct info and commit message")
+    func publishesFormulaWithCorrectInfoAndMessage() throws {
+        let expectedVersion = "2.0.0"
+        let expectedAssetURLs = ["https://example.com/asset1", "https://example.com/asset2"]
+        let expectedCommitMessage = "Release v2.0.0"
+        let (sut, delegate) = makeSUT(version: expectedVersion, assetURLsToReturn: expectedAssetURLs)
+
+        try sut.publish(projectPath: nil, buildType: .universal, notes: nil, notesFilePath: nil, commitMessage: expectedCommitMessage, skipTests: true, versionInfo: nil)
+        
+        let results = try #require(delegate.publishResults)
+
+        #expect(results.info.version == expectedVersion)
+        #expect(results.info.installName == "App")
+        #expect(results.info.assetURLs == expectedAssetURLs)
+        #expect(results.info.archives.count == 1)
+        #expect(results.message == expectedCommitMessage)
     }
 }
 
