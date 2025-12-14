@@ -54,15 +54,16 @@ extension FormulaPublishControllerTests {
         let armArchive = ArchivedBinary(originalPath: "/tmp/.build/arm64-apple-macosx/release/tool", archivePath: "/tmp/tool-arm64.tar.gz", sha256: "arm")
         let intelArchive = ArchivedBinary(originalPath: "/tmp/.build/x86_64-apple-macosx/release/tool", archivePath: "/tmp/tool-x86_64.tar.gz", sha256: "intel")
         let info = FormulaPublishInfo(version: "1.0.0", installName: "tool", assetURLs: ["arm-url", "intel-url"], archives: [armArchive, intelArchive])
-        let (sut, _, project) = makeSUT(taps: [tap], directoryMap: [tapPath: tapDirectory])
+        let (sut, delegate, project) = makeSUT(taps: [tap], directoryMap: [tapPath: tapDirectory])
 
         try sut.publishFormula(projectFolder: project, info: info, commitMessage: nil)
 
-        let content = try formulaFolder.readFile(named: "tool.rb")
-        #expect(content.contains("arm-url"))
-        #expect(content.contains("intel-url"))
-        #expect(content.contains("sha256 \"arm\""))
-        #expect(content.contains("sha256 \"intel\""))
+        let data = try #require(delegate.formulaFileData)
+        
+        #expect(data.formula.name == formula.name)
+        #expect(data.tapFolder.path == formula.tapLocalPath)
+        #expect(data.contents.contains(armArchive.sha256))
+        #expect(data.contents.contains(intelArchive.sha256))
     }
 }
 
