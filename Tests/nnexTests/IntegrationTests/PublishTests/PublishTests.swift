@@ -8,6 +8,7 @@
 import NnexKit
 import Testing
 import NnShellTesting
+import SwiftPickerTesting
 import NnexSharedTestHelpers
 @testable import nnex
 @preconcurrency import Files
@@ -57,9 +58,9 @@ extension PublishTests {
     
     @Test("Creates formula file when publishing")
     func publishCommand() throws {
-        let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell()
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, buildType: .universal)
@@ -79,7 +80,7 @@ extension PublishTests {
         let formulaFileNameWithDashes = "\(projectWithDashes).rb"
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell(projectName: projectWithDashes, projectPath: projectFolderWithDashes.path)
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory, projectName: projectWithDashes, projectFolder: projectFolderWithDashes)
         
@@ -102,7 +103,7 @@ extension PublishTests {
     func commitsChanges() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell()
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -114,7 +115,7 @@ extension PublishTests {
     func updatesFormulaLocalPath() throws {
         let staleLocalPath = "~/Desktop/stale"
         let shell = createMockShell()
-        let factory = MockContextFactory(shell: shell)
+        let factory = makeContextFactory(shell: shell)
         let context = try factory.makeContext()
         
         try createTestTapAndFormula(factory: factory, formulaPath: staleLocalPath)
@@ -136,9 +137,9 @@ extension PublishTests {
     
     @Test("Uploads with inline release notes when included in args")
     func uploadsDirectReleaseNotes() throws {
-        let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell()
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -151,9 +152,9 @@ extension PublishTests {
     
     @Test("Uploads release notes from file when included in args")
     func uploadsReleaseNotesFromFile() throws {
-        let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell()
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let gitHandler = MockGitHandler(assetURL: assetURL)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
         let releaseNoteFile = try projectFolder.createFile(named: "TestReleaseNotes.md")
         let filePath = releaseNoteFile.path
         
@@ -171,7 +172,7 @@ extension PublishTests {
     func doesNotIncludeTests() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell(includeTestCommand: false)
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -183,7 +184,7 @@ extension PublishTests {
     func runsTestsWithDefaultCommand() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell(includeTestCommand: true)
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory, testCommand: .defaultCommand)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -196,7 +197,7 @@ extension PublishTests {
         let testCommand = "xcodebuild test -scheme testScheme -destination 'platform=macOS'"
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell(includeTestCommand: true)
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory, testCommand: .custom(testCommand))
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes)
@@ -209,7 +210,7 @@ extension PublishTests {
     func skipsTests(testCommand: CurrentSchema.TestCommand?) throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell(includeTestCommand: false)
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
         
         try createTestTapAndFormula(factory: factory, testCommand: testCommand)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, skipTests: true)
@@ -230,7 +231,7 @@ extension PublishTests {
     func failsToPublishWhenTestsFail() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell(includeTestCommand: false, shouldThrowError: true)
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
 
         try createTestTapAndFormula(factory: factory, testCommand: .defaultCommand)
 
@@ -248,7 +249,7 @@ extension PublishTests {
     func dryRunDoesNotCreateFormulaFile() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell()
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
 
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, dryRun: true)
@@ -263,7 +264,7 @@ extension PublishTests {
         let existingFormulaContent = "class OldFormula < Formula\nend"
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell()
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
 
         try createTestTapAndFormula(factory: factory)
 
@@ -283,7 +284,7 @@ extension PublishTests {
     func dryRunDoesNotCommitAndPush() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell()
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
 
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, dryRun: true)
@@ -295,7 +296,7 @@ extension PublishTests {
     func dryRunDoesNotCreateRelease() throws {
         let gitHandler = MockGitHandler(assetURL: assetURL)
         let shell = createMockShell()
-        let factory = MockContextFactory(gitHandler: gitHandler, shell: shell)
+        let factory = makeContextFactory(shell: shell, gitHandler: gitHandler)
 
         try createTestTapAndFormula(factory: factory)
         try runCommand(factory, version: .version(versionNumber), message: commitMessage, notes: releaseNotes, dryRun: true)
@@ -421,6 +422,11 @@ private extension PublishTests {
         ]
         
         return .init(commands: commandResults.map({ .init(command: $0, output: $1) }))
+    }
+    
+    func makeContextFactory(shell: MockShell, gitHandler: MockGitHandler? = nil, grantPermission: Bool = true) -> MockContextFactory {
+        
+        return .init(permissionResponses: [true], gitHandler: gitHandler, shell: shell)
     }
     
     func createTestTapAndFormula(factory: MockContextFactory, formulaPath: String? = nil, testCommand: CurrentSchema.TestCommand? = nil, extraBuildArgs: [String] = [], projectName: String? = nil, projectFolder: Folder? = nil) throws {

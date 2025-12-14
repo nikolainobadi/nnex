@@ -39,36 +39,44 @@ extension GithubReleaseController {
 // MARK: - Private Methods
 private extension GithubReleaseController {
     func selectReleaseNoteSource(notes: String?, notesFilePath: String?, projectName: String) throws -> ReleaseNoteSource {
+        let noteSource: ReleaseNoteSource
+
         if let notes {
-            return .exact(notes)
+            noteSource = .exact(notes)
+        } else if let notesFilePath {
+            noteSource = .filePath(notesFilePath)
+        } else {
+            noteSource = try selectReleaseNoteSourceInteractively(projectName: projectName)
         }
-        
-        if let notesFilePath {
-            return .filePath(notesFilePath)
-        }
-        
+
+        try confirmReleaseNoteSource(noteSource)
+
+        return noteSource
+    }
+
+    func selectReleaseNoteSourceInteractively(projectName: String) throws -> ReleaseNoteSource {
         switch try picker.requiredSingleSelection("How would you like to add your release notes for \(projectName)?", items: NoteContentType.allCases) {
         case .direct:
             let notes = try picker.getRequiredInput(prompt: "Enter your release notes.")
-            
+
             return .exact(notes)
         case .selectFile:
             let filePath = try folderBrowser.browseForFile(prompt: "Select the file containing your release notes.")
-            
+
             return .filePath(filePath)
         case .fromPath:
             let filePath = try picker.getRequiredInput(prompt: "Enter the path to the file for the \(projectName) release notes.")
-            
+
             return .filePath(filePath)
         case .createFile:
             let desktop = try fileSystem.desktopDirectory()
             let fileName = "\(projectName)-releaseNotes-\(dateProvider.currentDate.shortFormat).md"
             let filePath = try desktop.createFile(named: fileName, contents: "")
-            
+
             try picker.requiredPermission(prompt: "Did you add your release notes to \(filePath)?")
-            
+
             let notesContent = try desktop.readFile(named: fileName)
-            
+
             if notesContent.isEmpty {
                 try picker.requiredPermission(prompt: "The file looks empty. Make sure to save your changes then type 'y' to proceed. Type 'n' to cancel")
 
@@ -78,9 +86,33 @@ private extension GithubReleaseController {
                     throw ReleaseNotesError.emptyFileAfterRetry(filePath: filePath)
                 }
             }
-            
+
             return .filePath(fileName)
         }
+    }
+
+    func confirmReleaseNoteSource(_ source: ReleaseNoteSource) throws {
+        let confirmationPrompt: String
+
+        switch source {
+        case .exact(let notes):
+            confirmationPrompt = """
+
+            Release Notes:
+            \(notes)
+
+            Proceed with these release notes?
+            """
+        case .filePath(let filePath):
+            confirmationPrompt = """
+
+            Release notes file path: \(filePath)
+
+            Proceed with this file?
+            """
+        }
+
+        try picker.requiredPermission(prompt: confirmationPrompt)
     }
 }
 

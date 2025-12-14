@@ -34,14 +34,14 @@ final class MockContextFactory {
         selectedItemIndices: [Int] = [],
         inputResponses: [String] = [],
         permissionResponses: [Bool] = [],
-        gitHandler: MockGitHandler = .init(),
+        gitHandler: MockGitHandler? = nil,
         shell: MockShell? = nil,
         fileSystem: MockFileSystem? = nil,
         browsedDirectory: MockDirectory? = nil
     ) {
         self.shell = shell
         self.runResults = runResults
-        self.gitHandler = gitHandler
+        self.gitHandler = gitHandler ?? .init()
         self.commandResults = commandResults
         self.inputResponses = inputResponses
         self.tapListFolderPath = tapListFolderPath
