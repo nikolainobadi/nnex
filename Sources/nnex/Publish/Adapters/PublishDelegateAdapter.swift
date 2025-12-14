@@ -9,10 +9,12 @@ import NnexKit
 
 struct PublishDelegateAdapter {
     private let artifactController: ArtifactController
+    private let versionController: VersionNumberController
     private let releaseController: GithubReleaseController
     private let publishController: FormulaPublishController
     
-    init(artifactController: ArtifactController, releaseController: GithubReleaseController, publishController: FormulaPublishController) {
+    init(versionController: VersionNumberController, artifactController: ArtifactController, releaseController: GithubReleaseController, publishController: FormulaPublishController) {
+        self.versionController = versionController
         self.artifactController = artifactController
         self.releaseController = releaseController
         self.publishController = publishController
@@ -22,8 +24,12 @@ struct PublishDelegateAdapter {
 
 // MARK: - PublishDelegate
 extension PublishDelegateAdapter: PublishDelegate {
-    func buildArtifacts(projectFolder folder: any Directory, buildType: BuildType, versionInfo: ReleaseVersionInfo?) throws -> ReleaseArtifact {
-        return try artifactController.buildArtifacts(projectFolder: folder, buildType: buildType, versionInfo: versionInfo)
+    func resolveNextVersionNumber(projectPath: String, versionInfo: ReleaseVersionInfo?) throws -> String {
+        return try versionController.selectNextVersionNumber(projectPath: projectPath, versionInfo: versionInfo)
+    }
+    
+    func buildArtifacts(projectFolder folder: any Directory, buildType: BuildType, versionNumber: String) throws -> ReleaseArtifact {
+        return try artifactController.buildArtifacts(projectFolder: folder, buildType: buildType, versionNumber: versionNumber)
     }
     
     func uploadRelease(version: String, assets: [ArchivedBinary], notes: String?, notesFilePath: String?, projectFolder: any Directory) throws -> [String] {

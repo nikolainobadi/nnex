@@ -17,22 +17,21 @@ struct ArtifactController {
     init(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, fileSystem: any FileSystem, delegate: any ArtifactDelegate) {
         self.shell = shell
         self.picker = picker
+        self.delegate = delegate
         self.gitHandler = gitHandler
         self.fileSystem = fileSystem
-        self.delegate = delegate
     }
 }
 
 
 // MARK: - BuildArtifacts
 extension ArtifactController {
-    func buildArtifacts(projectFolder folder: any Directory, buildType: BuildType, versionInfo: ReleaseVersionInfo?) throws -> ReleaseArtifact {
-        let nextVersionNumber = try selectNextVersionNumber(projectPath: folder.path, versionInfo: versionInfo)
+    func buildArtifacts(projectFolder folder: any Directory, buildType: BuildType, versionNumber: String) throws -> ReleaseArtifact {
         let formula = loadExistingFormula(named: folder.name)
         let buildResult = try buildExecutable(folder: folder, buildType: buildType, formula: formula)
         let archives = try makeArchives(result: buildResult)
         
-        return .init(version: nextVersionNumber, executableName: buildResult.executableName, archives: archives)
+        return .init(version: versionNumber, executableName: buildResult.executableName, archives: archives)
     }
 }
 
@@ -64,97 +63,11 @@ private extension ArtifactController {
             return try archiver.createArchives(from: binaryPaths)
         }
     }
-    
-    func selectNextVersionNumber(projectPath: String, versionInfo: ReleaseVersionInfo?) throws -> String {
-        let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: projectPath)
-        let versionInput = try versionInfo ?? getVersionInput(previousVersion: previousVersion)
-        let releaseVersionString = try getReleaseVersionString(resolvedVersionInfo: versionInput, projectPath: projectPath)
-        
-        try handleAutoVersionUpdate(releaseVersionString: releaseVersionString, projectPath: projectPath)
-        
-        return releaseVersionString
-    }
-    
-    func getVersionInput(previousVersion: String?) throws -> ReleaseVersionInfo {
-        var prompt = "\nEnter the version number for this release."
-
-        if let previousVersion {
-            prompt.append("\nPrevious release: \(previousVersion.yellow) (To increment, type either \("major".bold), \("minor".bold), or \("patch".bold))")
-        } else {
-            prompt.append(" (v1.1.0 or 1.1.0)")
-        }
-
-        let input = try picker.getRequiredInput(prompt: prompt)
-
-        if let versionPart = ReleaseVersionInfo.VersionPart(string: input) {
-            return .increment(versionPart)
-        }
-
-        return .version(input)
-    }
-    
-    func handleAutoVersionUpdate(releaseVersionString: String, projectPath: String) throws {
-        let autoVersionHandler = AutoVersionHandler(shell: shell, fileSystem: fileSystem)
-        
-        // Try to detect current version in the executable
-        guard let currentVersion = try autoVersionHandler.detectArgumentParserVersion(projectPath: projectPath) else {
-            // No version found in source code, nothing to update
-            return
-        }
-        
-        // Check if versions differ
-        guard autoVersionHandler.shouldUpdateVersion(currentVersion: currentVersion, releaseVersion: releaseVersionString) else {
-            // Versions are the same, no update needed
-            return
-        }
-        
-        // Ask user if they want to update the version
-        let prompt = """
-        
-        Current executable version: \(currentVersion.yellow)
-        Release version: \(releaseVersionString.green)
-        
-        Would you like to update the version in the source code?
-        """
-        
-        guard picker.getPermission(prompt: prompt) else {
-            return
-        }
-        
-        // Update the version in source code
-        guard try autoVersionHandler.updateArgumentParserVersion(projectPath: projectPath, newVersion: releaseVersionString) else {
-            print("Failed to update version in source code.")
-            return
-        }
-        
-        // Commit the version update
-        try commitVersionUpdate(version: releaseVersionString, projectPath: projectPath)
-        
-        print("✅ Updated version to \(releaseVersionString.green) and committed changes.")
-    }
-    
-    func getReleaseVersionString(resolvedVersionInfo: ReleaseVersionInfo, projectPath: String) throws -> String {
-        switch resolvedVersionInfo {
-        case .version(let versionString):
-            return versionString
-        case .increment(let versionPart):
-            guard let previousVersion = try? gitHandler.getPreviousReleaseVersion(path: projectPath) else {
-                throw NnexError.noPreviousVersionToIncrement
-            }
-            return try VersionHandler.incrementVersion(for: versionPart, path: projectPath, previousVersion: previousVersion)
-        }
-    }
-    
-    func commitVersionUpdate(version: String, projectPath: String) throws {
-        let commitMessage = "Update version to \(version)"
-        try gitHandler.commitAndPush(message: commitMessage, path: projectPath)
-    }
 }
 
 
 // MARK: - Dependencies
 protocol ArtifactDelegate {
     func loadTaps() throws -> [HomebrewTap]
-    func updateArgumentParserVersion(projectPath: String, newVersion: String) throws -> Bool
     func buildExecutable(projectFolder: any Directory, buildType: BuildType, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult
 }

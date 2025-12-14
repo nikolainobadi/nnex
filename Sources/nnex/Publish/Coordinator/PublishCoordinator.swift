@@ -29,7 +29,8 @@ extension PublishCoordinator {
         
         try verifyPublishRequirements(at: projectFolder.path)
         
-        let artifact = try delegate.buildArtifacts(projectFolder: projectFolder, buildType: buildType, versionInfo: versionInfo)
+        let nextVersionNumber = try delegate.resolveNextVersionNumber(projectPath: projectFolder.path, versionInfo: versionInfo)
+        let artifact = try delegate.buildArtifacts(projectFolder: projectFolder, buildType: buildType, versionNumber: nextVersionNumber)
         let assetURLs = try delegate.uploadRelease(version: artifact.version, assets: artifact.archives, notes: notes, notesFilePath: notesFilePath, projectFolder: projectFolder)
         let publishInfo = makePublishInfo(artifact: artifact, assetURLs: assetURLs)
         
@@ -68,7 +69,8 @@ private extension PublishCoordinator {
 
 // MARK: - Dependencies
 protocol PublishDelegate {
-    func buildArtifacts(projectFolder folder: any Directory, buildType: BuildType, versionInfo: ReleaseVersionInfo?) throws -> ReleaseArtifact
+    func resolveNextVersionNumber(projectPath: String, versionInfo: ReleaseVersionInfo?) throws -> String
+    func buildArtifacts(projectFolder folder: any Directory, buildType: BuildType, versionNumber: String) throws -> ReleaseArtifact
     func uploadRelease(version: String, assets: [ArchivedBinary], notes: String?, notesFilePath: String?, projectFolder: any Directory) throws -> [String]
     func publishFormula(projectFolder: any Directory, info: FormulaPublishInfo, commitMessage: String?) throws
 }

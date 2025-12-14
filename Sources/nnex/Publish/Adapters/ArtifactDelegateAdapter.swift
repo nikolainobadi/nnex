@@ -10,11 +10,9 @@ import NnexKit
 struct ArtifactDelegateAdapter {
     private let loader: PublishInfoStoreAdapter
     private let buildController: BuildController
-    private let versionHandler: AutoVersionHandler
     
-    init(loader: PublishInfoStoreAdapter, buildController: BuildController, versionHandler: AutoVersionHandler) {
+    init(loader: PublishInfoStoreAdapter, buildController: BuildController) {
         self.loader = loader
-        self.versionHandler = versionHandler
         self.buildController = buildController
     }
 }
@@ -25,11 +23,7 @@ extension ArtifactDelegateAdapter: ArtifactDelegate {
     func loadTaps() throws -> [HomebrewTap] {
         return try loader.loadTaps()
     }
-    
-    func updateArgumentParserVersion(projectPath: String, newVersion: String) throws -> Bool {
-        return false // TODO: - 
-    }
-    
+
     func buildExecutable(projectFolder: any Directory, buildType: BuildType, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult {
         return try buildController.buildExecutable(projectFolder: projectFolder, buildType: buildType, clean: true, outputLocation: .currentDirectory(buildType), extraBuildArgs: extraBuildArgs, testCommand: testCommand)
     }
