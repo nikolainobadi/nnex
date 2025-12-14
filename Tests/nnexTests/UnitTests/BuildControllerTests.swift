@@ -55,45 +55,14 @@ extension BuildControllerTests {
     func selectsCurrentDirectoryAsOutput() throws {
         let projectDirectory = try makeProjectDirectory(path: "/project/app", executableNames: ["app"])
         let (sut, service, _) = makeSUT(projectDirectory: projectDirectory, selectedIndex: 0)
-
+        
         try sut.buildExecutable(path: nil, buildType: .x86_64, clean: true, openInFinder: false)
-
+        
         let buildData = try #require(service.buildData)
         if case .currentDirectory(let buildType) = buildData.outputLocation {
             #expect(buildType == .x86_64)
         } else {
             Issue.record("Expected currentDirectory output location")
-        }
-    }
-
-    @Test("Selects desktop as output location")
-    func selectsDesktopAsOutput() throws {
-        let projectDirectory = try makeProjectDirectory(path: "/project/app", executableNames: ["app"])
-        let (sut, service, _) = makeSUT(projectDirectory: projectDirectory, selectedIndex: 1)
-
-        try sut.buildExecutable(path: nil, buildType: .universal, clean: true, openInFinder: false)
-
-        let buildData = try #require(service.buildData)
-        if case .desktop = buildData.outputLocation {
-            // Success
-        } else {
-            Issue.record("Expected desktop output location")
-        }
-    }
-
-    @Test("Handles custom output location with folder browser", .disabled()) // TODO: - 
-    func handlesCustomOutputLocation() throws {
-        let projectDirectory = try makeProjectDirectory(path: "/project/app", executableNames: ["app"])
-        let customFolder = MockDirectory(path: "/custom/location")
-        let (sut, service, _) = makeSUT(projectDirectory: projectDirectory, selectedIndex: 2, permissionResponses: [true], browsedDirectory: customFolder)
-
-        try sut.buildExecutable(path: nil, buildType: .universal, clean: true, openInFinder: false)
-
-        let buildData = try #require(service.buildData)
-        if case .custom(let path) = buildData.outputLocation {
-            #expect(path == "/custom/location")
-        } else {
-            Issue.record("Expected custom output location")
         }
     }
 }

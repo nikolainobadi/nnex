@@ -45,7 +45,7 @@ extension BuildController {
 // MARK: - PublishBuilder
 extension BuildController {
     func buildExecutable(projectFolder: any Directory, buildType: BuildType, clean: Bool, outputLocation: BuildOutputLocation?, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult {
-        let outputLocation = try selectOutputLocation(buildType: buildType)
+        let outputLocation = outputLocation ?? .currentDirectory(buildType)
         let config = try makeBuildConfig(for: projectFolder, buildType: buildType, clean: clean, extraArgs: extraBuildArgs, testCommand: testCommand)
         
         return try buildService.buildExecutable(config: config, outputLocation: outputLocation)

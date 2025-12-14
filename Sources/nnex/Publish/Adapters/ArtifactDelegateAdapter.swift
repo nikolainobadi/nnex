@@ -25,6 +25,6 @@ extension ArtifactDelegateAdapter: ArtifactDelegate {
     }
 
     func buildExecutable(projectFolder: any Directory, buildType: BuildType, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult {
-        return try buildController.buildExecutable(projectFolder: projectFolder, buildType: buildType, clean: true, outputLocation: .currentDirectory(buildType), extraBuildArgs: extraBuildArgs, testCommand: testCommand)
+        return try buildController.buildExecutable(projectFolder: projectFolder, buildType: buildType, clean: true, outputLocation: nil, extraBuildArgs: extraBuildArgs, testCommand: testCommand)
     }
 }
