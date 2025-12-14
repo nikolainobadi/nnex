@@ -44,6 +44,7 @@ private extension PublishCoordinator {
     func makePublishInfo(artifact: ReleaseArtifact, assetURLs: [String]) -> FormulaPublishInfo {
         return .init(version: artifact.version, installName: artifact.executableName, assetURLs: assetURLs, archives: artifact.archives)
     }
+    
     func verifyPublishRequirements(at path: String) throws {
         try gitHandler.checkForGitHubCLI()
         try ensureNoUncommittedChanges(at: path)
