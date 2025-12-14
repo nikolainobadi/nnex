@@ -32,7 +32,7 @@ extension PublishCoordinatorTests {
         let (sut, delegate) = makeSUT(version: expectedVersion, assetURLsToReturn: expectedAssetURLs)
 
         try sut.publish(projectPath: nil, buildType: .universal, notes: nil, notesFilePath: nil, commitMessage: expectedCommitMessage, skipTests: true, versionInfo: nil)
-        
+
         let results = try #require(delegate.publishResults)
 
         #expect(results.info.version == expectedVersion)
@@ -40,6 +40,83 @@ extension PublishCoordinatorTests {
         #expect(results.info.assetURLs == expectedAssetURLs)
         #expect(results.info.archives.count == 1)
         #expect(results.message == expectedCommitMessage)
+    }
+
+    @Test("Publishes with nil commit message")
+    func publishesWithNilCommitMessage() throws {
+        let (sut, delegate) = makeSUT()
+
+        try sut.publish(projectPath: nil, buildType: .universal, notes: nil, notesFilePath: nil, commitMessage: nil, skipTests: true, versionInfo: nil)
+
+        let results = try #require(delegate.publishResults)
+
+        #expect(results.message == nil)
+    }
+
+    @Test("Publishes with multiple archives")
+    func publishesWithMultipleArchives() throws {
+        let archives = [
+            makeArchive(originalPath: "/tmp/app-arm64", archivePath: "/tmp/app-arm64.tar.gz", sha256: "abc123"),
+            makeArchive(originalPath: "/tmp/app-x86", archivePath: "/tmp/app-x86.tar.gz", sha256: "def456")
+        ]
+        let artifact = makeReleaseArfifact(version: "1.5.0", archives: archives)
+        let (sut, delegate) = makeSUT(artifactToReturn: artifact)
+
+        try sut.publish(projectPath: nil, buildType: .universal, notes: nil, notesFilePath: nil, commitMessage: nil, skipTests: true, versionInfo: nil)
+
+        let results = try #require(delegate.publishResults)
+
+        #expect(results.info.archives.count == 2)
+        #expect(results.info.archives[0].sha256 == "abc123")
+        #expect(results.info.archives[1].sha256 == "def456")
+    }
+
+    @Test("Publishes with custom executable name")
+    func publishesWithCustomExecutableName() throws {
+        let customName = "MyCustomApp"
+        let artifact = makeReleaseArfifact(version: "1.0.0", executableName: customName)
+        let (sut, delegate) = makeSUT(artifactToReturn: artifact)
+
+        try sut.publish(projectPath: nil, buildType: .universal, notes: nil, notesFilePath: nil, commitMessage: nil, skipTests: true, versionInfo: nil)
+
+        let results = try #require(delegate.publishResults)
+
+        #expect(results.info.installName == customName)
+    }
+
+    @Test("Publishes with arm64 build type")
+    func publishesWithArm64BuildType() throws {
+        let (sut, delegate) = makeSUT()
+
+        try sut.publish(projectPath: nil, buildType: .arm64, notes: nil, notesFilePath: nil, commitMessage: nil, skipTests: true, versionInfo: nil)
+
+        let results = try #require(delegate.publishResults)
+
+        #expect(results.info.version == "2.0.0")
+    }
+
+    @Test("Publishes with x86_64 build type")
+    func publishesWithX8664BuildType() throws {
+        let (sut, delegate) = makeSUT()
+
+        try sut.publish(projectPath: nil, buildType: .x86_64, notes: nil, notesFilePath: nil, commitMessage: nil, skipTests: true, versionInfo: nil)
+
+        let results = try #require(delegate.publishResults)
+
+        #expect(results.info.version == "2.0.0")
+    }
+}
+
+
+// MARK: - Verification
+extension PublishCoordinatorTests {
+    @Test("Throws when GitHub CLI is not installed")
+    func throwsWhenGitHubCLINotInstalled() throws {
+        let (sut, _) = makeSUT(ghIsInstalled: false)
+
+        #expect(throws: NnexError.missingGitHubCLI) {
+            try sut.publish(projectPath: nil, buildType: .universal, notes: nil, notesFilePath: nil, commitMessage: nil, skipTests: true, versionInfo: nil)
+        }
     }
 }
 
@@ -64,7 +141,7 @@ private extension PublishCoordinatorTests {
     func makeReleaseArfifact(version: String, executableName: String = "App", archives: [ArchivedBinary]? = nil) -> ReleaseArtifact {
         return .init(
             version: version,
-            executableName: "App",
+            executableName: executableName,
             archives: archives ?? [makeArchive()]
         )
     }
