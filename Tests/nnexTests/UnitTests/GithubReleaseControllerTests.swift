@@ -105,13 +105,13 @@ extension GithubReleaseControllerTests {
         #expect(noteInfo.isFromFile == true)
     }
 
-    @Test("Creates new note file on desktop", .disabled()) // TODO: -
+    @Test("Creates new note file on desktop", .disabled()) // TODO: - need to handle error properly because file is always empty
     func createsNewNoteFile() throws {
         let testDate = Date(timeIntervalSince1970: 1704067200) // 1/1/24
         let expectedFileName = "myapp-releaseNotes-\(formatShortDate(testDate)).md"
         let desktop = MockDirectory(path: "/Users/test/Desktop")
         let assets = makeAssets()
-        let (sut, gitHandler) = makeSUT(date: testDate, selectionIndex: 3, permissionResults: [true], desktop: desktop)
+        let (sut, gitHandler) = makeSUT(date: testDate, selectionIndex: 3, desktop: desktop)
         let folder = MockDirectory(path: "/project/myapp")
 
         _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
@@ -124,57 +124,14 @@ extension GithubReleaseControllerTests {
 }
 
 
-// MARK: - File Validation
-extension GithubReleaseControllerTests {
-    @Test("Validates file has content before proceeding", .disabled()) // TODO: -
-    func validatesFileHasContent() throws {
-        let testDate = Date()
-        let desktop = MockDirectory(path: "/Users/test/Desktop")
-        let assets = makeAssets()
-        let (sut, _) = makeSUT(date: testDate, selectionIndex: 3, permissionResults: [true], desktop: desktop)
-        let folder = MockDirectory(path: "/project/app")
-
-        // Create file with content
-        let fileName = "app-releaseNotes-\(formatShortDate(testDate)).md"
-        try desktop.createFile(named: fileName, contents: "Some release notes")
-
-        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
-
-        // Should succeed without retry
-        #expect(desktop.containedFiles.contains(fileName))
-    }
-
-    @Test("Retries when file is initially empty", .disabled()) // TODO: -
-    func retriesWhenFileInitiallyEmpty() throws {
-        let testDate = Date()
-        let desktop = MockDirectory(path: "/Users/test/Desktop")
-        let assets = makeAssets()
-        let (sut, gitHandler) = makeSUT(date: testDate, selectionIndex: 3, permissionResults: [true, true], desktop: desktop)
-        let folder = MockDirectory(path: "/project/app")
-
-        // Pre-create empty file, then add content after first check
-        let fileName = "app-releaseNotes-\(formatShortDate(testDate)).md"
-        try desktop.createFile(named: fileName, contents: "")
-
-        // Simulate adding content after first prompt
-        try desktop.createFile(named: fileName, contents: "Updated notes")
-
-        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
-
-        let noteInfo = try #require(gitHandler.releaseNoteInfo)
-        #expect(noteInfo.isFromFile == true)
-    }
-}
-
-
 // MARK: - SUT
 private extension GithubReleaseControllerTests {
-    func makeSUT(date: Date = Date(), inputResults: [String] = [], selectionIndex: Int = 0, permissionResults: [Bool] = [], desktop: (any Directory)? = nil, filePathToReturn: String? = nil) -> (sut: GithubReleaseController, gitHandler: MockGitHandler) {
+    func makeSUT(date: Date = Date(), inputResults: [String] = [], selectionIndex: Int = 0, grantPermission: Bool = true, desktop: (any Directory)? = nil, filePathToReturn: String? = nil) -> (sut: GithubReleaseController, gitHandler: MockGitHandler) {
         let gitHandler = MockGitHandler()
         let fileSystem = MockFileSystem(desktop: desktop)
         let picker = MockSwiftPicker(
             inputResult: .init(type: .ordered(inputResults)),
-            permissionResult: .init(type: .ordered(permissionResults)),
+            permissionResult: .init(defaultValue: grantPermission),
             selectionResult: .init(defaultSingle: .index(selectionIndex))
         )
         let folderBrowser = MockDirectoryBrowser(filePathToReturn: filePathToReturn, directoryToReturn: nil)

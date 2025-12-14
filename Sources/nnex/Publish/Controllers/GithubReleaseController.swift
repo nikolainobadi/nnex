@@ -61,36 +61,26 @@ private extension GithubReleaseController {
             
             return .filePath(filePath)
         case .createFile:
-            let filePath = try createAndOpenNewNoteFile(projectName: projectName)
-            let confirmedPath = try validateAndConfirmNoteFilePath(filePath)
+            let desktop = try fileSystem.desktopDirectory()
+            let fileName = "\(projectName)-releaseNotes-\(dateProvider.currentDate.shortFormat).md"
+            let filePath = try desktop.createFile(named: fileName, contents: "")
             
-            return .filePath(confirmedPath)
-        }
-    }
-    
-    func createAndOpenNewNoteFile(projectName: String) throws -> String {
-        let desktop = try fileSystem.desktopDirectory()
-        let fileName = "\(projectName)-releaseNotes-\(dateProvider.currentDate.shortFormat).md"
-        
-        return try desktop.createFile(named: fileName, contents: "")
-    }
-    
-    func validateAndConfirmNoteFilePath(_ filePath: String) throws -> String {
-        try picker.requiredPermission(prompt: "Did you add your release notes to \(filePath)?")
-
-        let notesContent = try fileSystem.readFile(at: filePath)
-
-        if notesContent.isEmpty {
-            try picker.requiredPermission(prompt: "The file looks empty. Make sure to save your changes then type 'y' to proceed. Type 'n' to cancel")
-
-            let notesContent = try fileSystem.readFile(at: filePath)
-
+            try picker.requiredPermission(prompt: "Did you add your release notes to \(filePath)?")
+            
+            let notesContent = try desktop.readFile(named: fileName)
+            
             if notesContent.isEmpty {
-                throw ReleaseNotesError.emptyFileAfterRetry(filePath: filePath)
-            }
-        }
+                try picker.requiredPermission(prompt: "The file looks empty. Make sure to save your changes then type 'y' to proceed. Type 'n' to cancel")
 
-        return filePath
+                let recheckContent = try desktop.readFile(named: fileName)
+
+                if recheckContent.isEmpty {
+                    throw ReleaseNotesError.emptyFileAfterRetry(filePath: filePath)
+                }
+            }
+            
+            return .filePath(fileName)
+        }
     }
 }
 
