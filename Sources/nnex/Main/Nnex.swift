@@ -12,7 +12,7 @@ import ArgumentParser
 struct Nnex: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Utility to manage swift command line tools and streamline distrubution with Homebrew.",
-        version: "1.1.0",
+        version: "1.2.0",
         subcommands: [
             Brew.self,
             Build.self,
