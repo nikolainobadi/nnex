@@ -38,19 +38,6 @@ extension GithubReleaseController {
 
 // MARK: - Private Methods
 private extension GithubReleaseController {
-    func createNewRelease(number: String, binaries: [ArchivedBinary], noteSource: ReleaseNoteSource, projectPath: String) throws -> [String] {
-        let noteInfo: ReleaseNoteInfo
-        
-        switch noteSource {
-        case .exact(let notes):
-            noteInfo = .init(content: notes, isFromFile: false)
-        case .filePath(let filePath):
-            noteInfo = .init(content: filePath, isFromFile: true)
-        }
-        
-        return try gitHandler.createNewRelease(version: number, archivedBinaries: binaries, releaseNoteInfo: noteInfo, path: projectPath)
-    }
-    
     func selectReleaseNoteSource(notes: String?, notesFilePath: String?, projectName: String) throws -> ReleaseNoteSource {
         if let notes {
             return .exact(notes)
