@@ -82,4 +82,3 @@ extension MockGitHandler: GitHandler {
         return urls
     }
 }
-

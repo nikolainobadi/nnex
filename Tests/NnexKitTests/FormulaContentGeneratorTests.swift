@@ -9,7 +9,8 @@ import Testing
 @testable import NnexKit
 
 struct FormulaContentGeneratorTests {
-    private let testName = "testtool"
+    private let testFormulaName = "testtool"
+    private let testInstallName = "testtool"
     private let testDetails = "A test command line tool"
     private let testHomepage = "https://github.com/test/testtool"
     private let testLicense = "MIT"
@@ -22,7 +23,7 @@ struct FormulaContentGeneratorTests {
     private let testIntelSHA256 = "x86_64sha256hash"
 
     private var expectedName: String {
-        return FormulaNameSanitizer.sanitizeFormulaName(testName)
+        return FormulaNameSanitizer.sanitizeFormulaName(testFormulaName)
     }
 }
 
@@ -32,7 +33,8 @@ extension FormulaContentGeneratorTests {
     @Test("Generates correct formula content for single binary")
     func generatesSingleBinaryFormula() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -55,7 +57,8 @@ extension FormulaContentGeneratorTests {
     @Test("Capitalizes formula class name correctly")
     func capitalizesFormulaClassName() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: "my-tool",
+            formulaName: "my-tool",
+            installName: "my-tool",
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -67,10 +70,30 @@ extension FormulaContentGeneratorTests {
         #expect(content.contains("class MyTool < Formula"))
     }
 
+    @Test("Uses distinct install name when different from formula name for single binary")
+    func usesDistinctInstallNameForSingleBinary() {
+        let content = FormulaContentGenerator.makeFormulaFileContent(
+            formulaName: "my-formula",
+            installName: "my-binary",
+            details: testDetails,
+            homepage: testHomepage,
+            license: testLicense,
+            version: testVersion,
+            assetURL: testAssetURL,
+            sha256: testSHA256
+        )
+
+        #expect(content.contains("class MyFormula < Formula"))
+        #expect(content.contains("bin.install \"my-binary\""))
+        #expect(content.contains("system \"#{bin}/my-binary\", \"--help\""))
+        #expect(!content.contains("bin.install \"my-formula\""))
+    }
+
     @Test("Handles empty strings in single binary formula")
     func handlesEmptyStringsInSingleBinary() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: "",
             homepage: "",
             license: "",
@@ -94,7 +117,8 @@ extension FormulaContentGeneratorTests {
     @Test("Generates correct formula content for both ARM and Intel binaries")
     func generatesBothArchitecturesFormula() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -128,11 +152,34 @@ extension FormulaContentGeneratorTests {
         // Check structure
         #expect(content.contains("on_macos do"))
     }
+
+    @Test("Uses distinct install name when different from formula name for multi-arch")
+    func usesDistinctInstallNameForMultiArch() {
+        let content = FormulaContentGenerator.makeFormulaFileContent(
+            formulaName: "my-formula",
+            installName: "my-binary",
+            details: testDetails,
+            homepage: testHomepage,
+            license: testLicense,
+            version: testVersion,
+            armURL: testArmURL,
+            armSHA256: testArmSHA256,
+            intelURL: testIntelURL,
+            intelSHA256: testIntelSHA256
+        )
+
+        #expect(content.contains("class MyFormula < Formula"))
+        #expect(content.contains("bin.install \"my-binary\""))
+        #expect(content.contains("system \"#{bin}/my-binary\", \"--help\""))
+        #expect(!content.contains("bin.install \"my-formula\""))
+        #expect(!content.contains("system \"#{bin}/my-formula\""))
+    }
     
     @Test("Falls back to single binary formula when only ARM is provided")
     func fallsBackToSingleBinaryForArmOnly() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -154,7 +201,8 @@ extension FormulaContentGeneratorTests {
     @Test("Falls back to single binary formula when only Intel is provided")
     func fallsBackToSingleBinaryForIntelOnly() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -176,7 +224,8 @@ extension FormulaContentGeneratorTests {
     @Test("Handles missing ARM SHA256 with valid URL")
     func handlesMissingArmSHA256() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -196,7 +245,8 @@ extension FormulaContentGeneratorTests {
     @Test("Handles missing Intel URL with valid SHA256")
     func handlesMissingIntelURL() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -216,7 +266,8 @@ extension FormulaContentGeneratorTests {
     @Test("Handles empty string URLs as missing")
     func handlesEmptyStringURLsAsMissing() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -236,7 +287,8 @@ extension FormulaContentGeneratorTests {
     @Test("Handles empty string SHA256 as missing")
     func handlesEmptyStringSHA256AsMissing() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -256,7 +308,8 @@ extension FormulaContentGeneratorTests {
     @Test("Returns empty formula when no valid binaries provided")
     func returnsEmptyFormulaWhenNoBinaries() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -277,7 +330,8 @@ extension FormulaContentGeneratorTests {
     @Test("Returns empty formula when all binaries are empty strings")
     func returnsEmptyFormulaWhenAllEmpty() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -302,7 +356,8 @@ extension FormulaContentGeneratorTests {
     @Test("Multi-arch formula has correct indentation structure")
     func multiArchFormulaHasCorrectIndentation() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -337,7 +392,8 @@ extension FormulaContentGeneratorTests {
     @Test("Single binary formula has correct indentation")
     func singleBinaryFormulaHasCorrectIndentation() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -367,7 +423,8 @@ extension FormulaContentGeneratorTests {
     @Test("Strips v prefix from version in single binary formula")
     func stripsVPrefixFromVersionInSingleBinary() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -383,7 +440,8 @@ extension FormulaContentGeneratorTests {
     @Test("Strips v prefix from version in multi-arch formula")
     func stripsVPrefixFromVersionInMultiArch() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -401,7 +459,8 @@ extension FormulaContentGeneratorTests {
     @Test("Preserves version without v prefix in single binary formula")
     func preservesVersionWithoutVPrefixInSingleBinary() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,
@@ -416,7 +475,8 @@ extension FormulaContentGeneratorTests {
     @Test("Preserves version without v prefix in multi-arch formula")
     func preservesVersionWithoutVPrefixInMultiArch() {
         let content = FormulaContentGenerator.makeFormulaFileContent(
-            name: testName,
+            formulaName: testFormulaName,
+            installName: testInstallName,
             details: testDetails,
             homepage: testHomepage,
             license: testLicense,

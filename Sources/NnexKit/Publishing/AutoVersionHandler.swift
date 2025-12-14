@@ -29,6 +29,7 @@ public extension AutoVersionHandler {
         }
 
         let fileContent = try fileSystem.readFile(at: mainFile)
+        
         return extractVersionFromContent(fileContent)
     }
     

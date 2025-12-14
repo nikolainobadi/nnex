@@ -30,22 +30,38 @@ struct BuildController {
 }
 
 
-// MARK: - Actions
+// MARK: - BuildExecutable
 extension BuildController {
     func buildExecutable(path: String?, buildType: BuildType, clean: Bool, openInFinder: Bool) throws {
         let projectFolder = try fileSystem.getDirectoryAtPathOrCurrent(path: path)
-        let executableName = try getExecutableName(for: projectFolder)
         let outputLocation = try selectOutputLocation(buildType: buildType)
-        let config = BuildConfig(projectName: executableName, projectPath: projectFolder.path, buildType: buildType, extraBuildArgs: [], skipClean: !clean, testCommand: nil)
-        let result = try buildService.buildExecutable(config: config, outputLocation: outputLocation)
+        let result = try buildExecutable(projectFolder: projectFolder, buildType: buildType, clean: clean, outputLocation: outputLocation, extraBuildArgs: [], testCommand: nil)
         
         displayBuildResult(result, openInFinder: openInFinder)
     }
 }
 
 
+// MARK: - PublishBuilder
+extension BuildController {
+    func buildExecutable(projectFolder: any Directory, buildType: BuildType, clean: Bool, outputLocation: BuildOutputLocation?, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult {
+        let outputLocation = outputLocation ?? .currentDirectory(buildType)
+        let config = try makeBuildConfig(for: projectFolder, buildType: buildType, clean: clean, extraArgs: extraBuildArgs, testCommand: testCommand)
+        
+        return try buildService.buildExecutable(config: config, outputLocation: outputLocation)
+    }
+}
+
+
 // MARK: - Private Methods
 private extension BuildController {
+    func makeBuildConfig(for folder: any Directory, buildType: BuildType, clean: Bool, extraArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildConfig {
+        let executableName = try getExecutableName(for: folder)
+        
+        // TODO: - maybe prompt for extra args and test command?
+        return .init(projectName: executableName, projectPath: folder.path, buildType: buildType, extraBuildArgs: extraArgs, skipClean: !clean, testCommand: testCommand)
+    }
+    
     func getExecutableName(for folder: any Directory) throws -> String {
         let names = try ExecutableNameResolver.getExecutableNames(from: folder)
         

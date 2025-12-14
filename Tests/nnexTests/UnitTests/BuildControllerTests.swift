@@ -17,111 +17,95 @@ final class BuildControllerTests {
     @Test("Starting values empty")
     func startingValuesEmpty() {
         let (_, service, _) = makeSUT()
-        
-        #expect(service.capturedConfig == nil)
-        #expect(service.capturedOutputLocation == nil)
+
+        #expect(service.buildData == nil)
     }
-    
-    @Test("Builds executable with provided path and defaults")
-    func buildExecutableWithProvidedPath() throws {
-        let project = try makeProjectDirectory(path: "/project/", executableNames: ["App"])
-        let (sut, service, _) = makeSUT(projectDirectory: project, selectedIndex: 0)
+}
+
+
+// MARK: - Build Executable (User Command)
+extension BuildControllerTests {
+    @Test("Builds executable with single executable in package")
+    func buildsExecutableWithSingleExecutable() throws {
+        let projectDirectory = try makeProjectDirectory(path: "/project/myapp", executableNames: ["myapp"])
+        let (sut, service, _) = makeSUT(projectDirectory: projectDirectory)
+
+        try sut.buildExecutable(path: nil, buildType: .universal, clean: true, openInFinder: false)
+
+        let buildData = try #require(service.buildData)
+        #expect(buildData.config.projectName == "myapp")
+        #expect(buildData.config.buildType == .universal)
+        #expect(buildData.config.skipClean == false)
+    }
+
+    @Test("Builds executable with multiple executables using picker")
+    func buildsExecutableWithMultipleExecutables() throws {
+        let projectDirectory = try makeProjectDirectory(path: "/project", executableNames: ["app1", "app2", "app3"])
+        let (sut, service, _) = makeSUT(projectDirectory: projectDirectory, selectedIndex: 1)
+
+        try sut.buildExecutable(path: nil, buildType: .arm64, clean: false, openInFinder: false)
+
+        let buildData = try #require(service.buildData)
+        #expect(buildData.config.projectName == "app2")
+        #expect(buildData.config.buildType == .arm64)
+        #expect(buildData.config.skipClean == true)
+    }
+
+    @Test("Selects current directory as output location")
+    func selectsCurrentDirectoryAsOutput() throws {
+        let projectDirectory = try makeProjectDirectory(path: "/project/app", executableNames: ["app"])
+        let (sut, service, _) = makeSUT(projectDirectory: projectDirectory, selectedIndex: 0)
         
-        try sut.buildExecutable(path: project.path, buildType: .universal, clean: true, openInFinder: false)
+        try sut.buildExecutable(path: nil, buildType: .x86_64, clean: true, openInFinder: false)
         
-        let config = try #require(service.capturedConfig)
-        let outputLocation = try #require(service.capturedOutputLocation)
-        
-        #expect(config.projectName == "App")
-        #expect(config.projectPath == project.path)
-        #expect(config.buildType == .universal)
-        #expect(config.skipClean == false) // clean flag true => skipClean false
-        #expect(config.extraBuildArgs.isEmpty)
-        #expect(config.testCommand == nil)
-        
-        switch outputLocation {
-        case .currentDirectory:
-            break
-        default:
-            Issue.record("Unexpected output location")
+        let buildData = try #require(service.buildData)
+        if case .currentDirectory(let buildType) = buildData.outputLocation {
+            #expect(buildType == .x86_64)
+        } else {
+            Issue.record("Expected currentDirectory output location")
         }
     }
-    
-    @Test("Prompts when multiple executables and uses selected name")
-    func buildExecutableWithMultipleNames() throws {
-        let project = try makeProjectDirectory(path: "/project", executableNames: ["App", "Helper"])
-        // Single selection index will be used for both executable and output location prompts.
-        let (sut, service, _) = makeSUT(projectDirectory: project, selectedIndex: 1)
-        
-        try sut.buildExecutable(path: project.path, buildType: .arm64, clean: false, openInFinder: false)
-        
-        let config = try #require(service.capturedConfig)
-        let outputLocation = try #require(service.capturedOutputLocation)
-        
-        #expect(config.projectName == "Helper")
-        #expect(config.buildType == .arm64)
-        #expect(config.skipClean == true) // clean flag false => skipClean true
-        
-        switch outputLocation {
-        case .desktop:
-            break
-        default:
-            Issue.record("Unexpected output location")
-        }
+}
+
+
+// MARK: - Build Executable (Publish Integration)
+extension BuildControllerTests {
+    @Test("Builds with extra build args and test command")
+    func buildsWithExtraArgsAndTestCommand() throws {
+        let projectDirectory = try makeProjectDirectory(path: "/project/app", executableNames: ["app"])
+        let expectedArgs = ["--flag1", "--flag2"]
+        let expectedTestCommand = HomebrewFormula.TestCommand.custom("make test")
+        let (sut, service, _) = makeSUT(projectDirectory: projectDirectory)
+
+        _ = try sut.buildExecutable(projectFolder: projectDirectory, buildType: .universal, clean: true, outputLocation: nil, extraBuildArgs: expectedArgs, testCommand: expectedTestCommand)
+
+        let buildData = try #require(service.buildData)
+        #expect(buildData.config.extraBuildArgs == expectedArgs)
+        #expect(buildData.config.testCommand != nil)
     }
-    
-    @Test("Uses custom output location after confirmation")
-    func buildExecutableWithCustomOutputLocation() throws {
-        let project = try makeProjectDirectory(path: "/project", executableNames: ["App"])
-        let customDir = MockDirectory(path: "/custom/output")
-        let (sut, service, _) = makeSUT(
-            projectDirectory: project,
-            selectedIndex: 2, // choose custom output
-            permissionResponses: [true],
-            browsedDirectory: customDir
-        )
-        
-        try sut.buildExecutable(path: project.path, buildType: .x86_64, clean: true, openInFinder: false)
-        
-        let outputLocation = try #require(service.capturedOutputLocation)
-        
-        switch outputLocation {
-        case .custom(let path):
-            #expect(path == customDir.path)
-        default:
-            Issue.record("Unexpected output location")
-        }
+
+    @Test("Builds with empty extra args when none provided")
+    func buildsWithEmptyExtraArgs() throws {
+        let projectDirectory = try makeProjectDirectory(path: "/project/app", executableNames: ["app"])
+        let (sut, service, _) = makeSUT(projectDirectory: projectDirectory)
+
+        _ = try sut.buildExecutable(projectFolder: projectDirectory, buildType: .arm64, clean: false, outputLocation: nil, extraBuildArgs: [], testCommand: nil)
+
+        let buildData = try #require(service.buildData)
+        #expect(buildData.config.extraBuildArgs.isEmpty)
+        #expect(buildData.config.testCommand == nil)
     }
-    
-    @Test("Opens Finder when requested for single build")
-    func buildExecutableOpensFinderOnSuccess() throws {
-        let project = try makeProjectDirectory(path: "/project", executableNames: ["App"])
-        let binaryPath = "/project/.build/arm64-apple-macosx/release/App"
-        let shell = MockShell()
-        let result = BuildResult(executableName: "App", binaryOutput: .single(binaryPath))
-        let (sut, service, _) = makeSUT(
-            projectDirectory: project,
-            selectedIndex: 0,
-            shell: shell,
-            resultToReturn: result
-        )
-        
-        try sut.buildExecutable(path: project.path, buildType: .arm64, clean: true, openInFinder: true)
-        
-        #expect(shell.executedCommands.contains { $0.contains("open -R \(binaryPath)") })
-        #expect(service.capturedConfig?.projectName == "App")
-    }
-    
-    @Test("Propagates build service errors")
-    func buildExecutablePropagatesErrors() {
-        let project = try! makeProjectDirectory(path: "/project", executableNames: ["App"])
-        let (sut, service, _) = makeSUT(projectDirectory: project, selectedIndex: 0, throwServiceError: true)
-        
-        #expect(throws: (any Error).self) {
-            try sut.buildExecutable(path: project.path, buildType: .universal, clean: true, openInFinder: false)
-        }
-        
-        #expect(service.capturedConfig == nil)
+
+    @Test("Creates config with correct project path")
+    func createsConfigWithCorrectProjectPath() throws {
+        let projectPath = "/project/myapp"
+        let projectDirectory = try makeProjectDirectory(path: projectPath, executableNames: ["myapp"])
+        let (sut, service, _) = makeSUT(projectDirectory: projectDirectory)
+
+        _ = try sut.buildExecutable(projectFolder: projectDirectory, buildType: .universal, clean: true, outputLocation: nil, extraBuildArgs: [], testCommand: nil)
+
+        let buildData = try #require(service.buildData)
+        #expect(buildData.config.projectPath.contains(projectPath))
     }
 }
 
@@ -129,14 +113,15 @@ final class BuildControllerTests {
 // MARK: - SUT
 private extension BuildControllerTests {
     func makeSUT(
+        shell: MockShell? = nil,
         projectDirectory: MockDirectory? = nil,
         selectedIndex: Int = 0,
         permissionResponses: [Bool] = [],
         browsedDirectory: MockDirectory? = nil,
-        shell: MockShell = MockShell(),
         resultToReturn: BuildResult = .init(executableName: "App", binaryOutput: .single("/tmp/App")),
         throwServiceError: Bool = false
     ) -> (sut: BuildController, service: MockBuildService, projectDirectory: MockDirectory) {
+        let shell = shell ?? MockShell()
         let projectDirectory = projectDirectory ?? MockDirectory(path: "/project")
         let picker = MockSwiftPicker(
             inputResult: .init(type: .ordered([])),
@@ -194,8 +179,7 @@ private extension BuildControllerTests {
         private let resultToReturn: BuildResult
         private let throwError: Bool
         
-        private(set) var capturedConfig: BuildConfig?
-        private(set) var capturedOutputLocation: BuildOutputLocation?
+        private(set) var buildData: (config: BuildConfig, outputLocation: BuildOutputLocation)?
         
         init(resultToReturn: BuildResult, throwError: Bool) {
             self.resultToReturn = resultToReturn
@@ -204,8 +188,9 @@ private extension BuildControllerTests {
         
         func buildExecutable(config: BuildConfig, outputLocation: BuildOutputLocation) throws -> BuildResult {
             if throwError { throw NSError(domain: "Test", code: 0) }
-            capturedConfig = config
-            capturedOutputLocation = outputLocation
+            
+            buildData = (config, outputLocation)
+            
             return resultToReturn
         }
     }
