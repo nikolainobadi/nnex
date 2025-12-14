@@ -16,11 +16,12 @@ import NnexSharedTestHelpers
 struct FormulaPublishControllerTests {
     @Test("Starting values empty")
     func startingValues() {
-        let (_, store, _) = makeSUT()
+        let (_, delegate, _) = makeSUT()
 
-        #expect(store.updatedFormula == nil)
-        #expect(store.savedFormula == nil)
-        #expect(store.savedTap == nil)
+        #expect(delegate.savedTap == nil)
+        #expect(delegate.savedFormula == nil)
+        #expect(delegate.updatedFormula == nil)
+        #expect(delegate.formulaFileData == nil)
     }
 }
 
@@ -35,11 +36,11 @@ extension FormulaPublishControllerTests {
         let formula = makeFormula(name: "tool", tapPath: tapPath, localProjectPath: "")
         let tap = HomebrewTap(name: "Tap", localPath: tapPath, remotePath: "", formulas: [formula])
         let info = makePublishInfo(assetURLs: ["https://example.com/tool.tar.gz"])
-        let (sut, store, project) = makeSUT(taps: [tap], directoryMap: [tapPath: tapDirectory])
+        let (sut, delegate, project) = makeSUT(taps: [tap], directoryMap: [tapPath: tapDirectory])
 
         try sut.publishFormula(projectFolder: project, info: info, commitMessage: "update formula")
 
-        #expect(store.updatedFormula?.localProjectPath == project.path)
+        #expect(delegate.updatedFormula?.localProjectPath == project.path)
         #expect(formulaFolder.containsFile(named: "tool.rb"))
     }
 
@@ -77,7 +78,7 @@ extension FormulaPublishControllerTests {
         let project = MockDirectory(path: "/projects/tool", containedFiles: ["LICENSE"])
         project.fileContents["LICENSE"] = "MIT License"
         let info = makePublishInfo(assetURLs: ["https://example.com/tool.tar.gz"])
-        let (sut, store, projectFolder) = makeSUT(
+        let (sut, delegate, projectFolder) = makeSUT(
             taps: [tap1, tap2],
             inputResults: ["A tool"],
             selectionIndex: 1,
@@ -89,13 +90,13 @@ extension FormulaPublishControllerTests {
 
         try sut.publishFormula(projectFolder: projectFolder, info: info, commitMessage: nil)
 
-        let savedFormula = try #require(store.savedFormula)
+        let savedFormula = try #require(delegate.savedFormula)
         #expect(savedFormula.name == projectFolder.name)
         #expect(savedFormula.details == "A tool")
         #expect(savedFormula.homepage == "https://example.com/repo.git")
         #expect(savedFormula.license == "MIT")
         #expect(savedFormula.testCommand == nil)
-        #expect(store.savedTap?.name == tap2.name)
+        #expect(delegate.savedTap?.name == tap2.name)
     }
 }
 
@@ -111,13 +112,13 @@ extension FormulaPublishControllerTests {
         let tap = HomebrewTap(name: "Tap", localPath: tapPath, remotePath: "", formulas: [formula])
         let archives = [ArchivedBinary(originalPath: "/tmp/tool", archivePath: "/tmp/tool.tar.gz", sha256: "abc123")]
         let info = FormulaPublishInfo(version: "1.0.0", installName: "tool", assetURLs: [], archives: archives)
-        let (sut, store, project) = makeSUT(taps: [tap], directoryMap: [tapPath: tapDirectory])
+        let (sut, delegate, project) = makeSUT(taps: [tap], directoryMap: [tapPath: tapDirectory])
 
         #expect(throws: NnexError.missingSha256) {
             try sut.publishFormula(projectFolder: project, info: info, commitMessage: nil)
         }
 
-        #expect(store.updatedFormula == nil)
+        #expect(delegate.updatedFormula == nil)
     }
 }
 
@@ -132,7 +133,7 @@ private extension FormulaPublishControllerTests {
         gitRemoteURL: String? = nil,
         directoryMap: [String: MockDirectory] = [:],
         projectFolder: MockDirectory? = nil
-    ) -> (sut: FormulaPublishController, store: MockPublishStore, project: MockDirectory) {
+    ) -> (sut: FormulaPublishController, delegate: MockDelegate, project: MockDirectory) {
         let projectFolder = projectFolder ?? MockDirectory(path: "/projects/tool")
         let picker = MockSwiftPicker(
             inputResult: .init(type: .ordered(inputResults)),
@@ -141,10 +142,10 @@ private extension FormulaPublishControllerTests {
         )
         let gitHandler = gitRemoteURL != nil ? MockGitHandler(remoteURL: gitRemoteURL!) : MockGitHandler()
         let fileSystem = MockFileSystem(directoryMap: directoryMap)
-        let store = MockPublishStore(taps: taps)
-        let sut = FormulaPublishController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, store: store)
+        let delegate = MockDelegate(taps: taps)
+        let sut = FormulaPublishController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, store: delegate, formulaFileService: delegate)
 
-        return (sut, store, projectFolder)
+        return (sut, delegate, projectFolder)
     }
 
     func makeFormula(name: String, tapPath: String, localProjectPath: String) -> HomebrewFormula {
@@ -171,12 +172,13 @@ private extension FormulaPublishControllerTests {
 
 // MARK: - Mocks
 private extension FormulaPublishControllerTests {
-    final class MockPublishStore: PublishInfoStore {
+    final class MockDelegate: PublishInfoStore, FormulaFileService {
         private let taps: [HomebrewTap]
 
-        private(set) var updatedFormula: HomebrewFormula?
-        private(set) var savedFormula: HomebrewFormula?
         private(set) var savedTap: HomebrewTap?
+        private(set) var savedFormula: HomebrewFormula?
+        private(set) var updatedFormula: HomebrewFormula?
+        private(set) var formulaFileData: (formula: HomebrewFormula, tapFolder: any Directory, contents: String)?
 
         init(taps: [HomebrewTap]) {
             self.taps = taps
@@ -193,6 +195,11 @@ private extension FormulaPublishControllerTests {
         func saveNewFormula(_ formula: HomebrewFormula, in tap: HomebrewTap) throws {
             savedFormula = formula
             savedTap = tap
+        }
+        
+        func resolveFormulaFile(formula: HomebrewFormula, tapFolder: any Directory, contents: String) throws -> String {
+            formulaFileData = (formula, tapFolder, contents)
+            return ""
         }
     }
 }
