@@ -69,7 +69,7 @@ This command runs in the current directory and prompts you for any missing infor
 To streamline the command and skip interactive prompts, include version, notes/notes-file, and a commit-message in the command.
 
 ```bash
-nnex brew publish --version v1.0.0 --notes-file MyReleaseNotes.md --commit-message "Updated the formula for MyCoolTool" --skip-tests
+nnex brew publish --version 1.0.0 --notes-file MyReleaseNotes.md --commit-message "Updated the formula for MyCoolTool" --skip-tests
 ```
 
 If a required option is not specified, `nnex` will prompt you to enter it interactively.

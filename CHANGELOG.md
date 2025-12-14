@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2025-12-14
+
+### Added
+- `--dry-run` flag for `brew publish` command to simulate the publish process without making any changes to files or remote repositories
+
 ## [1.1.0] - 2025-12-11
 
 ### Fixed
