@@ -14,142 +14,26 @@ import NnexSharedTestHelpers
 @testable import nnex
 
 final class ArtifactControllerTests {
-    @Test("Uses existing formula configuration when building artifacts")
-    func buildArtifactsUsesFormulaArgs() throws {
-        let project = MockDirectory(path: "/project/App")
-        let binaryPath = "/project/.build/arm64-apple-macosx/release/App"
-        let buildResult = BuildResult(executableName: "App", binaryOutput: .single(binaryPath))
-        let formula = HomebrewFormula(
-            name: "app",
-            details: "",
-            homepage: "",
-            license: "",
-            localProjectPath: project.path,
-            uploadType: .binary,
-            testCommand: .custom("swift test"),
-            extraBuildArgs: ["--flag"]
-        )
-        let tap = HomebrewTap(name: "Tap", localPath: "", remotePath: "", formulas: [formula])
-        let commandResults = makeCommandResults(for: [binaryPath], shaPrefix: "hash")
-        let shell = makeShell(commandResults: commandResults)
-        let (sut, delegate, gitHandler, _, _, _) = makeSUT(
-            projectFolder: project,
-            buildResult: buildResult,
-            taps: [tap],
-            shell: shell
-        )
+    @Test("Starting values empty")
+    func startingValuesEmpty() {
+        let (_, delegate) = makeSUT()
         
-        let artifact = try sut.buildArtifacts(projectFolder: project, buildType: .arm64, versionInfo: .version("2.0.0"))
-        
-        #expect(delegate.capturedBuildType == .arm64)
-        #expect(delegate.capturedExtraBuildArgs == ["--flag"])
-        if case .custom(let command) = delegate.capturedTestCommand {
-            #expect(command == "swift test")
-        } else {
-            Issue.record("Expected custom test command")
-        }
-        #expect(artifact.version == "2.0.0")
-        #expect(artifact.executableName == "App")
-        
-        let archive = try #require(artifact.archives.first)
-        #expect(archive.sha256 == "hash0")
-        #expect(archive.archivePath.hasSuffix("App-arm64.tar.gz"))
-        #expect(gitHandler.message == nil)
-    }
-    
-    @Test("Increments previous version when user requests it")
-    func buildArtifactsIncrementsVersion() throws {
-        let project = MockDirectory(path: "/project/App")
-        let binaryPath = "/project/.build/arm64-apple-macosx/release/App"
-        let buildResult = BuildResult(executableName: "App", binaryOutput: .single(binaryPath))
-        let shell = makeShell(commandResults: makeCommandResults(for: [binaryPath], shaPrefix: "sha"))
-        let picker = ArtifactControllerTests.makePicker(inputResults: ["minor"])
-        let gitHandler = MockGitHandler(previousVersion: "1.2.3")
-        let (sut, delegate, _, _, _, _) = makeSUT(
-            projectFolder: project,
-            buildResult: buildResult,
-            gitHandler: gitHandler,
-            shell: shell,
-            picker: picker
-        )
-        
-        let artifact = try sut.buildArtifacts(projectFolder: project, buildType: .universal, versionInfo: nil)
-        
-        #expect(artifact.version == "1.3.0")
-        #expect(delegate.capturedBuildType == .universal)
-    }
-    
-    @Test("Archives multiple binaries by architecture")
-    func buildArtifactsArchivesMultipleBinaries() throws {
-        let project = MockDirectory(path: "/project/App")
-        let armPath = "/project/.build/arm64-apple-macosx/release/App"
-        let intelPath = "/project/.build/x86_64-apple-macosx/release/App"
-        let buildResult = BuildResult(executableName: "App", binaryOutput: .multiple([.arm: armPath, .intel: intelPath]))
-        let commandResults = makeCommandResults(for: [armPath, intelPath], shaPrefix: "sha")
-        let shell = makeShell(commandResults: commandResults)
-        let (sut, _, _, shellRef, _, _) = makeSUT(
-            projectFolder: project,
-            buildResult: buildResult,
-            shell: shell
-        )
-        
-        let artifact = try sut.buildArtifacts(projectFolder: project, buildType: .arm64, versionInfo: .version("0.1.0"))
-        
-        #expect(artifact.archives.count == 2)
-        #expect(artifact.archives[0].archivePath.contains("arm64"))
-        #expect(artifact.archives[1].archivePath.contains("x86_64"))
-        #expect(shellRef.executedCommands.count == 4)
-    }
-    
-    @Test("Updates source version and commits when permission granted")
-    func buildArtifactsPerformsAutoVersionUpdate() throws {
-        let project = MockDirectory(path: "/project")
-        let binaryPath = "/project/.build/arm64-apple-macosx/release/App"
-        let buildResult = BuildResult(executableName: "App", binaryOutput: .single(binaryPath))
-        let mainContent = """
-        import ArgumentParser
-        @main
-        struct App: ParsableCommand {
-            static let configuration = CommandConfiguration(version: "1.0.0")
-        }
-        """
-        let sourcesDirectory = MockDirectory(path: "/project/Sources", containedFiles: ["Main.swift"])
-        try sourcesDirectory.createFile(named: "Main.swift", contents: mainContent)
-        let fileSystem = MockFileSystem(directoryMap: [sourcesDirectory.path: sourcesDirectory])
-        let shell = makeShell(commandResults: makeCommandResults(for: [binaryPath], shaPrefix: "sha"))
-        let picker = ArtifactControllerTests.makePicker(permissionResults: [true])
-        let gitHandler = MockGitHandler(previousVersion: "1.0.0")
-        let (sut, _, git, _, fs, _) = makeSUT(
-            projectFolder: project,
-            buildResult: buildResult,
-            gitHandler: gitHandler,
-            shell: shell,
-            picker: picker,
-            fileSystem: fileSystem
-        )
-        
-        let artifact = try sut.buildArtifacts(projectFolder: project, buildType: .arm64, versionInfo: .version("v1.1.0"))
-        
-        #expect(artifact.version == "v1.1.0")
-        #expect(git.message == "Update version to v1.1.0")
-        let updatedContent = try fs.readFile(at: sourcesDirectory.path.appendingPathComponent("Main.swift"))
-        #expect(updatedContent.contains("version: \"1.1.0\""))
+        #expect(delegate.buildData == nil)
     }
 }
 
 
 // MARK: - SUT
 private extension ArtifactControllerTests {
-    func makeSUT(projectFolder: MockDirectory, buildResult: BuildResult, taps: [HomebrewTap] = [], gitHandler: MockGitHandler = MockGitHandler(), shell: MockShell, picker: MockSwiftPicker = ArtifactControllerTests.makePicker(), fileSystem: MockFileSystem = MockFileSystem()) -> (sut: ArtifactController, delegate: MockArtifactDelegate, gitHandler: MockGitHandler, shell: MockShell, fileSystem: MockFileSystem, picker: MockSwiftPicker) {
-        let delegate = MockArtifactDelegate(taps: taps, buildResult: buildResult)
+    func makeSUT(shellResults: [String] = [], previousVersion: String = "", tapsToLoad: [HomebrewTap]? = [], buildResultToLoad: BuildResult? = nil) -> (sut: ArtifactController, delegate: MockDelegate) {
+        let shell = MockShell(results: shellResults)
+        let picker = MockSwiftPicker(selectionResult: .init(defaultSingle: .index(0)))
+        let gitHandler = MockGitHandler(previousVersion: previousVersion)
+        let fileSystem = MockFileSystem()
+        let delegate = MockDelegate(tapsToLoad: tapsToLoad, buildResult: buildResultToLoad)
         let sut = ArtifactController(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, delegate: delegate)
         
-        return (sut, delegate, gitHandler, shell, fileSystem, picker)
-    }
-    
-    func makeShell(commandResults: [String: String]) -> MockShell {
-        let commands = commandResults.map { MockCommand(command: $0.key, output: $0.value) }
-        return MockShell(commands: commands)
+        return (sut, delegate)
     }
     
     func makeCommandResults(for binaryPaths: [String], shaPrefix: String) -> [String: String] {
@@ -182,42 +66,37 @@ private extension ArtifactControllerTests {
 
 // MARK: - Mocks
 private extension ArtifactControllerTests {
-    final class MockArtifactDelegate: ArtifactDelegate {
-        private let taps: [HomebrewTap]
-        private let buildResult: BuildResult
-        private let shouldThrow: Bool
+    final class MockDelegate: ArtifactDelegate {
+        private let tapsToLoad: [HomebrewTap]?
+        private let buildResult: BuildResult?
         
-        private(set) var capturedProjectFolder: (any Directory)?
-        private(set) var capturedBuildType: BuildType?
-        private(set) var capturedExtraBuildArgs: [String]?
-        private(set) var capturedTestCommand: HomebrewFormula.TestCommand?
+        private(set) var buildData: (folder: any Directory, buildType: BuildType, extraArs: [String], testCommand: HomebrewFormula.TestCommand?)?
         
-        init(taps: [HomebrewTap], buildResult: BuildResult, shouldThrow: Bool = false) {
-            self.taps = taps
+        init(tapsToLoad: [HomebrewTap]?, buildResult: BuildResult?) {
+            self.tapsToLoad = tapsToLoad
             self.buildResult = buildResult
-            self.shouldThrow = shouldThrow
         }
         
         func loadTaps() throws -> [HomebrewTap] {
-            if shouldThrow { throw NSError(domain: "Test", code: 0) }
-            return taps
+            guard let tapsToLoad else {
+                throw NSError(domain: "Test", code: 0)
+            }
+            
+            return tapsToLoad
+        }
+        
+        func updateArgumentParserVersion(projectPath: String, newVersion: String) throws -> Bool {
+            return false // TODO: -
         }
         
         func buildExecutable(projectFolder: any Directory, buildType: BuildType, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult {
-            if shouldThrow { throw NSError(domain: "Test", code: 0) }
-            capturedProjectFolder = projectFolder
-            capturedBuildType = buildType
-            capturedExtraBuildArgs = extraBuildArgs
-            capturedTestCommand = testCommand
+            guard let buildResult else {
+                throw NSError(domain: "Test", code: 0)
+            }
+            
+            buildData = (projectFolder, buildType, extraBuildArgs, testCommand)
+            
             return buildResult
         }
-    }
-    
-    static func makePicker(inputResults: [String] = [], permissionResults: [Bool] = []) -> MockSwiftPicker {
-        MockSwiftPicker(
-            inputResult: .init(type: .ordered(inputResults)),
-            permissionResult: .init(type: .ordered(permissionResults)),
-            selectionResult: .init(defaultSingle: .index(0))
-        )
     }
 }

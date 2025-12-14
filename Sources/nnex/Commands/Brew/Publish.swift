@@ -36,46 +36,54 @@ extension Nnex.Brew {
 
         func run() throws {
             let shell = Nnex.makeShell()
-            let picker = Nnex.makePicker()
-            let gitHandler = Nnex.makeGitHandler()
             let context = try Nnex.makeContext()
+            let gitHandler = Nnex.makeGitHandler()
             let fileSystem = Nnex.makeFileSystem()
-            let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
             let resolvedBuildType = buildType ?? context.loadDefaultBuildType()
-            let dateProvider = DefaultDateProvider()
-            
-            let buildService = BuildManager(shell: shell, fileSystem: fileSystem)
-            let buildController = BuildController(shell: shell, picker: picker, fileSystem: fileSystem, buildService: buildService, folderBrowser: folderBrowser)
-            let loader = PublishInfoStoreAdapter(context: context)
-            let artifactDelegate = ArtifactDelegateAdapter(loader: loader, buildController: buildController)
-            let artifactController = ArtifactController(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, delegate: artifactDelegate)
-            let releaseController = GithubReleaseController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, dateProvider: dateProvider, folderBrowser: folderBrowser)
-            let publishController = FormulaPublishController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, store: loader)
-            let delegate = PublishDelegateAdapter(artifactController: artifactController, releaseController: releaseController, publishController: publishController)
+            let delegate = makePublishDelegate(shell: shell, gitHandler: gitHandler, fileSystem: fileSystem, context: context)
             let coordinator = PublishCoordinator(shell: shell, gitHandler: gitHandler, fileSystem: fileSystem, delegate: delegate)
             
             try coordinator.publish(projectPath: path, buildType: resolvedBuildType, notes: notes, notesFilePath: notesFile, commitMessage: message, skipTests: skipTests, versionInfo: version)
-            
-//            let manager = BuildManager(shell: shell, fileSystem: fileSystem)
-//            let buildController = BuildController(shell: shell, picker: picker, fileSystem: fileSystem, buildService: manager, folderBrowser: folderBrowser)
-//            let publishAdapter = PublishInfoStoreAdapter(context: context)
-//            let temp = TemporaryPublishAdapter(context: context, buildController: buildController, publishInfoStoreAdatper: publishAdapter)
-//            let coordinator = OldPublishCoordinator(shell: shell, picker: picker, fileSystem: fileSystem, gitHandler: gitHandler, dateProvider: dateProvider, folderBrowser: folderBrowser, temporaryProtocol: temp)
-//            
-//            try coordinator.publish(projectPath: path, buildType: resolvedBuildType, notes: notes, notesFilePath: notesFile, commitMessage: message, skipTests: skipTests, version: version)
-            
-//            let projectFolder = try fileSystem.getProjectFolder(at: path)
-//            let store = PublishInfoStoreAdapter(context: context)
-//            let publishInfoLoader = PublishInfoLoader(shell: shell, picker: picker, gitHandler: gitHandler, store: store, projectFolder: projectFolder, skipTests: skipTests)
-//            let manager = PublishExecutionManager(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, folderBrowser: folderBrowser, publishInfoLoader: publishInfoLoader)
-            
-//            try manager.executePublish(projectFolder: projectFolder, version: version, buildType: resolvedBuildType, notes: notes, notesFile: notesFile, message: message, skipTests: skipTests)
         }
     }
 }
 
 
 // MARK: - Private Methods
+private extension Nnex.Brew.Publish {
+    func makeBuildController(shell: any NnexShell, picker: any NnexPicker, fileSystem: any FileSystem, folderBrowser: any DirectoryBrowser) -> BuildController {
+        let buildService = BuildManager(shell: shell, fileSystem: fileSystem)
+        
+        return .init(shell: shell, picker: picker, fileSystem: fileSystem, buildService: buildService, folderBrowser: folderBrowser)
+    }
+    
+    func makeArtifactController(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, fileSystem: any FileSystem, loader: PublishInfoStoreAdapter, buildController: BuildController) -> ArtifactController {
+        let versionHandler = AutoVersionHandler(shell: shell, fileSystem: fileSystem)
+        let artifactDelegate = ArtifactDelegateAdapter(loader: loader, buildController: buildController, versionHandler: versionHandler)
+        
+        return .init(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, delegate: artifactDelegate)
+    }
+    
+    func makePublishDelegate(shell: any NnexShell, gitHandler: any GitHandler, fileSystem: any FileSystem, context: NnexContext) -> any PublishDelegate {
+        let picker = Nnex.makePicker()
+        let folderBrowser = Nnex.makeFolderBrowser(picker: picker, fileSystem: fileSystem)
+        let dateProvider = DefaultDateProvider()
+        let loader = PublishInfoStoreAdapter(context: context)
+
+        let buildController = makeBuildController(shell: shell, picker: picker, fileSystem: fileSystem, folderBrowser: folderBrowser)
+        let artifactController = makeArtifactController(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, loader: loader, buildController: buildController)
+        let releaseController = GithubReleaseController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, dateProvider: dateProvider, folderBrowser: folderBrowser)
+        let publishController = FormulaPublishController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, store: loader)
+        
+        return PublishDelegateAdapter(artifactController: artifactController, releaseController: releaseController, publishController: publishController)
+    }
+}
+
+
+// MARK: - Extension Dependencies
+extension ReleaseVersionInfo: ExpressibleByArgument { }
+extension ReleaseVersionInfo.VersionPart: ExpressibleByArgument { }
+
 private extension FileSystem {
     func getProjectFolder(at path: String?) throws -> any Directory {
         if let path {
@@ -85,8 +93,3 @@ private extension FileSystem {
         return currentDirectory
     }
 }
-
-
-// MARK: - Extension Dependencies
-extension ReleaseVersionInfo: ExpressibleByArgument { }
-extension ReleaseVersionInfo.VersionPart: ExpressibleByArgument { }

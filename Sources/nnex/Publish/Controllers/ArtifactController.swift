@@ -155,5 +155,6 @@ private extension ArtifactController {
 // MARK: - Dependencies
 protocol ArtifactDelegate {
     func loadTaps() throws -> [HomebrewTap]
+    func updateArgumentParserVersion(projectPath: String, newVersion: String) throws -> Bool
     func buildExecutable(projectFolder: any Directory, buildType: BuildType, extraBuildArgs: [String], testCommand: HomebrewFormula.TestCommand?) throws -> BuildResult
 }
