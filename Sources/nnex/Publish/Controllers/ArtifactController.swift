@@ -10,15 +10,13 @@ import NnexKit
 struct ArtifactController {
     private let shell: any NnexShell
     private let picker: any NnexPicker
-    private let gitHandler: any GitHandler
     private let fileSystem: any FileSystem
     private let delegate: any ArtifactDelegate
     
-    init(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, fileSystem: any FileSystem, delegate: any ArtifactDelegate) {
+    init(shell: any NnexShell, picker: any NnexPicker, fileSystem: any FileSystem, delegate: any ArtifactDelegate) {
         self.shell = shell
         self.picker = picker
         self.delegate = delegate
-        self.gitHandler = gitHandler
         self.fileSystem = fileSystem
     }
 }

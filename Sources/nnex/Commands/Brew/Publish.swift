@@ -57,10 +57,10 @@ private extension Nnex.Brew.Publish {
         return .init(shell: shell, picker: picker, fileSystem: fileSystem, buildService: buildService, folderBrowser: folderBrowser)
     }
     
-    func makeArtifactController(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, fileSystem: any FileSystem, loader: PublishInfoStoreAdapter, buildController: BuildController) -> ArtifactController {
+    func makeArtifactController(shell: any NnexShell, picker: any NnexPicker, fileSystem: any FileSystem, loader: PublishInfoStoreAdapter, buildController: BuildController) -> ArtifactController {
         let artifactDelegate = ArtifactDelegateAdapter(loader: loader, buildController: buildController)
         
-        return .init(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, delegate: artifactDelegate)
+        return .init(shell: shell, picker: picker, fileSystem: fileSystem, delegate: artifactDelegate)
     }
     
     func makePublishDelegate(shell: any NnexShell, gitHandler: any GitHandler, fileSystem: any FileSystem, context: NnexContext) -> any PublishDelegate {
@@ -72,7 +72,7 @@ private extension Nnex.Brew.Publish {
         let versionService = AutoVersionHandler(shell: shell, fileSystem: fileSystem)
         let versionController = VersionNumberController(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, versionService: versionService)
         let buildController = makeBuildController(shell: shell, picker: picker, fileSystem: fileSystem, folderBrowser: folderBrowser)
-        let artifactController = makeArtifactController(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, loader: loader, buildController: buildController)
+        let artifactController = makeArtifactController(shell: shell, picker: picker, fileSystem: fileSystem, loader: loader, buildController: buildController)
         let releaseController = GithubReleaseController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, dateProvider: dateProvider, folderBrowser: folderBrowser)
         let publishController = FormulaPublishController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, store: loader)
         
