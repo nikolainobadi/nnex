@@ -16,6 +16,14 @@ extension HomebrewTap: DisplayablePickerItem {
 }
 
 
+// MARK: - HomebrewFormula
+extension HomebrewFormula: DisplayablePickerItem {
+    public var displayName: String {
+        return name
+    }
+}
+
+
 // MARK: - BuildType
 extension BuildType: DisplayablePickerItem {
     public var displayName: String {
@@ -58,54 +66,16 @@ extension FormulaTestType: DisplayablePickerItem {
     }
 }
 
+
+// MARK: - SwiftDataHomebrewTap
 extension SwiftDataHomebrewTap: DisplayablePickerItem {
     public var displayName: String {
         return name
     }
 }
 
-extension SwiftDataHomebrewFormula:  DisplayablePickerItem {
-    public var displayName: String {
-        return name
-    }
-}
 
-extension HomebrewFormula: DisplayablePickerItem {
-    public var displayName: String {
-        return name
-    }
-}
-
-//extension ReleaseNotesHandler.NoteContentType: DisplayablePickerItem {
-//    var displayName: String {
-//        switch self {
-//        case .direct:
-//            return "Type notes directly"
-//        case .selectFile:
-//            return "Browse and select file"
-//        case .fromPath:
-//            return "Enter path to release notes file"
-//        case .createFile:
-//            return "Create a new file"
-//        }
-//    }
-//}
-//
-//extension OldPublishCoordinator.NoteContentType: DisplayablePickerItem {
-//    var displayName: String {
-//        switch self {
-//        case .direct:
-//            return "Type notes directly"
-//        case .selectFile:
-//            return "Browse and select file"
-//        case .fromPath:
-//            return "Enter path to release notes file"
-//        case .createFile:
-//            return "Create a new file"
-//        }
-//    }
-//}
-
+// MARK: - NoteContentType
 extension NoteContentType: DisplayablePickerItem {
     var displayName: String {
         switch self {
