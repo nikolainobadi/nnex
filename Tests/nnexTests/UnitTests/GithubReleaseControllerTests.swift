@@ -16,9 +16,153 @@ final class GithubReleaseControllerTests {
     @Test("Starting values empty")
     func startingValuesEmpty() {
         let (_, gitHandler) = makeSUT()
-        
+
         #expect(gitHandler.releaseVersion == nil)
         #expect(gitHandler.releaseNoteInfo == nil)
+    }
+}
+
+
+// MARK: - Upload Release with Provided Notes
+extension GithubReleaseControllerTests {
+    @Test("Uploads release with exact notes provided")
+    func uploadsReleaseWithExactNotes() throws {
+        let expectedVersion = "1.0.0"
+        let expectedNotes = "Release notes content"
+        let assets = makeAssets()
+        let (sut, gitHandler) = makeSUT()
+        let folder = MockDirectory(path: "/project/myapp")
+
+        let assetURLs = try sut.uploadRelease(version: expectedVersion, assets: assets, notes: expectedNotes, notesFilePath: nil, projectFolder: folder)
+        let noteInfo = try #require(gitHandler.releaseNoteInfo)
+
+        #expect(gitHandler.releaseVersion == expectedVersion)
+        #expect(noteInfo.content == expectedNotes)
+        #expect(noteInfo.isFromFile == false)
+        #expect(!assetURLs.isEmpty)
+    }
+
+    @Test("Uploads release with file path provided")
+    func uploadsReleaseWithFilePath() throws {
+        let expectedVersion = "2.0.0"
+        let expectedFilePath = "/path/to/notes.md"
+        let assets = makeAssets()
+        let (sut, gitHandler) = makeSUT()
+        let folder = MockDirectory(path: "/project/app")
+
+        let assetURLs = try sut.uploadRelease(version: expectedVersion, assets: assets, notes: nil, notesFilePath: expectedFilePath, projectFolder: folder)
+        let noteInfo = try #require(gitHandler.releaseNoteInfo)
+
+        #expect(gitHandler.releaseVersion == expectedVersion)
+        #expect(noteInfo.content == expectedFilePath)
+        #expect(noteInfo.isFromFile == true)
+        #expect(!assetURLs.isEmpty)
+    }
+}
+
+
+// MARK: - Upload Release with Interactive Selection
+extension GithubReleaseControllerTests {
+    @Test("Uploads release with direct input notes")
+    func uploadsReleaseWithDirectInput() throws {
+        let expectedNotes = "Interactive release notes"
+        let assets = makeAssets()
+        let (sut, gitHandler) = makeSUT(inputResults: [expectedNotes], selectionIndex: 0)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        let noteInfo = try #require(gitHandler.releaseNoteInfo)
+        #expect(noteInfo.content == expectedNotes)
+        #expect(noteInfo.isFromFile == false)
+    }
+
+    @Test("Uploads release with file from browser")
+    func uploadsReleaseWithSelectedFile() throws {
+        let expectedFilePath = "/selected/notes.md"
+        let assets = makeAssets()
+        let (sut, gitHandler) = makeSUT(selectionIndex: 1, filePathToReturn: expectedFilePath)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        let noteInfo = try #require(gitHandler.releaseNoteInfo)
+        #expect(noteInfo.content == expectedFilePath)
+        #expect(noteInfo.isFromFile == true)
+    }
+
+    @Test("Uploads release with path from input")
+    func uploadsReleaseWithPathFromInput() throws {
+        let expectedPath = "/entered/path/notes.md"
+        let assets = makeAssets()
+        let (sut, gitHandler) = makeSUT(inputResults: [expectedPath], selectionIndex: 2)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        let noteInfo = try #require(gitHandler.releaseNoteInfo)
+        #expect(noteInfo.content == expectedPath)
+        #expect(noteInfo.isFromFile == true)
+    }
+
+    @Test("Creates new note file on desktop", .disabled()) // TODO: -
+    func createsNewNoteFile() throws {
+        let testDate = Date(timeIntervalSince1970: 1704067200) // 1/1/24
+        let expectedFileName = "myapp-releaseNotes-\(formatShortDate(testDate)).md"
+        let desktop = MockDirectory(path: "/Users/test/Desktop")
+        let assets = makeAssets()
+        let (sut, gitHandler) = makeSUT(date: testDate, selectionIndex: 3, permissionResults: [true], desktop: desktop)
+        let folder = MockDirectory(path: "/project/myapp")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+        let noteInfo = try #require(gitHandler.releaseNoteInfo)
+
+        #expect(desktop.containedFiles.contains(expectedFileName))
+        #expect(noteInfo.content.contains(expectedFileName))
+        #expect(noteInfo.isFromFile == true)
+    }
+}
+
+
+// MARK: - File Validation
+extension GithubReleaseControllerTests {
+    @Test("Validates file has content before proceeding", .disabled()) // TODO: -
+    func validatesFileHasContent() throws {
+        let testDate = Date()
+        let desktop = MockDirectory(path: "/Users/test/Desktop")
+        let assets = makeAssets()
+        let (sut, _) = makeSUT(date: testDate, selectionIndex: 3, permissionResults: [true], desktop: desktop)
+        let folder = MockDirectory(path: "/project/app")
+
+        // Create file with content
+        let fileName = "app-releaseNotes-\(formatShortDate(testDate)).md"
+        try desktop.createFile(named: fileName, contents: "Some release notes")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        // Should succeed without retry
+        #expect(desktop.containedFiles.contains(fileName))
+    }
+
+    @Test("Retries when file is initially empty", .disabled()) // TODO: -
+    func retriesWhenFileInitiallyEmpty() throws {
+        let testDate = Date()
+        let desktop = MockDirectory(path: "/Users/test/Desktop")
+        let assets = makeAssets()
+        let (sut, gitHandler) = makeSUT(date: testDate, selectionIndex: 3, permissionResults: [true, true], desktop: desktop)
+        let folder = MockDirectory(path: "/project/app")
+
+        // Pre-create empty file, then add content after first check
+        let fileName = "app-releaseNotes-\(formatShortDate(testDate)).md"
+        try desktop.createFile(named: fileName, contents: "")
+
+        // Simulate adding content after first prompt
+        try desktop.createFile(named: fileName, contents: "Updated notes")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        let noteInfo = try #require(gitHandler.releaseNoteInfo)
+        #expect(noteInfo.isFromFile == true)
     }
 }
 
@@ -56,17 +200,5 @@ private extension GithubReleaseControllerTests {
         let formatter = DateFormatter()
         formatter.dateFormat = "M-d-yy"
         return formatter.string(from: date)
-    }
-}
-
-
-// MARK: - Picker
-private extension GithubReleaseControllerTests {
-    static func makePicker(inputResults: [String] = [], selectionIndex: Int = 0, permissionResults: [Bool] = []) -> MockSwiftPicker {
-        MockSwiftPicker(
-            inputResult: .init(type: .ordered(inputResults)),
-            permissionResult: .init(type: .ordered(permissionResults)),
-            selectionResult: .init(defaultSingle: .index(selectionIndex))
-        )
     }
 }
