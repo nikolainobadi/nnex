@@ -33,8 +33,8 @@ extension Nnex.Brew {
         
         @Flag(name: .customLong("skip-tests"), help: "Skips running tests before publishing.")
         var skipTests = false
-        
-        @Flag(name: .long, help: "")
+
+        @Flag(name: .long, help: "Simulates the publish process without making any changes to files or remote repositories.")
         var dryRun = false
 
         func run() throws {
