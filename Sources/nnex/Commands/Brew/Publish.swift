@@ -69,7 +69,8 @@ private extension Nnex.Brew.Publish {
         let dateProvider = DefaultDateProvider()
         let loader = PublishInfoStoreAdapter(context: context)
 
-        let versionController = VersionNumberController(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem)
+        let versionService = AutoVersionHandler(shell: shell, fileSystem: fileSystem)
+        let versionController = VersionNumberController(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, versionService: versionService)
         let buildController = makeBuildController(shell: shell, picker: picker, fileSystem: fileSystem, folderBrowser: folderBrowser)
         let artifactController = makeArtifactController(shell: shell, picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, loader: loader, buildController: buildController)
         let releaseController = GithubReleaseController(picker: picker, gitHandler: gitHandler, fileSystem: fileSystem, dateProvider: dateProvider, folderBrowser: folderBrowser)
@@ -81,6 +82,7 @@ private extension Nnex.Brew.Publish {
 
 
 // MARK: - Extension Dependencies
+extension AutoVersionHandler: VersionNumberService { }
 extension ReleaseVersionInfo: ExpressibleByArgument { }
 extension ReleaseVersionInfo.VersionPart: ExpressibleByArgument { }
 

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  VersionNumberController.swift
 //  nnex
 //
 //  Created by Nikolai Nobadi on 12/13/25.
@@ -12,12 +12,14 @@ struct VersionNumberController {
     private let picker: any NnexPicker
     private let gitHandler: any GitHandler
     private let fileSystem: any FileSystem
+    private let versionService: any VersionNumberService
     
-    init(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, fileSystem: any FileSystem) {
+    init(shell: any NnexShell, picker: any NnexPicker, gitHandler: any GitHandler, fileSystem: any FileSystem, versionService: any VersionNumberService) {
         self.shell = shell
         self.picker = picker
         self.gitHandler = gitHandler
         self.fileSystem = fileSystem
+        self.versionService = versionService
     }
 }
 
@@ -57,21 +59,13 @@ private extension VersionNumberController {
     }
     
     func handleAutoVersionUpdate(releaseVersionString: String, projectPath: String) throws {
-        let autoVersionHandler = AutoVersionHandler(shell: shell, fileSystem: fileSystem)
-        
-        // Try to detect current version in the executable
-        guard let currentVersion = try autoVersionHandler.detectArgumentParserVersion(projectPath: projectPath) else {
-            // No version found in source code, nothing to update
+        guard
+            let currentVersion = try versionService.detectArgumentParserVersion(projectPath: projectPath),
+            versionService.shouldUpdateVersion(currentVersion: currentVersion, releaseVersion: releaseVersionString)
+        else {
             return
         }
         
-        // Check if versions differ
-        guard autoVersionHandler.shouldUpdateVersion(currentVersion: currentVersion, releaseVersion: releaseVersionString) else {
-            // Versions are the same, no update needed
-            return
-        }
-        
-        // Ask user if they want to update the version
         let prompt = """
         
         Current executable version: \(currentVersion.yellow)
@@ -85,7 +79,7 @@ private extension VersionNumberController {
         }
         
         // Update the version in source code
-        guard try autoVersionHandler.updateArgumentParserVersion(projectPath: projectPath, newVersion: releaseVersionString) else {
+        guard try versionService.updateArgumentParserVersion(projectPath: projectPath, newVersion: releaseVersionString) else {
             print("Failed to update version in source code.")
             return
         }
@@ -112,4 +106,12 @@ private extension VersionNumberController {
         let commitMessage = "Update version to \(version)"
         try gitHandler.commitAndPush(message: commitMessage, path: projectPath)
     }
+}
+
+
+// MARK: - Dependencies
+protocol VersionNumberService {
+    func detectArgumentParserVersion(projectPath: String) throws -> String?
+    func shouldUpdateVersion(currentVersion: String, releaseVersion: String) -> Bool
+    func updateArgumentParserVersion(projectPath: String, newVersion: String) throws -> Bool
 }
