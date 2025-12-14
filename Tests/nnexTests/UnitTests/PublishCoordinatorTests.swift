@@ -61,12 +61,16 @@ private extension PublishCoordinatorTests {
         return (sut, delegate)
     }
     
-    func makeReleaseArfifact(version: String) -> ReleaseArtifact {
+    func makeReleaseArfifact(version: String, executableName: String = "App", archives: [ArchivedBinary]? = nil) -> ReleaseArtifact {
         return .init(
             version: version,
             executableName: "App",
-            archives: [.init(originalPath: "/tmp/app", archivePath: "/tmp/app.tar.gz", sha256: "abc123")]
+            archives: archives ?? [makeArchive()]
         )
+    }
+    
+    func makeArchive(originalPath: String = "/tmp/app", archivePath: String = "/tmp/app.tar.gz", sha256: String = "abc123") -> ArchivedBinary {
+        return .init(originalPath: originalPath, archivePath: archivePath, sha256: sha256)
     }
 }
 
