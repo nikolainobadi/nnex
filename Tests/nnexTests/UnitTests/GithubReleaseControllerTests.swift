@@ -90,6 +90,20 @@ extension GithubReleaseControllerTests {
         #expect(noteInfo.content == expectedFilePath)
         #expect(noteInfo.isFromFile == true)
     }
+    
+    @Test("Cancels release when file path from browser is not confirmed")
+    func cancelsReleaseWhenSelectedFileIsNotConfirmed() throws {
+        let expectedFilePath = "/selected/notes.md"
+        let assets = makeAssets()
+        let (sut, gitHandler) = makeSUT(selectionIndex: 1, permissionResults: [false], filePathToReturn: expectedFilePath)
+        let folder = MockDirectory(path: "/project/app")
+
+        #expect(throws: (any Error).self) {
+            _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+        }
+
+        #expect(gitHandler.releaseNoteInfo == nil)
+    }
 
     @Test("Uploads release with path from input")
     func uploadsReleaseWithPathFromInput() throws {
@@ -124,91 +138,122 @@ extension GithubReleaseControllerTests {
 }
 
 
-// MARK: - Release Notes Confirmation
+// MARK: - Move to Trash
 extension GithubReleaseControllerTests {
-    @Test("Prompts confirmation for exact notes")
-    func promptsConfirmationForExactNotes() throws {
-        let expectedNotes = "Release notes content"
-        let assets = makeAssets()
-        let (sut, gitHandler, picker) = makeSUTWithPicker(inputResults: [])
-        let folder = MockDirectory(path: "/project/myapp")
-
-        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: expectedNotes, notesFilePath: nil, projectFolder: folder)
-
-        let permissionPrompts = picker.capturedPermissionPrompts
-        let confirmationPrompt = try #require(permissionPrompts.first)
-
-        #expect(confirmationPrompt.contains("Release Notes:"))
-        #expect(confirmationPrompt.contains(expectedNotes))
-        #expect(confirmationPrompt.contains("Proceed with these release notes?"))
-        #expect(gitHandler.releaseNoteInfo != nil)
-    }
-
-    @Test("Prompts confirmation for file path")
-    func promptsConfirmationForFilePath() throws {
+    @Test("Moves release notes file to trash when confirmed - file path provided")
+    func movesFileToTrashWhenConfirmedWithFilePath() throws {
         let expectedFilePath = "/path/to/notes.md"
         let assets = makeAssets()
-        let (sut, gitHandler, picker) = makeSUTWithPicker(inputResults: [])
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(permissionResults: [true], fileSystem: fileSystem)
         let folder = MockDirectory(path: "/project/app")
 
         _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: expectedFilePath, projectFolder: folder)
 
-        let permissionPrompts = picker.capturedPermissionPrompts
-        let confirmationPrompt = try #require(permissionPrompts.first)
-
-        #expect(confirmationPrompt.contains("Release notes file path:"))
-        #expect(confirmationPrompt.contains(expectedFilePath))
-        #expect(confirmationPrompt.contains("Proceed with this file?"))
-        #expect(gitHandler.releaseNoteInfo != nil)
+        #expect(fileSystem.pathToMoveToTrash == expectedFilePath)
     }
 
-    @Test("Prompts confirmation for interactively entered notes")
-    func promptsConfirmationForInteractiveNotes() throws {
-        let expectedNotes = "Interactive notes"
+    @Test("Does not move file to trash when user declines - file path provided")
+    func doesNotMoveFileToTrashWhenDeclinedWithFilePath() throws {
+        let expectedFilePath = "/path/to/notes.md"
         let assets = makeAssets()
-        let (sut, gitHandler, picker) = makeSUTWithPicker(inputResults: [expectedNotes], selectionIndex: 0)
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(permissionResults: [false], fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: expectedFilePath, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == nil)
+    }
+
+    @Test("Moves release notes file to trash when confirmed - file from browser")
+    func movesFileToTrashWhenConfirmedWithSelectedFile() throws {
+        let expectedFilePath = "/selected/notes.md"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(selectionIndex: 1, permissionResults: [true, true], filePathToReturn: expectedFilePath, fileSystem: fileSystem)
         let folder = MockDirectory(path: "/project/app")
 
         _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
 
-        let permissionPrompts = picker.capturedPermissionPrompts
-        let confirmationPrompt = try #require(permissionPrompts.last)
-
-        #expect(confirmationPrompt.contains("Release Notes:"))
-        #expect(confirmationPrompt.contains(expectedNotes))
-        #expect(confirmationPrompt.contains("Proceed with these release notes?"))
-        #expect(gitHandler.releaseNoteInfo != nil)
+        #expect(fileSystem.pathToMoveToTrash == expectedFilePath)
     }
 
-    @Test("Throws error when user denies confirmation")
-    func throwsErrorWhenUserDeniesConfirmation() throws {
-        let expectedNotes = "Release notes"
+    @Test("Does not move file to trash when user declines - file from browser")
+    func doesNotMoveFileToTrashWhenDeclinedWithSelectedFile() throws {
+        let expectedFilePath = "/selected/notes.md"
         let assets = makeAssets()
-        let (sut, gitHandler) = makeSUT(grantPermission: false)
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(selectionIndex: 1, permissionResults: [true, false], filePathToReturn: expectedFilePath, fileSystem: fileSystem)
         let folder = MockDirectory(path: "/project/app")
 
-        #expect(throws: Error.self) {
-            try sut.uploadRelease(version: "1.0.0", assets: assets, notes: expectedNotes, notesFilePath: nil, projectFolder: folder)
-        }
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
 
-        #expect(gitHandler.releaseNoteInfo == nil)
+        #expect(fileSystem.pathToMoveToTrash == nil)
+    }
+
+    @Test("Moves release notes file to trash when confirmed - path from input")
+    func movesFileToTrashWhenConfirmedWithPathFromInput() throws {
+        let expectedPath = "/entered/path/notes.md"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(inputResults: [expectedPath], selectionIndex: 2, permissionResults: [true], fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == expectedPath)
+    }
+
+    @Test("Does not move file to trash when user declines - path from input")
+    func doesNotMoveFileToTrashWhenDeclinedWithPathFromInput() throws {
+        let expectedPath = "/entered/path/notes.md"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(inputResults: [expectedPath], selectionIndex: 2, permissionResults: [false], fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == nil)
+    }
+
+    @Test("Does not attempt to move to trash when using exact notes")
+    func doesNotMoveToTrashWhenUsingExactNotes() throws {
+        let expectedNotes = "Release notes content"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: expectedNotes, notesFilePath: nil, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == nil)
+    }
+
+    @Test("Does not attempt to move to trash when using direct input notes")
+    func doesNotMoveToTrashWhenUsingDirectInputNotes() throws {
+        let expectedNotes = "Interactive release notes"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(inputResults: [expectedNotes], selectionIndex: 0, fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == nil)
     }
 }
 
 
 // MARK: - SUT
 private extension GithubReleaseControllerTests {
-    func makeSUT(date: Date = Date(), inputResults: [String] = [], selectionIndex: Int = 0, grantPermission: Bool = true, desktop: (any Directory)? = nil, filePathToReturn: String? = nil) -> (sut: GithubReleaseController, gitHandler: MockGitHandler) {
-        let (sut, gitHandler, _) = makeSUTWithPicker(date: date, inputResults: inputResults, selectionIndex: selectionIndex, grantPermission: grantPermission, desktop: desktop, filePathToReturn: filePathToReturn)
-        return (sut, gitHandler)
-    }
-
-    func makeSUTWithPicker(date: Date = Date(), inputResults: [String] = [], selectionIndex: Int = 0, grantPermission: Bool = true, desktop: (any Directory)? = nil, filePathToReturn: String? = nil) -> (sut: GithubReleaseController, gitHandler: MockGitHandler, picker: MockSwiftPicker) {
+    func makeSUT(date: Date = Date(), inputResults: [String] = [], selectionIndex: Int = 0, permissionResults: [Bool] = [true], desktop: (any Directory)? = nil, filePathToReturn: String? = nil, fileSystem: MockFileSystem? = nil) -> (sut: GithubReleaseController, gitHandler: MockGitHandler) {
         let gitHandler = MockGitHandler()
-        let fileSystem = MockFileSystem(desktop: desktop)
+        let fileSystem = fileSystem ?? MockFileSystem(desktop: desktop)
         let picker = MockSwiftPicker(
             inputResult: .init(type: .ordered(inputResults)),
-            permissionResult: .init(defaultValue: grantPermission),
+            permissionResult: .init(type: .ordered(permissionResults)),
             selectionResult: .init(defaultSingle: .index(selectionIndex))
         )
         let folderBrowser = MockDirectoryBrowser(filePathToReturn: filePathToReturn, directoryToReturn: nil)
@@ -221,7 +266,7 @@ private extension GithubReleaseControllerTests {
             folderBrowser: folderBrowser
         )
 
-        return (sut, gitHandler, picker)
+        return (sut, gitHandler)
     }
     
     func makeAssets() -> [ArchivedBinary] {

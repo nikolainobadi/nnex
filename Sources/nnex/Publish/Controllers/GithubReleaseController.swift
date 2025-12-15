@@ -30,14 +30,28 @@ struct GithubReleaseController {
 extension GithubReleaseController {
     func uploadRelease(version: String, assets: [ArchivedBinary], notes: String?, notesFilePath: String?, projectFolder: any Directory) throws -> [String] {
         let noteSource = try selectReleaseNoteSource(notes: notes, notesFilePath: notesFilePath, projectName: projectFolder.name)
+        let assetURLs = try gitHandler.createNewRelease(version: version, archivedBinaries: assets, releaseNoteInfo: noteSource.gitShellInfo, path: projectFolder.path)
         
-        return try gitHandler.createNewRelease(version: version, archivedBinaries: assets, releaseNoteInfo: noteSource.gitShellInfo, path: projectFolder.path)
+        moveNotesToTrashIfNecessary(noteSource: noteSource)
+        
+        return assetURLs
     }
 }
 
 
 // MARK: - Private Methods
 private extension GithubReleaseController {
+    func moveNotesToTrashIfNecessary(noteSource: ReleaseNoteSource) {
+        switch noteSource {
+        case .filePath(let filePath):
+            if picker.getPermission(prompt: "Release notes uploaded. Would you like to move them to the trash?") {
+                try? fileSystem.moveToTrash(at: filePath)
+            }
+        default:
+            break
+        }
+    }
+    
     func selectReleaseNoteSource(notes: String?, notesFilePath: String?, projectName: String) throws -> ReleaseNoteSource {
         let noteSource: ReleaseNoteSource
 
@@ -48,8 +62,6 @@ private extension GithubReleaseController {
         } else {
             noteSource = try selectReleaseNoteSourceInteractively(projectName: projectName)
         }
-
-        try confirmReleaseNoteSource(noteSource)
 
         return noteSource
     }
@@ -62,6 +74,14 @@ private extension GithubReleaseController {
             return .exact(notes)
         case .selectFile:
             let filePath = try folderBrowser.browseForFile(prompt: "Select the file containing your release notes.")
+            let confirmationPrompt = """
+            
+            Release notes file path: \(filePath)
+
+            Proceed with this file?
+            """
+            
+            try picker.requiredPermission(prompt: confirmationPrompt)
 
             return .filePath(filePath)
         case .fromPath:
@@ -89,30 +109,6 @@ private extension GithubReleaseController {
 
             return .filePath(fileName)
         }
-    }
-
-    func confirmReleaseNoteSource(_ source: ReleaseNoteSource) throws {
-        let confirmationPrompt: String
-
-        switch source {
-        case .exact(let notes):
-            confirmationPrompt = """
-
-            Release Notes:
-            \(notes)
-
-            Proceed with these release notes?
-            """
-        case .filePath(let filePath):
-            confirmationPrompt = """
-
-            Release notes file path: \(filePath)
-
-            Proceed with this file?
-            """
-        }
-
-        try picker.requiredPermission(prompt: confirmationPrompt)
     }
 }
 
