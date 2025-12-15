@@ -32,6 +32,8 @@ extension GithubReleaseController {
         let noteSource = try selectReleaseNoteSource(notes: notes, notesFilePath: notesFilePath, projectName: projectFolder.name)
         let assetURLs = try gitHandler.createNewRelease(version: version, archivedBinaries: assets, releaseNoteInfo: noteSource.gitShellInfo, path: projectFolder.path)
         
+        moveNotesToTrashIfNecessary(noteSource: noteSource)
+        
         return assetURLs
     }
 }
@@ -39,6 +41,17 @@ extension GithubReleaseController {
 
 // MARK: - Private Methods
 private extension GithubReleaseController {
+    func moveNotesToTrashIfNecessary(noteSource: ReleaseNoteSource) {
+        switch noteSource {
+        case .filePath(let filePath):
+            if picker.getPermission(prompt: "Release notes uploaded. Would you like to move them to the trash?") {
+                try? fileSystem.moveToTrash(at: filePath)
+            }
+        default:
+            break
+        }
+    }
+    
     func selectReleaseNoteSource(notes: String?, notesFilePath: String?, projectName: String) throws -> ReleaseNoteSource {
         let noteSource: ReleaseNoteSource
 

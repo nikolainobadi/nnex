@@ -95,7 +95,7 @@ extension GithubReleaseControllerTests {
     func cancelsReleaseWhenSelectedFileIsNotConfirmed() throws {
         let expectedFilePath = "/selected/notes.md"
         let assets = makeAssets()
-        let (sut, gitHandler) = makeSUT(selectionIndex: 1, grantPermission: false, filePathToReturn: expectedFilePath)
+        let (sut, gitHandler) = makeSUT(selectionIndex: 1, permissionResults: [false], filePathToReturn: expectedFilePath)
         let folder = MockDirectory(path: "/project/app")
 
         #expect(throws: (any Error).self) {
@@ -140,12 +140,12 @@ extension GithubReleaseControllerTests {
 
 // MARK: - SUT
 private extension GithubReleaseControllerTests {
-    func makeSUT(date: Date = Date(), inputResults: [String] = [], selectionIndex: Int = 0, grantPermission: Bool = true, desktop: (any Directory)? = nil, filePathToReturn: String? = nil) -> (sut: GithubReleaseController, gitHandler: MockGitHandler) {
+    func makeSUT(date: Date = Date(), inputResults: [String] = [], selectionIndex: Int = 0, permissionResults: [Bool] = [true], desktop: (any Directory)? = nil, filePathToReturn: String? = nil) -> (sut: GithubReleaseController, gitHandler: MockGitHandler) {
         let gitHandler = MockGitHandler()
         let fileSystem = MockFileSystem(desktop: desktop)
         let picker = MockSwiftPicker(
             inputResult: .init(type: .ordered(inputResults)),
-            permissionResult: .init(defaultValue: grantPermission),
+            permissionResult: .init(type: .ordered(permissionResults)),
             selectionResult: .init(defaultSingle: .index(selectionIndex))
         )
         let folderBrowser = MockDirectoryBrowser(filePathToReturn: filePathToReturn, directoryToReturn: nil)
