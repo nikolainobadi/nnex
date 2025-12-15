@@ -67,7 +67,7 @@ private extension GithubReleaseController {
     }
 
     func selectReleaseNoteSourceInteractively(projectName: String) throws -> ReleaseNoteSource {
-        switch try picker.requiredSingleSelection("How would you like to add your release notes for \(projectName)?", items: NoteContentType.allCases) {
+        switch try picker.requiredSingleSelection("How would you like to add your release notes for \(projectName)?", items: NoteContentType.allCases, showSelectedItemText: false) {
         case .direct:
             let notes = try picker.getRequiredInput(prompt: "Enter your release notes.")
 
