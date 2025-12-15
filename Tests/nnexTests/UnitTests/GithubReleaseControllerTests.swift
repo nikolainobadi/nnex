@@ -138,11 +138,119 @@ extension GithubReleaseControllerTests {
 }
 
 
+// MARK: - Move to Trash
+extension GithubReleaseControllerTests {
+    @Test("Moves release notes file to trash when confirmed - file path provided")
+    func movesFileToTrashWhenConfirmedWithFilePath() throws {
+        let expectedFilePath = "/path/to/notes.md"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(permissionResults: [true], fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: expectedFilePath, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == expectedFilePath)
+    }
+
+    @Test("Does not move file to trash when user declines - file path provided")
+    func doesNotMoveFileToTrashWhenDeclinedWithFilePath() throws {
+        let expectedFilePath = "/path/to/notes.md"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(permissionResults: [false], fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: expectedFilePath, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == nil)
+    }
+
+    @Test("Moves release notes file to trash when confirmed - file from browser")
+    func movesFileToTrashWhenConfirmedWithSelectedFile() throws {
+        let expectedFilePath = "/selected/notes.md"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(selectionIndex: 1, permissionResults: [true, true], filePathToReturn: expectedFilePath, fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == expectedFilePath)
+    }
+
+    @Test("Does not move file to trash when user declines - file from browser")
+    func doesNotMoveFileToTrashWhenDeclinedWithSelectedFile() throws {
+        let expectedFilePath = "/selected/notes.md"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(selectionIndex: 1, permissionResults: [true, false], filePathToReturn: expectedFilePath, fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == nil)
+    }
+
+    @Test("Moves release notes file to trash when confirmed - path from input")
+    func movesFileToTrashWhenConfirmedWithPathFromInput() throws {
+        let expectedPath = "/entered/path/notes.md"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(inputResults: [expectedPath], selectionIndex: 2, permissionResults: [true], fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == expectedPath)
+    }
+
+    @Test("Does not move file to trash when user declines - path from input")
+    func doesNotMoveFileToTrashWhenDeclinedWithPathFromInput() throws {
+        let expectedPath = "/entered/path/notes.md"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(inputResults: [expectedPath], selectionIndex: 2, permissionResults: [false], fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == nil)
+    }
+
+    @Test("Does not attempt to move to trash when using exact notes")
+    func doesNotMoveToTrashWhenUsingExactNotes() throws {
+        let expectedNotes = "Release notes content"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: expectedNotes, notesFilePath: nil, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == nil)
+    }
+
+    @Test("Does not attempt to move to trash when using direct input notes")
+    func doesNotMoveToTrashWhenUsingDirectInputNotes() throws {
+        let expectedNotes = "Interactive release notes"
+        let assets = makeAssets()
+        let fileSystem = MockFileSystem()
+        let (sut, _) = makeSUT(inputResults: [expectedNotes], selectionIndex: 0, fileSystem: fileSystem)
+        let folder = MockDirectory(path: "/project/app")
+
+        _ = try sut.uploadRelease(version: "1.0.0", assets: assets, notes: nil, notesFilePath: nil, projectFolder: folder)
+
+        #expect(fileSystem.pathToMoveToTrash == nil)
+    }
+}
+
+
 // MARK: - SUT
 private extension GithubReleaseControllerTests {
-    func makeSUT(date: Date = Date(), inputResults: [String] = [], selectionIndex: Int = 0, permissionResults: [Bool] = [true], desktop: (any Directory)? = nil, filePathToReturn: String? = nil) -> (sut: GithubReleaseController, gitHandler: MockGitHandler) {
+    func makeSUT(date: Date = Date(), inputResults: [String] = [], selectionIndex: Int = 0, permissionResults: [Bool] = [true], desktop: (any Directory)? = nil, filePathToReturn: String? = nil, fileSystem: MockFileSystem? = nil) -> (sut: GithubReleaseController, gitHandler: MockGitHandler) {
         let gitHandler = MockGitHandler()
-        let fileSystem = MockFileSystem(desktop: desktop)
+        let fileSystem = fileSystem ?? MockFileSystem(desktop: desktop)
         let picker = MockSwiftPicker(
             inputResult: .init(type: .ordered(inputResults)),
             permissionResult: .init(type: .ordered(permissionResults)),
@@ -157,7 +265,7 @@ private extension GithubReleaseControllerTests {
             dateProvider: dateProvider,
             folderBrowser: folderBrowser
         )
-        
+
         return (sut, gitHandler)
     }
     
