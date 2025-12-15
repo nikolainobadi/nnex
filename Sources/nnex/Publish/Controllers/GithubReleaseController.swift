@@ -30,8 +30,9 @@ struct GithubReleaseController {
 extension GithubReleaseController {
     func uploadRelease(version: String, assets: [ArchivedBinary], notes: String?, notesFilePath: String?, projectFolder: any Directory) throws -> [String] {
         let noteSource = try selectReleaseNoteSource(notes: notes, notesFilePath: notesFilePath, projectName: projectFolder.name)
+        let assetURLs = try gitHandler.createNewRelease(version: version, archivedBinaries: assets, releaseNoteInfo: noteSource.gitShellInfo, path: projectFolder.path)
         
-        return try gitHandler.createNewRelease(version: version, archivedBinaries: assets, releaseNoteInfo: noteSource.gitShellInfo, path: projectFolder.path)
+        return assetURLs
     }
 }
 
@@ -49,8 +50,6 @@ private extension GithubReleaseController {
             noteSource = try selectReleaseNoteSourceInteractively(projectName: projectName)
         }
 
-        try confirmReleaseNoteSource(noteSource)
-
         return noteSource
     }
 
@@ -62,6 +61,14 @@ private extension GithubReleaseController {
             return .exact(notes)
         case .selectFile:
             let filePath = try folderBrowser.browseForFile(prompt: "Select the file containing your release notes.")
+            let confirmationPrompt = """
+            
+            Release notes file path: \(filePath)
+
+            Proceed with this file?
+            """
+            
+            try picker.requiredPermission(prompt: confirmationPrompt)
 
             return .filePath(filePath)
         case .fromPath:
@@ -89,30 +96,6 @@ private extension GithubReleaseController {
 
             return .filePath(fileName)
         }
-    }
-
-    func confirmReleaseNoteSource(_ source: ReleaseNoteSource) throws {
-        let confirmationPrompt: String
-
-        switch source {
-        case .exact(let notes):
-            confirmationPrompt = """
-
-            Release Notes:
-            \(notes)
-
-            Proceed with these release notes?
-            """
-        case .filePath(let filePath):
-            confirmationPrompt = """
-
-            Release notes file path: \(filePath)
-
-            Proceed with this file?
-            """
-        }
-
-        try picker.requiredPermission(prompt: confirmationPrompt)
     }
 }
 
