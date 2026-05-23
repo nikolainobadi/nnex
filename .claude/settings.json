@@ -1,0 +1,8 @@
+{
+  "enabledPlugins": {
+    "NnScaffold@nelix-swift-tools": true,
+    "NnShellKit@nelix-swift-tools": true,
+    "NnTesting@nelix-swift-tools": true,
+    "SwiftPickerKit@nelix-swift-tools": true
+  }
+}
